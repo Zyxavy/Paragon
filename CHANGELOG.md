@@ -9,9 +9,15 @@
 - Simplified API Worker to single-instance deployment (removed `env.production` block, no more `--env production` flag)
 - Remaining: delete old `polaris-*` Cloudflare resources after confirming new deployment is stable
 
-### MVP Milestone: P0 Complete
+### Slice 14: Built-in Template Library (Backend)
 
-All 14 slices of the P0 scope are implemented. The core product loop (sign-up -> create system -> schedule -> daily dashboard -> review -> write-back) works end-to-end with CI, deployment, and a first security/disaster-recovery sweep complete. P1 work (templates, AI, remaining widgets, attachments) begins next.
+- Seeded 3 built-in templates (Reading System, Studying System, Workout System) verbatim from ADR-002 S6.3 in `0016_seed_builtin_templates.sql`.
+- Created `packages/api/src/routes/templates.ts`:
+  - `GET /api/templates` — paginated list with optional `?source=built_in|user` filter; omitting the filter returns both together (built-ins first, then user templates, alphabetical within groups).
+  - `GET /api/templates/:id` — single template lookup scoped to `(user_id IS NULL OR user_id = ?)`.
+- Added `POST /api/systems/:id/save-as-template` to systems router: snapshots all 7 field values (purpose, philosophy, protocol, floor_action, trigger, barrier_list, environment_cue) into a new `templates` row with `source: 'user'`. `name` optional in body, defaults to the system's name.
+- Created `packages/api/src/__tests__/templates.spec.ts`: 7 integration tests covering built-in seeding, source filtering, user-template isolation, `GET /:id`, field-level snapshot verification, and snapshot independence (mutate system after save → template unaffected).
+- **Integration test count:** 119 → 127
 
 ---
 
