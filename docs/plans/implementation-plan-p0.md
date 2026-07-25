@@ -127,6 +127,8 @@ No PR needed for this slice — it's infra, not code. Move straight to Slice 1.
 
 Only migrate the tables P0 actually needs. Skip `attachments` (0011), skip the built-in template seed (0012) — the empty `templates` table is still needed for the FK, but no seed data yet since templates-as-a-feature is P1.
 
+> **Update (P1 complete):** The built-in template seed was later added as `0016_seed_builtin_templates.sql` (Slice 14). Attachments remain deferred. The gap was filled out of order per P1's migration-numbering convention.
+
 ### Migration files to create (in this order, per D1 Schema S6.2)
 
 ```
@@ -141,7 +143,7 @@ packages/api/migrations/
 ├── 0008_timer_sessions.sql
 ├── 0009_widget_entries.sql
 ├── 0010_reviews.sql
-└── 0013_recovery_codes.sql   # numbered 0013 to match the doc's final plan; the gap (0011/0012) is intentional and filled in later slices
+└── 0013_recovery_codes.sql   # numbered 0013 to match the doc's final plan; the gap (0011/0012) was intentional and later filled as 0016_seed_builtin_templates.sql in P1
 ```
 
 Copy each `CREATE TABLE` statement verbatim from D1 Schema ADR S3.1–3.7, S2.1 (`recovery_codes`), and S6.1 (the `PRAGMA foreign_keys = ON` in `0001`). Don't hand-modify column types or constraints — if something looks wrong, flag it to me before deviating; the schema doc is deliberately the single source of truth other docs reference.

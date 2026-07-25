@@ -511,17 +511,21 @@ Design override: `design-system/paragon/pages/system-creator.md`. This page is a
 
 ```
 +page.svelte
-├── <TemplatePicker templates onSelect />       -- built-ins + user templates, GET /api/templates
+├── <TemplatePicker onSelect />                 -- built-ins + user templates, GET /api/templates
+│   └── passes templateDefaults (defaults prop) to SystemForm via $effect
 ├── <AIDraftPanel onDraft />                    -- "Draft with AI" button + prompt, POST /api/ai/draft-system
-└── <SystemForm>
+└── <SystemForm defaults={templateDefaults}>
     ├── field groups: Purpose, Philosophy, Protocol, Floor Action, Trigger, Barrier List, Environment Cue, Schedule
+    ├── $effect watches defaults prop, populates $state fields reactively
     ├── autosave: debounced PATCH on every field change (AUTOSAVE_DEBOUNCE_MS)
     └── <ConfirmButton onClick={() => confirmSystem(id)} />  -- POST /api/systems/:id/confirm
 ```
 
-`<TemplatePicker>` and `<AIDraftPanel>` both write into the same `<SystemForm>` field state rather than bypassing it -- this implements PRD 6.1's "AI output never bypasses the form" and PRD 5.6's "clone at instantiation, fully editable" for templates. Neither component ever calls `POST /api/systems` itself.
+`<TemplatePicker>` and `<AIDraftPanel>` both write into the same `<SystemForm>` field state (via the `defaults` prop) rather than bypassing it -- this implements PRD 6.1's "AI output never bypasses the form" and PRD 5.6's "clone at instantiation, fully editable" for templates. Neither component ever calls `POST /api/systems` itself.
 
-The edit route (`/systems/[id]/edit`) reuses `<SystemForm>` pre-filled from the existing System record, with the same autosave pattern.
+The System Detail page (`/systems/[id]`) includes a "Save as Template" action button that opens a `<Modal>` dialog, prompting for a template name and calling `POST /api/systems/:id/save-as-template` on confirm.
+
+The edit route (`/systems/[id]/edit`) reuses `<SystemForm>` pre-filled from the existing System record (passes the system data as `defaults`), with the same autosave pattern.
 
 ### 7.3 Workspace Builder (`(app)/systems/[id]/workspace/+page.svelte`)
 
