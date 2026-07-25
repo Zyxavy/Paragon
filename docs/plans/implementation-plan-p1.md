@@ -23,7 +23,7 @@ D1 Schema S6.2's original plan assumed `0011_attachments.sql` and `0012_seed_bui
 **Branch:** `feat/templates-builtin`
 **Docs:** PRD S5.6, S9 (the three template bodies, verbatim), D1 Schema S3.5 + S6.3 (seed SQL), `api-routes.md` S7.
 
-### Tasks
+### Tasks 
 
 1. `packages/api/migrations/0017_seed_builtin_templates.sql`: copy the three `INSERT INTO templates` statements verbatim from D1 Schema S6.3 (Reading System, Studying System, Workout System). `templates` table itself already exists from `0004_templates.sql` (P0): this migration only seeds rows.
 2. `packages/api/src/routes/templates.ts`: `GET /api/templates` (optional `?source=built_in|user` filter, otherwise both together, built-ins first per `api-routes.md` S7) and `GET /api/templates/:id`. Both are `user_id IS NULL OR user_id = ?` scoped reads: not the standard ownership-scoped-mutation pattern, since built-ins have no owner.
