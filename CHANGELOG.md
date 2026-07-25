@@ -9,6 +9,19 @@
 - Simplified API Worker to single-instance deployment (removed `env.production` block, no more `--env production` flag)
 - Remaining: delete old `polaris-*` Cloudflare resources after confirming new deployment is stable
 
+### Slice 15: Template Picker (Frontend)
+
+- Created `packages/web/src/lib/api/templates.ts` — `getTemplates()` and `getTemplate()` typed wrappers, `saveAsTemplate()` for user templates.
+- Created `packages/web/src/lib/components/TemplatePicker.svelte` — collapsible grid showing up to 6 template cards with name, category, and description; selected template fills SystemForm via callback.
+- Created `packages/web/src/lib/components/Modal.svelte` — reusable modal dialog (`role="document"`, Escape-to-close) for "Save as Template" prompt.
+- Updated `SystemForm.svelte` — added reactive `defaults` prop that populates form fields via `$effect` when `defaults` changes.
+- Updated `new/+page.svelte` — renders TemplatePicker above SystemForm; on template selection, passes template fields as `templateDefaults` to SystemForm.
+- Updated `[id]/+page.svelte` — added "Save as Template" action button that opens Modal with name input; calls `saveAsTemplate()` on confirm.
+- Updated `toast.svelte.ts` — exports `addToast()` for success/error feedback.
+- Created `TemplatePicker.svelte.spec.ts` — 2 unit tests (renders built-in list, selection callback).
+- Created `templates.e2e.ts` — E2E template picker flow.
+- **Test count:** 127 API + 9 web unit tests.
+
 ### Slice 14: Built-in Template Library (Backend)
 
 - Seeded 3 built-in templates (Reading System, Studying System, Workout System) verbatim from ADR-002 S6.3 in `0016_seed_builtin_templates.sql`.

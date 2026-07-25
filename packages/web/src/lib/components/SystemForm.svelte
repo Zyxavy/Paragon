@@ -5,9 +5,23 @@
     import { AUTOSAVE_DEBOUNCE_MS } from './system-form.config';
     import SchedulePicker from './SchedulePicker.svelte';
 
-    let { system: initial }: { system?: System | null } = $props();
+
+    let { system: initial, defaults: defaultsProp }: {
+      system?: System | null;
+      defaults?: {
+          name?: string;
+          purpose?: string;
+          philosophy?: string;
+          protocol?: string;
+          floor_action?: string;
+          trigger?: string;
+          barrier_list?: string[];
+          environment_cue?: string;
+      };
+    } = $props();
     const snap = (() => ({ ...initial }))();
 
+    let lastDefaultsKey = $state<string | null>(null);
     let systemId = $state<string | null>(snap?.id ?? null);
     let name = $state(snap?.name ?? '');
     let domain = $state(snap?.domain ?? '');
@@ -19,6 +33,24 @@
     let barrier_list = $state<string[]>(snap?.barrier_list ?? []);
     let barrierInput = $state('');
     let environment_cue = $state(snap?.environment_cue ?? '');
+
+    $effect(() => {
+        if (defaultsProp) {
+            const key = JSON.stringify(defaultsProp);
+            if (key !== lastDefaultsKey) {
+                lastDefaultsKey = key;
+                systemId = null;
+                name = defaultsProp.name ?? '';
+                purpose = defaultsProp.purpose ?? '';
+                philosophy = defaultsProp.philosophy ?? '';
+                protocol = defaultsProp.protocol ?? '';
+                floor_action = defaultsProp.floor_action ?? '';
+                trigger = defaultsProp.trigger ?? '';
+                barrier_list = defaultsProp.barrier_list ?? [];
+                environment_cue = defaultsProp.environment_cue ?? '';
+            }
+        }
+    });
 
     let confirmError = $state<string | null>(null);
     let saving = $state(false);
