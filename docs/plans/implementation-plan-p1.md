@@ -18,7 +18,7 @@ D1 Schema S6.2's original plan assumed `0011_attachments.sql` and `0012_seed_bui
 
 ---
 
-## Slice 14: Built-in Template Library (Backend)
+<!-- ## Slice 14: Built-in Template Library (Backend)
 
 **Branch:** `feat/templates-builtin`
 **Docs:** PRD S5.6, S9 (the three template bodies, verbatim), D1 Schema S3.5 + S6.3 (seed SQL), `api-routes.md` S7.
@@ -41,7 +41,7 @@ D1 Schema S6.2's original plan assumed `0011_attachments.sql` and `0012_seed_bui
 - [ ] `default_philosophy` on all three seeds is non-empty but generic, per D1 Schema S6.3's note (don't shortcut this to `''`).
 - [ ] Save-as-template snapshot independence verified by a test, not just inspection.
 
-**PR:** `feat/templates-builtin` > `main`.
+**PR:** `feat/templates-builtin` > `main`. -->
 
 ---
 
