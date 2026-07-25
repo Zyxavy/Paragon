@@ -45,7 +45,7 @@ D1 Schema S6.2's original plan assumed `0011_attachments.sql` and `0012_seed_bui
 
 ---
 
-## Slice 15: Template Picker (Frontend) + System Creator Wiring
+<!-- ## Slice 15: Template Picker (Frontend) + System Creator Wiring
 
 **Branch:** `feat/template-picker`
 **Docs:** PRD S6.1 (flow 2), `design-system/paragon/pages/system-creator.md` (the `<details>` Template Picker section, stubbed out in P0), `component-inventory.md` (`TemplatePicker.svelte`).
@@ -67,7 +67,7 @@ D1 Schema S6.2's original plan assumed `0011_attachments.sql` and `0012_seed_bui
 - [ ] Template selection never calls a save endpoint directly: verified by checking the network tab in the E2E flow or by asserting on a mocked `createSystem`/`patchSystem` call count in a unit test.
 - [ ] E2E flow passes.
 
-**PR:** `feat/template-picker` > `main`.
+**PR:** `feat/template-picker` > `main`. -->
 
 ---
 
