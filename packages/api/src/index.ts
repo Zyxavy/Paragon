@@ -17,6 +17,7 @@ import timerSessionRoutes from './routes/timer-sessions';
 import checklistRoutes from './routes/checklist';
 import journalLogRoutes from './routes/journal-log';
 import reviewsRoutes, { reviewDayRoutes } from './routes/reviews';
+import templatesRoutes from './routes/templates';
 import { getMongoClient } from './lib/mongo';
 import type { JournalRetryMessage } from './routes/journal-log';
 
@@ -67,6 +68,9 @@ app.route('/api/schedules', schedulesRoutes);
 
 // Dashboard
 app.route('/api/dashboard', dashboardRoutes);
+
+// Templates
+app.route('/api/templates', templatesRoutes);
 
 // Instances
 app.route('/api/instances', instanceRoutes);

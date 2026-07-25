@@ -227,4 +227,51 @@ app.post('/:id/archive', async (c) => {
     return c.json(parseSystemRow(updated));
 });
 
+app.post('/:id/save-as-template', async (c) => {
+    const userId = c.get('user').id;
+    const db = c.env.DB;
+    const system = await getOwnedSystem(db, c.req.param('id'), userId);
+
+    if (!system) {
+        return c.json({ error: 'not_found', message: 'System not found.' }, 404);
+    }
+
+    const body = await c.req.json<any>();
+    const id = crypto.randomUUID();
+    const now = new Date().toISOString();
+    const name = body.name?.trim() || system.name;
+
+    await db.prepare(`
+        INSERT INTO templates (id, user_id, name, source, default_purpose, default_philosophy,
+          default_protocol, default_floor_action, default_trigger_pattern, default_barrier_list,
+          default_environment_cue, suggested_widgets, created_at, updated_at)
+        VALUES (?, ?, ?, 'user', ?, ?, ?, ?, ?, ?, ?, '[]', ?, ?)
+    `).bind(
+        id,
+        userId,
+        name,
+        system.purpose,
+        system.philosophy,
+        system.protocol,
+        system.floor_action,
+        system.trigger,
+        JSON.stringify(system.barrier_list),
+        system.environment_cue,
+        now,
+        now,
+    ).run();
+
+    const row = await db.prepare('SELECT * FROM templates WHERE id = ?').bind(id).first<any>();
+    const template = {
+        ...row,
+        default_barrier_list: typeof row.default_barrier_list === 'string'
+            ? JSON.parse(row.default_barrier_list) : row.default_barrier_list,
+        suggested_widgets: typeof row.suggested_widgets === 'string'
+            ? JSON.parse(row.suggested_widgets) : row.suggested_widgets,
+    };
+
+    return c.json(template, 201);
+});
+
+
 export default app;
