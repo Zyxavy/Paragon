@@ -4,6 +4,8 @@
 
 Build systems that survive your worst days. Log daily. Review weekly.
 
+**Website:** [paragon.kelpselp.workers.dev](https://paragon.kelpselp.workers.dev)
+
 **Implementation status:** Current
 
 ---

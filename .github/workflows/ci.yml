@@ -1,5 +1,19 @@
 name: CI
-on: [push, pull_request]
+on:
+  push:
+    paths:
+      - 'package.json'
+      - 'pnpm-workspace.yaml'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/ci.yml'
+      - 'packages/**'
+  pull_request:
+    paths:
+      - 'package.json'
+      - 'pnpm-workspace.yaml'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/ci.yml'
+      - 'packages/**'
 
 jobs:
   test:
