@@ -41,5 +41,9 @@
       "bucket_name": "paragon-attachments",
       "binding": "ATTACHMENTS"
     }
-  ]
+  ],
+
+  "ai": {
+  "binding": "AI"
+}
 }

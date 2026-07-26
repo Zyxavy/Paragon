@@ -44,6 +44,8 @@ The goal is to make the unit layer fast enough to run constantly, the integratio
 
 **Setup:** `packages/api/vitest.config.ts` uses the `@cloudflare/vitest-pool-workers` pool, pointed at the same `wrangler.jsonc` as the deployment. D1 in tests uses an in-memory SQLite database seeded from the migration files in `packages/api/migrations/`.
 
+**Important:** if the Wrangler config declares an `ai` binding (Workers AI), set `remoteBindings: false` in the vitest config to prevent the pool from attempting a remote proxy connection to Cloudflare's API. AI bindings have no local Miniflare simulator — they are always mocked at the binding level in tests (see §4.2).
+
 ```typescript
 // packages/api/vitest.config.ts
 import { cloudflareTest, readD1Migrations } from '@cloudflare/vitest-pool-workers';
@@ -54,9 +56,18 @@ export default defineConfig(async () => {
   return {
     plugins: [
       cloudflareTest({
+        remoteBindings: false, // required when wrangler.jsonc declares `ai`
         wrangler: { configPath: './wrangler.jsonc' },
         miniflare: {
           d1Databases: { DB: 'test-db' },
+          bindings: {
+              BETTER_AUTH_SECRET: 'paragon-test-secret-32-characters-min!',
+              BETTER_AUTH_URL: 'http://localhost:8787',
+              MONGODB_URI: 'mongodb://localhost:27017/paragon',
+          },
+          queues: {
+              'paragon-journal-retry': { binding: 'JOURNAL_RETRY_QUEUE' },
+          },
         },
       }),
     ],
@@ -171,16 +182,30 @@ The debounce interval must be a named constant (`AUTOSAVE_DEBOUNCE_MS`) exported
 
 Real Workers AI calls must never run in automated tests - they consume Neuron quota and require network access. All AI calls are mocked at the `env.AI.run` level.
 
-In integration tests via `@cloudflare/vitest-pool-workers`, Workers AI bindings can be overridden in the Miniflare config with a stub:
+Workers AI bindings have **no local simulator** in Miniflare. As of `@cloudflare/vitest-pool-workers@^0.8.1`, Miniflare creates a stub `env.AI` binding automatically when the binding is declared in `wrangler.jsonc`, but any calls to it would hit the remote Cloudflare API unless mocked.
 
-```typescript
-// In test setup
-const mockAI = {
-  run: vi.fn().mockResolvedValue({
-    response: '<think>reasoning here</think>\n{"name":"Reading System","floor_action":"Read one paragraph",...}'
-  })
-};
-```
+**Two things are required:**
+
+1. **Prevent remote proxy connections** in `vitest.config.ts`:
+   ```typescript
+   cloudflareTest({
+     remoteBindings: false, // prevents attempt to connect to Cloudflare API
+     wrangler: { configPath: './wrangler.jsonc' },
+   })
+   ```
+
+2. **Spy on the binding's `run` method** in test files using `vi.spyOn`, not a mock object:
+   ```typescript
+   import { env } from "cloudflare:workers";
+
+   vi.spyOn(env.AI, "run").mockResolvedValue({
+     response: '<think>reasoning here</think>\n{"name":"Reading System","floor_action":"Read one paragraph",...}'
+   });
+   ```
+
+   This works because `env` from `cloudflare:workers` is the same binding object that route handlers receive. The spy intercepts `c.env.AI.run()` calls inside the handler.
+
+**Why not construct a mock AI object?** The old approach of building a separate `{ run: vi.fn() }` mock and injecting it via a custom env object is no longer needed. Miniflare's `wrangler.unstable_getMiniflareWorkerOptions()` now generates an `env.AI` stub automatically from the wrangler config. `vi.spyOn(env.AI, "run")` directly replaces its implementation without changing the binding object shape.
 
 The `stripThinkTokens` and `parseSystemDraft` functions are unit-tested independently with real input strings (including malformed `<think>` blocks, missing closing tags, and valid JSON after the think block).
 
