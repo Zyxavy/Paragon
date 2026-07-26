@@ -2,6 +2,38 @@
 
 ## [Unreleased]
 
+### Slice 16: AI-Assisted Creation (Frontend + Backend)
+
+#### Backend
+
+- Added `ai` binding to `packages/api/wrangler.jsonc` (`AI` binding for Workers AI).
+- Created `packages/api/src/ai/prompts/system-prompt.v1.ts` — system prompt for the DeepSeek R1 Distill 32B model, encoding the five-step framework.
+- Created `packages/api/src/ai/prompts/index.ts` — barrel export of `SYSTEM_PROMPT_CURRENT`.
+- Created `packages/api/src/ai/parse.ts` — `stripThinkTokens()`, `parseSystemDraft()`, `AIParseError`.
+- Created `packages/api/src/routes/ai.ts` — `POST /api/ai/draft-system` with 3 error paths: `ai_unavailable` (503 quota), `ai_parse_failed` (502 malformed), `ai_error` (502 other). Prompt validation rejects <5 or >400 chars (400 `invalid_input`).
+- Mounted `aiRouter` in `packages/api/src/index.ts` behind `requireAuth`.
+
+#### Frontend
+
+- Created `packages/web/src/lib/api/ai.ts` — `draftSystem(prompt)` typed wrapper via `apiFetch`.
+- Created `packages/web/src/lib/components/AIDraftPanel.svelte` — collapsible `<details>` panel with textarea + "Draft" button; three states: normal (input), loading (disabled + "Drafting..."), ai_unavailable (inline notice, panel hidden for session).
+- Updated `packages/web/src/routes/(app)/systems/new/+page.svelte` — wired AIDraftPanel alongside TemplatePicker; both feed into SystemForm's `defaults` prop (AI output never bypasses the form per ADR 003 S1).
+
+#### Tests
+
+- Created `packages/api/src/ai/__tests__/parse.test.ts` — 10 unit tests for `stripThinkTokens` (with/without think block, malformed, empty) and `parseSystemDraft` (valid JSON, missing field, garbage).
+- Created `packages/api/src/__tests__/ai.spec.ts` — 6 integration tests mocking `env.AI.run()` at Miniflare binding level: success (200 with draft), quota 4006 (503), neuron message (503), parse failure (502), short/long prompt (400).
+
+#### Docs
+
+- Updated `README.md` — AI moved from "Planned" to "Current".
+- Updated `docs/reference/ai-workers.md` — status from "Draft / Planned" to "Current / Live".
+- Updated `docs/reference/api-routes.md` — S10 AI Assist marked live, route inventory updated.
+- Updated `docs/reference/testing-strategy.md` — AI tests marked live.
+- Updated `design-system/paragon/pages/system-creator.md` — AIDraftPanel section updated to match actual `<details>` collapse implementation.
+- Updated `design-system/paragon/component-inventory.md` — AIDraftPanel props corrected to `ondraft?: (draft: SystemDraft) => void`.
+- **Test count:** 133 → 153 API integration, 7 web unit.
+
 ### Project Rename: Polaris -> Paragon
 
 - Renamed every reference across code, infra, docs, and design system: `polaris-` worker/D1/R2/queue names -> `paragon-`, `POLARIS-` recovery codes -> `PARAGON-`, `Polaris` project name -> `Paragon`

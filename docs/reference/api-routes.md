@@ -6,7 +6,7 @@
 
 **Status:** Draft -- v1 scope
 
-**Implementation status:** Partially Implemented (S2–S8 live; S9 Attachments, S10 AI Assist, S11 Workspace Templates are P1 — not yet implemented)
+**Implementation status:** Partially Implemented (auth + systems + schedules + dashboard/instances + cron + workspace + MongoDB/log + reviews + templates + AI draft live; S9 Attachments and S11 Workspace Templates are P1 — not yet implemented)
 
 **Last updated:** July 22, 2026
 
@@ -617,7 +617,7 @@ Response 400: { "error": "file_too_large" }   // 10 MB limit, checked before R2 
 
 ## 10. AI Assist
 
-Already fully specified in the [AI Workers reference](ai-workers.md) S5 (`POST /api/ai/draft-system`) -- not repeated here. Included in this document's route inventory (S11) for completeness only.
+Fully specified in the [AI Workers reference](ai-workers.md). The single route (`POST /api/ai/draft-system`) is listed in the route inventory below. **Status:** live (Slice 16).
 
 ---
 

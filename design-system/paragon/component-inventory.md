@@ -151,10 +151,11 @@ type Props = {
 **Props:**
 ```ts
 type Props = {
-  onDraft: (prompt: string) => Promise<DraftResult>;
+  ondraft?: (draft: SystemDraft) => void;
 };
 ```
-**Design ref:** `system-creator.md` — prompt input + "Draft" gradient button
+**Internal state:** `prompt: string`, `loading: boolean`, `aiUnavailable: boolean` (session-persistent flag — hides panel on 503), `error: string | null`
+**Design ref:** `system-creator.md` — collapsible `<details>` element, prompt textarea + "Draft" gradient button; inline notice on quota exhaustion
 
 #### `SystemForm.svelte`
 **Page:** System Creator, System Edit

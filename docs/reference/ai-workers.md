@@ -3,9 +3,9 @@
 **Project:** *Paragon*
 
 **Document type:** AI feature implementation reference - covers model selection, prompt design, response parsing, system prompt versioning, free-tier budget, and the Hono route implementation.
-**Status:** Draft - v1 scope
+**Status:** Current — v1 implemented
 
-**Implementation status:** Planned / Target Architecture
+**Implementation status:** Live
 
 **Last updated:** July 2, 2026
 

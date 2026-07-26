@@ -13,20 +13,20 @@ Build systems that survive your worst days. Log daily. Review weekly.
 | Layer | Choice | Status |
 |---|---|---|
 | Frontend | SvelteKit (CSR/SPA) + Tailwind CSS | Active |
-| Backend API | Hono (TypeScript) on Cloudflare Workers | Active (auth + systems CRUD) |
+| Backend API | Hono (TypeScript) on Cloudflare Workers | Active (auth + systems CRUD + AI draft) |
 | Primary database | Cloudflare D1 (SQLite) | Configured (binding exists) |
 | File storage | Cloudflare R2 | Configured (binding exists) |
 | Auth | Better Auth (self-hosted on D1) | Active |
+| AI | Workers AI (`@cf/deepseek-ai/deepseek-r1-distill-qwen-32b`) | Active (system draft endpoint) |
+| Scheduling | Cloudflare Cron Triggers | Active (nightly instance pre-generation) |
+| Message queue | Cloudflare Queues | Active (journal retry) |
 | Monorepo | pnpm workspaces | Active |
 
 ## Tech Stack (Planned)
 
 | Layer | Choice | Status |
 |---|---|---|
-| Secondary database | MongoDB Atlas (journal/reflections only) | Design complete, not yet implemented |
-| AI | Workers AI (`@cf/deepseek-ai/deepseek-r1-distill-qwen-32b`) | Design complete, not yet implemented |
-| Scheduling | Cloudflare Cron Triggers | Design complete, not yet implemented |
-| Message queue | Cloudflare Queues | Design complete, not yet implemented |
+| Secondary database | MongoDB Atlas (journal/reflections only) | Live (journal writes + queue fallback) |
 
 ## Documentation
 

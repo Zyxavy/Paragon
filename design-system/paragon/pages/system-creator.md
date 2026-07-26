@@ -40,25 +40,39 @@ Single scrollable form with stepper-styled section markers — not a gated wizar
     </div>
   </details>
 
-  <!-- AI Draft panel -->
-  <div class="mb-8 bg-surface-container-low rounded-xl p-5">
-    <h3 class="font-body text-sm font-semibold text-on-surface mb-3">Draft with AI</h3>
-    <div class="flex gap-3">
-      <input type="text" bind:value={aiPrompt}
-             placeholder="Describe your system in a sentence..."
-             class="flex-1 px-4 py-3 bg-surface-container-lowest text-on-surface
-                    border border-border rounded-xl text-sm
-                    focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
-                    placeholder:text-muted-foreground" />
-      <button onclick={handleAIDraft}
-              class="bg-gradient-to-br from-primary to-primary-container text-on-primary
-                     px-5 py-3 rounded-2xl font-semibold text-sm
-                     transition-all duration-200 hover:opacity-90 active:scale-[0.98]
-                     cursor-pointer">
-        Draft
-      </button>
+  <!-- AI Draft panel (collapsible) -->
+  <details class="mb-6 group">
+    <summary class="font-body text-sm font-semibold text-primary cursor-pointer select-none
+                    hover:text-primary/80 transition-colors">
+      Draft with AI
+    </summary>
+    <div class="mt-3">
+      {#if aiUnavailable}
+        <p class="text-sm text-on-surface-muted font-body">
+          AI assist is unavailable today. You can still create your system
+          manually — all fields are editable.
+        </p>
+      {:else}
+        <textarea bind:value={aiPrompt}
+                  rows="3"
+                  class="block w-full rounded-md border-border bg-surface text-on-surface
+                         px-3 py-2 text-sm font-body focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="Describe the system you want to build... e.g. 'I want to read more before bed'">
+        </textarea>
+        {#if error}
+          <p class="mt-2 text-sm text-destructive font-body">{error}</p>
+        {/if}
+        <button onclick={handleAIDraft}
+                disabled={loading || aiPrompt.trim().length < 5}
+                class="mt-3 rounded-2xl bg-gradient-to-br from-primary to-primary-container
+                       text-on-primary px-5 py-2.5 text-sm font-body font-semibold
+                       disabled:opacity-50 transition-all duration-200
+                       hover:opacity-90 active:scale-[0.98] cursor-pointer">
+          {loading ? 'Drafting...' : 'Draft'}
+        </button>
+      {/if}
     </div>
-  </div>
+  </details>
 
   <!-- Main form -->
   <form class="flex flex-col gap-10">
