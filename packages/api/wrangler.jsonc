@@ -44,6 +44,6 @@
   ],
 
   "ai": {
-  "binding": "AI"
-}
+    "binding": "AI"
+  }
 }
