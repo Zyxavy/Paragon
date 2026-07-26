@@ -490,7 +490,7 @@ webServer: [
 Also added `dev:e2e` script to `packages/api/package.json` for manual runs:
 
 ```bash
-pnpm dev:e2e  # applies migrations + starts wrangler dev on port 8787
+pnpm dev:e2e  # applies migrations + starts wrangler dev on port 8787 (uses wrangler.e2e.jsonc to omit AI binding)
 ```
 
 ---

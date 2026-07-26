@@ -181,7 +181,7 @@ Each package has its own scripts in its `package.json`:
     "lint": "eslint src/",
     "test:unit": "vitest run",
     "test:int": "vitest run",
-    "dev:e2e": "wrangler d1 migrations apply DB --local && wrangler dev --port 8787"
+    "dev:e2e": "wrangler d1 migrations apply DB --local --config wrangler.e2e.jsonc && wrangler dev --port 8787 --config wrangler.e2e.jsonc"
   }
 }
 
@@ -435,6 +435,8 @@ wrangler d1 migrations apply DB --local
 ### 7.4 AI local development
 
 Workers AI calls (`env.AI.run()`) are **not emulated by Miniflare**. In local development, the AI route either calls the real Workers AI endpoint (if the environment has an active Workers AI account with remaining quota) or returns an error. To work on the System Creator's AI flow without burning neuron quota against a real model, the frontend can bypass the AI route entirely and type manual field values into the form.
+
+**E2E tests** use `wrangler.e2e.jsonc` — a separate wrangler config that omits the `ai` binding entirely. This prevents `wrangler dev` from attempting a remote proxy connection to Cloudflare's API during CI runs (which would fail without `CLOUDFLARE_API_TOKEN`). The E2E test suite does not cover the AI draft flow (per `testing-strategy.md` S3.3), so excluding the binding has no coverage impact.
 
 ---
 
