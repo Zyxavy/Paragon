@@ -1,4 +1,4 @@
-# Polaris — P0 Implementation Plan
+# Paragon: P0 Implementation Plan
 
 **Implementation status:** Current
 
@@ -33,21 +33,21 @@ You said pnpm is ready but wrangler isn't initialized and Atlas isn't set up. Do
 2. Cloudflare resources (via `wrangler` CLI, run from `packages/api` once scaffolded):
 
    ```bash
-   wrangler d1 create polaris-db-dev
-   wrangler d1 create polaris-db
-   wrangler r2 bucket create polaris-attachments   # created now even though unused until P1, cheap and matches ADR S5.7 scope
-   wrangler r2 bucket create polaris-backups       # for disaster-recovery.md S1.1
-   wrangler queues create polaris-journal-retry
+   wrangler d1 create paragon-db-dev
+   wrangler d1 create paragon-db
+   wrangler r2 bucket create paragon-attachments   # created now even though unused until P1, cheap and matches ADR S5.7 scope
+   wrangler r2 bucket create paragon-backups       # for disaster-recovery.md S1.1
+   wrangler queues create paragon-journal-retry
    ```
 
    Record the returned `database_id` values — you'll paste them into `wrangler.jsonc` in Slice 1.
-3. MongoDB Atlas: create a free M0 cluster, a database user, and get the connection string. Don't put it anywhere in git — you'll set it via `wrangler secret put` once the API worker exists (Slice 9, when the Log widget needs it). For local dev, you'll run Mongo in Docker instead (`docker run -d -p 27017:27017 --name polaris-mongo-dev mongo:7`) — do this now if Docker is available, or defer until Slice 9.
+3. MongoDB Atlas: create a free M0 cluster, a database user, and get the connection string. Don't put it anywhere in git — you'll set it via `wrangler secret put` once the API worker exists (Slice 9, when the Log widget needs it). For local dev, you'll run Mongo in Docker instead (`docker run -d -p 27017:27017 --name paragon-mongo-dev mongo:7`) — do this now if Docker is available, or defer until Slice 9.
 4. GitHub repo: confirm branch protection on `main` (require PR, no direct push) since AGENTS.md mandates this — this is a GitHub setting, not code.
 5. Do **not** set `CLOUDFLARE_API_TOKEN` as a GitHub Actions secret yet — that's Slice 12 (CI/CD), once there's something to deploy.
 
 ### Definition of Done for this slice
 
-- [x] Two D1 databases exist (`polaris-db-dev`, `polaris-db`), IDs recorded somewhere safe (not committed).
+- [x] Two D1 databases exist (`paragon-db-dev`, `paragon-db`), IDs recorded somewhere safe (not committed).
 - [x] R2 buckets and the Queue exist.
 - [x] Atlas cluster reachable (test with `mongosh "<connection-string>"` once you have it).
 - [x] Branch protection enabled on `main`.
@@ -92,7 +92,7 @@ No PR needed for this slice — it's infra, not code. Move straight to Slice 1.
    ```
 
    Then per `sveltekit-route-architecture.md` S8.3, install `@sveltejs/adapter-static` and configure it exactly as shown there (`fallback: 'index.html'`). Set `export const ssr = false; export const prerender = false;` in the root `+layout.ts` per S1.
-4. Tailwind CSS in `packages/web` per `design-system/polaris/MASTER.md` — install Tailwind v4, wire the `data-theme` attribute strategy, add the color palette table from MASTER.md into `tailwind.config.js` (or CSS `@theme` block if using Tailwind v4's CSS-first config — confirm against the installed Tailwind version's docs, don't guess).
+4. Tailwind CSS in `packages/web` per `design-system/paragon/MASTER.md` — install Tailwind v4, wire the `data-theme` attribute strategy, add the color palette table from MASTER.md into `tailwind.config.js` (or CSS `@theme` block if using Tailwind v4's CSS-first config — confirm against the installed Tailwind version's docs, don't guess).
 5. Root `package.json` scripts per `cicd-deploy.md` S3.1:
 
    ```jsonc
@@ -127,6 +127,8 @@ No PR needed for this slice — it's infra, not code. Move straight to Slice 1.
 
 Only migrate the tables P0 actually needs. Skip `attachments` (0011), skip the built-in template seed (0012) — the empty `templates` table is still needed for the FK, but no seed data yet since templates-as-a-feature is P1.
 
+> **Update (P1 complete):** The built-in template seed was later added as `0016_seed_builtin_templates.sql` (Slice 14). Attachments remain deferred. The gap was filled out of order per P1's migration-numbering convention.
+
 ### Migration files to create (in this order, per D1 Schema S6.2)
 
 ```
@@ -141,7 +143,7 @@ packages/api/migrations/
 ├── 0008_timer_sessions.sql
 ├── 0009_widget_entries.sql
 ├── 0010_reviews.sql
-└── 0013_recovery_codes.sql   # numbered 0013 to match the doc's final plan; the gap (0011/0012) is intentional and filled in later slices
+└── 0013_recovery_codes.sql   # numbered 0013 to match the doc's final plan; the gap (0011/0012) was intentional and later filled as 0016_seed_builtin_templates.sql in P1
 ```
 
 Copy each `CREATE TABLE` statement verbatim from D1 Schema ADR S3.1–3.7, S2.1 (`recovery_codes`), and S6.1 (the `PRAGMA foreign_keys = ON` in `0001`). Don't hand-modify column types or constraints — if something looks wrong, flag it to me before deviating; the schema doc is deliberately the single source of truth other docs reference.
@@ -192,14 +194,14 @@ This is the first slice with a real end-to-end vertical: sign-up → session →
    Apply locally, confirm `user`/`session`/`account`/`verification` tables exist.
 4. Mount `/api/auth/*` in `packages/api/src/index.ts` per S1.2.
 5. `requireAuth` middleware per S1.3, applied to all of `/api/*` except `/api/auth/*`.
-6. `recovery_codes` table already exists from Slice 2 (migration `0013`) — implement the sign-up flow's code generation (`POST /api/recovery-codes/generate`) and display (`GET /api/recovery-codes`) per S5.2. Code format `POLARIS-XXXX-XXXX` via `crypto.randomUUID()` truncation — no external dependency.
+6. `recovery_codes` table already exists from Slice 2 (migration `0013`) — implement the sign-up flow's code generation (`POST /api/recovery-codes/generate`) and display (`GET /api/recovery-codes`) per S5.2. Code format `PARAGON-XXXX-XXXX` via `crypto.randomUUID()` truncation — no external dependency.
 7. `POST /api/auth/recover` custom route per S5.2, registered **before** the Better Auth catch-all — copy the handler logic from S5.2 (email lookup → recovery code match → mark used → hash new password via Better Auth's exported hash function → update `account.password`).
 8. Rate-limiting: per `security-review.md` S1, no lockout counter is required for v1 (risk accepted) — don't build one now, it's explicitly deferred.
 
 ### Frontend tasks
 
 1. `packages/web/src/lib/auth-client.ts` per S4.1.
-2. `(auth)` route group: `sign-up/+page.svelte`, `sign-in/+page.svelte` per `design-system/polaris/pages/sign-in.md` and `sign-up.md`. Include the recovery-codes modal shown once at sign-up (sign-up.md's modal spec) — this is the user's only chance to save them before they scroll past.
+2. `(auth)` route group: `sign-up/+page.svelte`, `sign-in/+page.svelte` per `design-system/paragon/pages/sign-in.md` and `sign-up.md`. Include the recovery-codes modal shown once at sign-up (sign-up.md's modal spec) — this is the user's only chance to save them before they scroll past.
 3. `(auth)/+layout.svelte` — auth guard redirecting signed-in users to `/guides` per `sveltekit-route-architecture.md` S3.4. (`/guides` itself doesn't need to exist yet with real content — a placeholder page satisfies this slice; full Guides content can be a small follow-up, it's static and low-risk.)
 4. `(app)/+layout.ts` auth guard per S3.3 — redirects to `/sign-in` if no session. You'll need at least a placeholder `(app)/+layout.svelte` nav shell (can be minimal — full NavBar polish is fine to defer to Slice 11).
 5. `apiFetch` wrapper (`packages/web/src/lib/api/client.ts`) per `sveltekit-route-architecture.md` S6 — every future slice's frontend depends on this existing correctly now, including `credentials: 'include'`.
@@ -207,7 +209,7 @@ This is the first slice with a real end-to-end vertical: sign-up → session →
 ### Tests
 
 - **Integration (`@cloudflare/vitest-pool-workers`):** sign-up → session cookie set → `GET /api/systems` (once it exists, or a stub authenticated route) returns 200; sign-out invalidates session; unauthenticated request to a guarded route returns 401; recovery flow: generate codes → use one → verify old password no longer works, new one does → verify used code can't be reused.
-- **Unit:** recovery code format generator (regex match `POLARIS-[A-Z0-9]{4}-[A-Z0-9]{4}`).
+- **Unit:** recovery code format generator (regex match `Paragon-[A-Z0-9]{4}-[A-Z0-9]{4}`).
 - **E2E (Playwright, P0 flow #1 from `testing-strategy.md` S3.3):** sign up → lands on `/guides` → sign out → sign in → lands on `/dashboard` (dashboard can 404/placeholder at this point, just confirm the redirect target).
 
 ### Definition of Done
@@ -225,7 +227,7 @@ This is the first slice with a real end-to-end vertical: sign-up → session →
 ## Slice 4 — Systems CRUD (System Creator, manual only)
 
 **Branch:** `feat/system-creator`
-**Docs:** PRD S5.1, S6.1 (flow 1 only — "from scratch"; skip flows 2/3, templates and AI), `api-routes.md` S2, D1 Schema S5 (autosave/`floor_action` resolution), `design-system/polaris/pages/system-creator.md` (minus the Template Picker and AI Draft panel sections — don't build those yet), `sveltekit-route-architecture.md` S7.2.
+**Docs:** PRD S5.1, S6.1 (flow 1 only — "from scratch"; skip flows 2/3, templates and AI), `api-routes.md` S2, D1 Schema S5 (autosave/`floor_action` resolution), `design-system/paragon/pages/system-creator.md` (minus the Template Picker and AI Draft panel sections — don't build those yet), `sveltekit-route-architecture.md` S7.2.
 
 ### Backend tasks
 
@@ -246,8 +248,8 @@ This is the first slice with a real end-to-end vertical: sign-up → session →
 2. Debounced autosave: first tick calls `POST /api/systems` (no id yet), subsequent ticks call `PATCH /api/systems/:id`, per `api-routes.md` S2.2 and `system-creator.md`'s autosave section. Export `AUTOSAVE_DEBOUNCE_MS` as a named constant (testing-strategy.md S4.1 requires this for fake-timer tests).
 3. `/systems/new/+page.svelte` — mounts `SystemForm`, no template picker / AI panel yet (defer those `<details>` and AI sections from the design doc).
 4. "Confirm system" button calls `POST /api/systems/:id/confirm`, surfaces `floor_action_required` (422) as an inline field error per `loading-states.md` S2.3.
-5. `/systems/+page.svelte` — Systems List per `design-system/polaris/pages/systems-list.md` (the streak-count footer can show `0`/hide until Slice 6 gives you real instance data).
-6. `/systems/[id]/+layout.ts` + `+layout.svelte` (tab shell) and `/systems/[id]/+page.svelte` (Overview tab) per `sveltekit-route-architecture.md` S2.2 and `design-system/polaris/pages/system-detail.md`. Workspace/Reviews tabs can 404/placeholder — those are Slices 8 and 10.
+5. `/systems/+page.svelte` — Systems List per `design-system/paragon/pages/systems-list.md` (the streak-count footer can show `0`/hide until Slice 6 gives you real instance data).
+6. `/systems/[id]/+layout.ts` + `+layout.svelte` (tab shell) and `/systems/[id]/+page.svelte` (Overview tab) per `sveltekit-route-architecture.md` S2.2 and `design-system/paragon/pages/system-detail.md`. Workspace/Reviews tabs can 404/placeholder — those are Slices 8 and 10.
 7. `/systems/[id]/edit/+page.svelte` reusing `SystemForm` pre-filled, per `system-edit.md`. -->
 
 <!-- ### Tests
@@ -303,7 +305,7 @@ Small, focused slice — wires the stub from Slice 4 into something real.
 <!-- ## Slice 6 — Dashboard & Instances (lazy generation)
 
 **Branch:** `feat/dashboard`
-**Docs:** PRD S5.3, S6.3, `api-routes.md` S4.1–4.4 (the generation-logic SQL is copy-this-closely, it's already CPU-budget-optimized), `design-system/polaris/pages/dashboard.md`, `loading-states.md` (Dashboard rows).
+**Docs:** PRD S5.3, S6.3, `api-routes.md` S4.1–4.4 (the generation-logic SQL is copy-this-closely, it's already CPU-budget-optimized), `design-system/paragon/pages/dashboard.md`, `loading-states.md` (Dashboard rows).
 
 This is the highest-value P0 slice — the daily-use loop.
 
@@ -371,7 +373,7 @@ Small slice, reuses Slice 6's service function almost entirely — mostly wiring
 ## Slice 8 — Workspace + D1-backed Widgets (Timer, Counter, Checklist)
 
 **Branch:** `feat/workspace-core-widgets` 
-**Docs:** PRD S5.4–S5.5, D1 Schema S3.3.1 + S3.4, `api-routes.md` S5–S6.1/6.2/6.3, `design-system/polaris/pages/workspace-builder.md`, `component-inventory.md` (Workspace components).
+**Docs:** PRD S5.4–S5.5, D1 Schema S3.3.1 + S3.4, `api-routes.md` S5–S6.1/6.2/6.3, `design-system/paragon/pages/workspace-builder.md`, `component-inventory.md` (Workspace components).
 
 The Log/Journal widget (Mongo-backed) is deliberately split into its own slice (9) — everything here is D1-only, which keeps this slice's infra surface small.
 
@@ -421,10 +423,10 @@ This is the one slice that touches infrastructure not yet exercised (Mongo drive
 ### Backend
 
 1. `pnpm add mongodb` in `packages/api` (pre-approved per AGENTS.md).
-2. Wire `MONGODB_URI` secret (`wrangler secret put MONGODB_URI` for prod; `mongodb://localhost:27017/polaris` for local dev per MongoDB Schema S8 — start the Docker container from Slice 0 if you haven't yet).
+2. Wire `MONGODB_URI` secret (`wrangler secret put MONGODB_URI` for prod; `mongodb://localhost:27017/Paragon` for local dev per MongoDB Schema S8 — start the Docker container from Slice 0 if you haven't yet).
 3. `journal_entries` collection — apply the validator from MongoDB Schema S3.1 once, locally, via `mongosh`.
 4. A Log widget content route (design it consistent with the Checklist/Notes `PUT`-per-widget pattern already established — something like `POST /api/instances/:instance_id/journal/:widget_id` for a new entry, `GET /api/systems/:system_id/journal/:widget_id?...` for history). **This route isn't specified verbatim in `api-routes.md`** — that doc's S10/S11 inventory doesn't list a Log-widget-specific route, which looks like a gap in the docs rather than an intentional omission (Log is explicitly a P0 widget in the PRD). Flag this to me when you reach this slice and I'll help you design the exact contract consistent with the rest of S6 before you build it, rather than guessing.
-5. Write path per ADR 001 S5.5 exactly: attempt direct Mongo write → on success, write the `widget_entries` pointer row (`entry_type: 'log_meta'`, `data: {"mongo_id": "..."}`) to D1 → 200. On Mongo write failure → enqueue to `polaris-journal-retry` → 202, D1 pointer row is **not** written yet (it can't be, you don't have the Mongo `_id`) — the Queue consumer must write both the Mongo document *and* the D1 pointer row on successful retry. This two-write coordination on the retry path isn't fully spelled out in the docs either — work through it with me before implementing, since getting the pointer-row timing wrong breaks the "seam" MongoDB Schema S2 describes.
+5. Write path per ADR 001 S5.5 exactly: attempt direct Mongo write → on success, write the `widget_entries` pointer row (`entry_type: 'log_meta'`, `data: {"mongo_id": "..."}`) to D1 → 200. On Mongo write failure → enqueue to `paragon-journal-retry` → 202, D1 pointer row is **not** written yet (it can't be, you don't have the Mongo `_id`) — the Queue consumer must write both the Mongo document *and* the D1 pointer row on successful retry. This two-write coordination on the retry path isn't fully spelled out in the docs either — work through it with me before implementing, since getting the pointer-row timing wrong breaks the "seam" MongoDB Schema S2 describes.
 6. Queue consumer (`queue` export in the same Worker) per ADR 001 S5.5 steps 4–5, retries with backoff, dead-letter queue is inspected manually (no code needed for that part).
 
 ### Frontend 
@@ -451,7 +453,7 @@ This is the one slice that touches infrastructure not yet exercised (Mongo drive
 <!-- ## Slice 10 — Reviews (per-System) + Review Day
 
 **Branch:** `feat/reviews`
-**Docs:** PRD S5.7, S6.4, D1 Schema S3.6, `api-routes.md` S8, `design-system/polaris/pages/per-system-review.md` and `review-day.md`.
+**Docs:** PRD S5.7, S6.4, D1 Schema S3.6, `api-routes.md` S8, `design-system/paragon/pages/per-system-review.md` and `review-day.md`.
 
 This is the slice that "closes the loop" per the product's core thesis — don't rush it.
 
@@ -490,7 +492,7 @@ This is the slice that "closes the loop" per the product's core thesis — don't
 ## Slice 11 — Frontend Polish Pass
 
 **Branch:** `feat/ui-polish`
-**Docs:** `design-system/polaris/MASTER.md` (Pre-Delivery Checklist at the bottom), `loading-states.md` (full doc), `layout-specs.md`, `responsive-specs.md`.
+**Docs:** `design-system/paragon/MASTER.md` (Pre-Delivery Checklist at the bottom), `loading-states.md` (full doc), `layout-specs.md`, `responsive-specs.md`.
 
 By now every P0 route exists functionally but was built slice-by-slice with placeholder chrome in places (NavBar, Guides content, some empty/error states deferred). This slice is a deliberate sweep, not new features.
 
@@ -557,7 +559,7 @@ This is the "is P0 actually done" gate before you consider starting P1 (template
 ### Definition of Done
 
 - [ ] Every Definition of Done checklist item confirmed true across P0, or explicitly noted as skipped-with-reason.
-- [ ] First production D1 backup exists in `polaris-backups`.
+- [ ] First production D1 backup exists in `paragon-backups`.
 - [ ] Dependabot alerts on.
 
 **PR:** `chore/p0-hardening` → `main`. **P0 is complete once this merges.** -->

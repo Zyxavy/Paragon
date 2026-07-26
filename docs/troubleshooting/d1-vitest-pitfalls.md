@@ -490,7 +490,7 @@ webServer: [
 Also added `dev:e2e` script to `packages/api/package.json` for manual runs:
 
 ```bash
-pnpm dev:e2e  # applies migrations + starts wrangler dev on port 8787
+pnpm dev:e2e  # applies migrations + starts wrangler dev on port 8787 (uses wrangler.e2e.jsonc to omit AI binding)
 ```
 
 ---
@@ -523,7 +523,7 @@ return betterAuth({
   baseURL: env.BETTER_AUTH_URL || process.env.BETTER_AUTH_URL || 'http://localhost:8787',
   emailAndPassword: { enabled: true, requireEmailVerification: false },
   session: { expiresIn: 60 * 60 * 24 * 30, updateAge: 60 * 60 * 24 },
-  trustedOrigins: ['http://localhost:5173', 'https://polaris.kelpselp.workers.dev'],
+  trustedOrigins: ['http://localhost:5173', 'https://paragon.kelpselp.workers.dev'],
 });
 ```
 

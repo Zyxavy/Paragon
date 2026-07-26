@@ -2,11 +2,71 @@
 
 ## [Unreleased]
 
-### MVP Milestone: P0 Complete
+### Slice 16: AI-Assisted Creation (Frontend + Backend)
 
-All 14 slices of the P0 scope are implemented. The core product loop (sign-up → create system → schedule → daily dashboard → review → write-back) works end-to-end with CI, deployment, and a first security/disaster-recovery sweep complete. P1 work (templates, AI, remaining widgets, attachments) begins next.
+#### Backend
+
+- Added `ai` binding to `packages/api/wrangler.jsonc` (`AI` binding for Workers AI).
+- Created `packages/api/src/ai/prompts/system-prompt.v1.ts` — system prompt for the DeepSeek R1 Distill 32B model, encoding the five-step framework.
+- Created `packages/api/src/ai/prompts/index.ts` — barrel export of `SYSTEM_PROMPT_CURRENT`.
+- Created `packages/api/src/ai/parse.ts` — `stripThinkTokens()`, `parseSystemDraft()`, `AIParseError`.
+- Created `packages/api/src/routes/ai.ts` — `POST /api/ai/draft-system` with 3 error paths: `ai_unavailable` (503 quota), `ai_parse_failed` (502 malformed), `ai_error` (502 other). Prompt validation rejects <5 or >400 chars (400 `invalid_input`).
+- Mounted `aiRouter` in `packages/api/src/index.ts` behind `requireAuth`.
+
+#### Frontend
+
+- Created `packages/web/src/lib/api/ai.ts` — `draftSystem(prompt)` typed wrapper via `apiFetch`.
+- Created `packages/web/src/lib/components/AIDraftPanel.svelte` — collapsible `<details>` panel with textarea + "Draft" button; three states: normal (input), loading (disabled + "Drafting..."), ai_unavailable (inline notice, panel hidden for session).
+- Updated `packages/web/src/routes/(app)/systems/new/+page.svelte` — wired AIDraftPanel alongside TemplatePicker; both feed into SystemForm's `defaults` prop (AI output never bypasses the form per ADR 003 S1).
+
+#### Tests
+
+- Created `packages/api/src/ai/__tests__/parse.test.ts` — 10 unit tests for `stripThinkTokens` (with/without think block, malformed, empty) and `parseSystemDraft` (valid JSON, missing field, garbage).
+- Created `packages/api/src/__tests__/ai.spec.ts` — 6 integration tests mocking `env.AI.run()` at Miniflare binding level: success (200 with draft), quota 4006 (503), neuron message (503), parse failure (502), short/long prompt (400).
+
+#### Docs
+
+- Updated `README.md` — AI moved from "Planned" to "Current".
+- Updated `docs/reference/ai-workers.md` — status from "Draft / Planned" to "Current / Live".
+- Updated `docs/reference/api-routes.md` — S10 AI Assist marked live, route inventory updated.
+- Updated `docs/reference/testing-strategy.md` — AI tests marked live.
+- Updated `design-system/paragon/pages/system-creator.md` — AIDraftPanel section updated to match actual `<details>` collapse implementation.
+- Updated `design-system/paragon/component-inventory.md` — AIDraftPanel props corrected to `ondraft?: (draft: SystemDraft) => void`.
+- **Test count:** 133 → 153 API integration, 7 web unit.
+
+### Project Rename: Polaris -> Paragon
+
+- Renamed every reference across code, infra, docs, and design system: `polaris-` worker/D1/R2/queue names -> `paragon-`, `POLARIS-` recovery codes -> `PARAGON-`, `Polaris` project name -> `Paragon`
+- Created new Cloudflare resources: `paragon-db-dev`, `paragon-db`, `paragon-attachments`, `paragon-backups`, `paragon-journal-retry`
+- Simplified API Worker to single-instance deployment (removed `env.production` block, no more `--env production` flag)
+- Remaining: delete old `polaris-*` Cloudflare resources after confirming new deployment is stable
+
+### Slice 15: Template Picker (Frontend)
+
+- Created `packages/web/src/lib/api/templates.ts` — `getTemplates()` and `getTemplate()` typed wrappers, `saveAsTemplate()` for user templates.
+- Created `packages/web/src/lib/components/TemplatePicker.svelte` — collapsible grid showing up to 6 template cards with name, category, and description; selected template fills SystemForm via callback.
+- Created `packages/web/src/lib/components/Modal.svelte` — reusable modal dialog (`role="document"`, Escape-to-close) for "Save as Template" prompt.
+- Updated `SystemForm.svelte` — added reactive `defaults` prop that populates form fields via `$effect` when `defaults` changes.
+- Updated `new/+page.svelte` — renders TemplatePicker above SystemForm; on template selection, passes template fields as `templateDefaults` to SystemForm.
+- Updated `[id]/+page.svelte` — added "Save as Template" action button that opens Modal with name input; calls `saveAsTemplate()` on confirm.
+- Updated `toast.svelte.ts` — exports `addToast()` for success/error feedback.
+- Created `TemplatePicker.svelte.spec.ts` — 2 unit tests (renders built-in list, selection callback).
+- Created `templates.e2e.ts` — E2E template picker flow.
+- **Test count:** 127 API + 9 web unit tests.
+
+### Slice 14: Built-in Template Library (Backend)
+
+- Seeded 3 built-in templates (Reading System, Studying System, Workout System) verbatim from ADR-002 S6.3 in `0016_seed_builtin_templates.sql`.
+- Created `packages/api/src/routes/templates.ts`:
+  - `GET /api/templates` — paginated list with optional `?source=built_in|user` filter; omitting the filter returns both together (built-ins first, then user templates, alphabetical within groups).
+  - `GET /api/templates/:id` — single template lookup scoped to `(user_id IS NULL OR user_id = ?)`.
+- Added `POST /api/systems/:id/save-as-template` to systems router: snapshots all 7 field values (purpose, philosophy, protocol, floor_action, trigger, barrier_list, environment_cue) into a new `templates` row with `source: 'user'`. `name` optional in body, defaults to the system's name.
+- Created `packages/api/src/__tests__/templates.spec.ts`: 7 integration tests covering built-in seeding, source filtering, user-template isolation, `GET /:id`, field-level snapshot verification, and snapshot independence (mutate system after save → template unaffected).
+- **Integration test count:** 119 → 127
 
 ---
+
+## P0:
 
 ### Slice 0: Repo & Cloud Bootstrap
 
@@ -34,7 +94,7 @@ All 14 slices of the P0 scope are implemented. The core product loop (sign-up �
   - Dark mode CSS variable overrides
   - Loaded Manrope + Plus Jakarta Sans via Google Fonts
   - Custom ambient shadows (`shadow-ambient-*`)
-- Added Vite dev proxy (`/api/*` → `http://localhost:8787`)
+- Added Vite dev proxy (`/api/*` -> `http://localhost:8787`)
 - Added root `package.json` scripts: `deploy`, `deploy:migrations`, `deploy:api`, `deploy:web`
 - Set up Vitest + `@cloudflare/vitest-pool-workers` in `packages/api` (v0.17.0, using new `cloudflareTest()` plugin API)
 - Cleaned up scaffold artifacts: removed `wrangler types` from web build/check scripts, removed `worker-configuration.d.ts` type reference from web `tsconfig.json`
@@ -159,13 +219,13 @@ All 14 slices of the P0 scope are implemented. The core product loop (sign-up �
 #### Tests
 
 - Created `packages/api/src/__tests__/systems.spec.ts`: 16 integration tests against real D1 (via `@cloudflare/vitest-pool-workers`):
-  - 2 create tests (success + missing name → 400)
+  - 2 create tests (success + missing name -> 400)
   - 2 list tests (owned list + status filter)
-  - 2 single-get tests (owned → 200 + non-owned → 404)
-  - 3 patch tests (partial update + empty floor_action accepted + non-owned → 404)
-  - 3 confirm tests (empty floor_action → 422 + non-empty → 200 + non-owned → 404)
-  - 3 archive tests (success → archived + already archived → 409 + non-owned → 404)
-  - 1 unauthenticated test (no session → 401)
+  - 2 single-get tests (owned -> 200 + non-owned -> 404)
+  - 3 patch tests (partial update + empty floor_action accepted + non-owned -> 404)
+  - 3 confirm tests (empty floor_action -> 422 + non-empty -> 200 + non-owned -> 404)
+  - 3 archive tests (success -> archived + already archived -> 409 + non-owned -> 404)
+  - 1 unauthenticated test (no session -> 401)
   - Why: full boundary coverage for every status code in the API contract; ownership-scoped non-owned tests return 404 per S1.5 to avoid leaking existence info.
 - Created `packages/web/src/lib/components/SystemForm.svelte.spec.ts`: unit test with Vitest fake timers (`vi.useFakeTimers()` / `advanceTimersByTimeAsync`) verifying autosave fires after `AUTOSAVE_DEBOUNCE_MS` and does not fire before. Why: debounce behavior is timing-sensitive and would be flaky in E2E; fake timers make it deterministic.
 - Created `packages/web/src/routes/(app)/systems/systems.e2e.ts`: Playwright E2E for P0 flow #2: create system from scratch (navigate to New, fill name + floor_action, confirm, verify success toast and redirect to the detail page). Why: validates the full stack from form submission through API to toast notification.
@@ -176,7 +236,7 @@ All 14 slices of the P0 scope are implemented. The core product loop (sign-up �
 #### Docs
 
 - Updated `docs/reference/auth-integration.md` §1.3 to match the `requireAuth` early-return implementation.
-- Updated `AGENTS.md` test count (8 → 24) and added `requireAuth` early-return pattern to the Auth conventions section.
+- Updated `AGENTS.md` test count (8 -> 24) and added `requireAuth` early-return pattern to the Auth conventions section.
 - Updated `AGENTS.md` snapshot with full Slice 4 progress status (done, blocked, key decisions, critical context).
 
 ---
@@ -222,7 +282,7 @@ All 14 slices of the P0 scope are implemented. The core product loop (sign-up �
 - Created `packages/api/src/routes/dashboard.ts`: `GET /api/dashboard` — the single most important route. Calls `getDashboardData`, returns instances with flat system fields (`name`, `domain`, `floor_action` from SQL `JOIN`), no pagination (bounded by active system count per S1.6 exclusion).
 - Created `packages/api/src/routes/instances.ts`:
   - `GET /api/instances/:id` — ownership-scoped single Instance lookup
-  - `PATCH /api/instances/:id` — state transition (`pending` → `full`/`floor`/`missed`), accepts optional `notes`. Rejects `state: "pending"` with 422. Ownership-scoped via `getOwnedInstance` JOIN through `systems.user_id`.
+  - `PATCH /api/instances/:id` — state transition (`pending` -> `full`/`floor`/`missed`), accepts optional `notes`. Rejects `state: "pending"` with 422. Ownership-scoped via `getOwnedInstance` JOIN through `systems.user_id`.
 - Added `getOwnedInstance` to `packages/api/src/lib/ownership.ts` (SELECT from instances JOIN systems WHERE instances.id = ? AND systems.user_id = ?).
 - Mounted dashboard and instances routes in `packages/api/src/index.ts`.
 
@@ -241,7 +301,7 @@ All 14 slices of the P0 scope are implemented. The core product loop (sign-up �
   - Generation creates one `pending` instance for an active system with today's schedule
   - Generation is idempotent — second call returns `{ created: 0 }`, no duplicate row
   - `GET /api/instances/:id` returns 200 for owned, 404 for non-owned
-  - `PATCH /api/instances/:id` transitions `pending` → `full`, updates `updated_at`
+  - `PATCH /api/instances/:id` transitions `pending` -> `full`, updates `updated_at`
   - `PATCH` non-owned instance returns 404
   - Dashboard endpoint returns instances with flat system fields
 - Created `packages/api/src/__tests__/dashboard.spec.ts`: 4 integration tests:
@@ -253,17 +313,17 @@ All 14 slices of the P0 scope are implemented. The core product loop (sign-up �
 - Fixed D1 state leaking across tests: each `beforeEach` now creates a unique `currentUserId` via `crypto.randomUUID()` so tests don't share seeded data.
 - Fixed fake timer freeze in `instances.spec.ts` PATCH test: `vi.advanceTimersByTime(1000)` before reading `updated_at` so the timestamp actually changes.
 - Fixed `vi` import missing in `calendar.spec.ts` (added `import { vi } from 'vitest'`).
-- Fixed self-closing tag in E2E auth test (`<input>` → `<select>` for recovery code dropdown).
+- Fixed self-closing tag in E2E auth test (`<input>` -> `<select>` for recovery code dropdown).
 - Fixed E2E `locator('..')` anti-pattern: replaced with `.filter({ hasText })` for finding the right instance card.
-- **Integration test count:** 60 → 71
-- **E2E test count:** 3 → 4
+- **Integration test count:** 60 -> 71
+- **E2E test count:** 3 -> 4
 
 #### Docs
 
 - Updated `docs/reference/api-routes.md` §4.1: flat system fields response shape, corrected generation SQL (6-column INSERT, `db.batch(batch)` array syntax, `time_window_start <= ?` parameter), implementation status S6 live.
 - Updated `docs/reference/testing-strategy.md`: Instance/dashboard tests marked live with ✓, idempotency example corrected to match actual `generateTodayInstances(db, userId)` signature and `{ created: number }` return type, service function example updated to reflect SQL bitmask matching (no JS loop).
 - Updated `docs/reference/sveltekit-route-architecture.md` §5.2: Dashboard store uses `DashboardInstance[]` type, PATCH success handler merges server fields into existing row (not wholesale replacement) because PATCH response lacks flat system fields.
-- Updated `AGENTS.md`: test count 60 → 71 with instances (7) and dashboard (4) breakdown, store filename `dashboard-store.ts` → `dashboard.svelte.ts`.
+- Updated `AGENTS.md`: test count 60 -> 71 with instances (7) and dashboard (4) breakdown, store filename `dashboard-store.ts` -> `dashboard.svelte.ts`.
 
 ---
 
@@ -278,7 +338,7 @@ All 14 slices of the P0 scope are implemented. The core product loop (sign-up �
 
 #### Tests
 
-- Added 4 unit tests for `tomorrowManilaDate()` in `calendar.spec.ts`: normal day, month boundary (`Jul 31→Aug 1`), year boundary (`Dec 31→Jan 1`), UTC midnight crossover.
+- Added 4 unit tests for `tomorrowManilaDate()` in `calendar.spec.ts`: normal day, month boundary (`Jul 31->Aug 1`), year boundary (`Dec 31->Jan 1`), UTC midnight crossover.
 - Added 2 integration tests for the cron handler in `instances.spec.ts`:
   - Verifies instances are created only for tomorrow's date (never today's).
   - Verifies idempotency: running `scheduled()` twice for the same date produces no duplicates.
@@ -295,7 +355,7 @@ All 14 slices of the P0 scope are implemented. The core product loop (sign-up �
 ### Slice 8: Workspace + Widget Data
 
 - Created `packages/api/src/lib/workspace.ts`: `upgradeLayout()` with `CURRENT_LAYOUT_VERSION = 1` and while-loop pattern for future version bumps.
-- Created `packages/api/src/lib/ownership.ts`: `getOwnedWorkspace` (JOIN through system's user_id), `getOwnedWidgetEntry` (JOIN through instance → system → user_id).
+- Created `packages/api/src/lib/ownership.ts`: `getOwnedWorkspace` (JOIN through system's user_id), `getOwnedWidgetEntry` (JOIN through instance -> system -> user_id).
 - Created `packages/api/src/routes/workspace.ts`: `GET`/`PUT /api/systems/:system_id/workspace` with upsert via `ON CONFLICT(system_id)`.
 - Created `packages/api/src/routes/counter-logs.ts`: 3 handlers — POST to instance, GET by widget_id (with `from`/`to` date filter using `date()`), DELETE by id.
 - Created `packages/api/src/routes/timer-sessions.ts`: 3 handlers — POST to instance, GET by widget_id (with `from`/`to` date filter), DELETE by id.
@@ -304,14 +364,14 @@ All 14 slices of the P0 scope are implemented. The core product loop (sign-up �
 - Created `packages/web/src/lib/api/workspaces.ts`: API module with `getWorkspace`, `putWorkspace`, Layout/Widget/Workspace interfaces.
 - Created `packages/web/src/lib/api/counter-logs.ts`, `timer-sessions.ts`, `checklist.ts`: typed API modules for widget data CRUD.
 - Created `packages/web/src/lib/stores/workspace-editor.svelte.ts`: `WorkspaceEditorStore` runes class with `load`, `addWidget`, `removeWidget`, `reorder`, `save`; instantiated per page visit.
-- Created widget components: `CounterWidget.svelte` (+1 button, optimistic total), `TimerWidget.svelte` (start/stop, `idle|running|saving` state machine), `ChecklistWidget.svelte` (checkbox list, 404→empty state, optimistic toggle).
+- Created widget components: `CounterWidget.svelte` (+1 button, optimistic total), `TimerWidget.svelte` (start/stop, `idle|running|saving` state machine), `ChecklistWidget.svelte` (checkbox list, 404->empty state, optimistic toggle).
 - Created workspace components: `WidgetPalette.svelte` (8 types, P0 active/P1 disabled), `WorkspaceCanvas.svelte` (drag-and-drop via `svelte-dnd-action`), `WidgetCard.svelte` (type dispatch wrapper), `SaveBar.svelte` (sticky bottom bar with dirty indicator).
 - Created route page `packages/web/src/routes/(app)/systems/[id]/workspace/+page.ts` (loads workspace layout + today's instance) and `+page.svelte` (composes three-zone layout).
 - Created `packages/api/src/__tests__/workspace.spec.ts`: 24 tests — 7 unit (`upgradeLayout()` no-op, round-trip, edge cases) + 5 workspace integration + 5 counter-log + 2 timer-session + 5 checklist integration.
 - Created `packages/web/src/routes/(app)/systems/workspace.e2e.ts`: P0 flow #5 — add Timer + Counter widgets, save, reload, verify persistence.
 - Fixed pre-existing web unit test failures: installed missing `vitest-browser-svelte` and `@vitest/browser` packages (imported by `SystemForm.svelte.spec.ts` but never added to `package.json` — all 7 web unit tests now pass).
-- **Integration test count:** 71 → 101
-- **E2E test count:** 3 → 4
+- **Integration test count:** 71 -> 101
+- **E2E test count:** 3 -> 4
 
 ---
 
@@ -319,7 +379,7 @@ All 14 slices of the P0 scope are implemented. The core product loop (sign-up �
 
 - Added `mongodb@^7.5.0` dependency to `packages/api`.
 - Created `packages/api/src/lib/mongo.ts`: lazy `getMongoClient()` singleton with dynamic `import('mongodb')` to avoid loading the driver at module resolution time (Workers cold-start optimisation).
-- Created `packages/api/src/routes/journal-log.ts`: `POST /api/instances/:instance_id/journal_log/:widget_id` (direct Mongo write + D1 `widget_entries` pointer row → `201`; on failure enqueue to `polaris-journal-retry` → `202`) and `GET` (cursor-paginated read from Mongo).
+- Created `packages/api/src/routes/journal-log.ts`: `POST /api/instances/:instance_id/journal_log/:widget_id` (direct Mongo write + D1 `widget_entries` pointer row -> `201`; on failure enqueue to `polaris-journal-retry` -> `202`) and `GET` (cursor-paginated read from Mongo).
 - Created `packages/api/src/index.ts` queue consumer: `export async function queue()` — idempotent Mongo `updateOne` with `$setOnInsert` + upsert, D1 `INSERT OR IGNORE` pointer row, retry with 5s backoff on failure.
 - Created `packages/web/src/lib/api/journal-log.ts`: typed `postJournalEntry()` and `getJournalEntries()` API module.
 - Created `packages/web/src/lib/components/LogWidget.svelte`: text entry (`<textarea>` + send button), optimistic entry insertion, error revert, cursor-based "Load more" history.
@@ -331,8 +391,8 @@ All 14 slices of the P0 scope are implemented. The core product loop (sign-up �
 - Switched `mongo.ts` to type-only import + dynamic `import()` to fix Miniflare `node:process` crash (all 109 tests now pass).
 - Fixed pre-existing workspace date-filter test by pinning system time with `vi.useFakeTimers()`.
 - Updated `docs/reference/api-routes.md`: added S6.4 Log/Journal contract, updated route inventory, bumped implementation status to S9 live.
-- **Integration test count:** 101 → 109
-- **E2E test count:** 4 → 4 (no new E2E; manual retry verification only, per testing-strategy.md S6)
+- **Integration test count:** 101 -> 109
+- **E2E test count:** 4 -> 4 (no new E2E; manual retry verification only, per testing-strategy.md S6)
 
 ---
 
@@ -354,8 +414,8 @@ All 14 slices of the P0 scope are implemented. The core product loop (sign-up �
 - Created `packages/api/src/__tests__/reviews.spec.ts`: 10 integration tests — write-back updates system, duplicate period returns 409, paginated history, review-day aggregation (due, excluded, non-active).
 - Updated `docs/reference/api-routes.md`: reviews routes implementation status to S10 live.
 - Fixed pre-existing issues: MongoDB type errors in `index.ts` queue handler, ownership SQL string contamination, `InstanceSummary.svelte` to use `blush`/`secondary`/`muted` tokens.
-- **Integration test count:** 109 → 119
-- **E2E test count:** 4 → 5
+- **Integration test count:** 109 -> 119
+- **E2E test count:** 4 -> 5
 
 ---
 
@@ -381,7 +441,7 @@ All 14 slices of the P0 scope are implemented. The core product loop (sign-up �
 
 ### Slice 12: CI/CD Pipeline
 
-- **CI workflow** (`.github/workflows/ci.yml`): matrix over `[api, web]` for `lint`/`test:unit`/`build` in parallel, then `integration` (api only), `e2e` (both packages), and `deploy` (main-only, sequential: migrations → API → web). Fail-fast on matrix, deploy gated by all upstream jobs passing.
+- **CI workflow** (`.github/workflows/ci.yml`): matrix over `[api, web]` for `lint`/`test:unit`/`build` in parallel, then `integration` (api only), `e2e` (both packages), and `deploy` (main-only, sequential: migrations -> API -> web). Fail-fast on matrix, deploy gated by all upstream jobs passing.
 - **Package scripts**: added `lint` (ESLint for api, svelte-check for web), `test:unit`/`test:int`/`test:e2e` to both packages and root convenience scripts.
 - **ESLint**: flat config (`eslint.config.js`) with `@typescript-eslint` for `packages/api` type-checking.
 - **Wrangler config (api)**: `compatibility_date` bumped to `2026-07-22`, observability enabled (`head_sampling_rate: 1` logs, 1% traces).
@@ -389,7 +449,7 @@ All 14 slices of the P0 scope are implemented. The core product loop (sign-up �
 - **`VITE_API_BASE_URL`**: added `packages/web/.env.production` so production builds point to `https://polaris-api.kelpselp.workers.dev` (was missing — caused JSON.parse errors on all API calls). `.env.production` tracked in git (public URL only).
 - **Manual first deploy**: both Workers deployed to production URLs. Queue `polaris-journal-retry` confirmed existing. Secrets set via `wrangler secret put`.
 - **Known issues**: `--env production` flag needed for api deploy to target production D1 database; root `deploy` script deploys to dev database by default.
-- **`docs/reference/cicd-deploy.md`**: updated to reflect actual wrangler configs, scripts, URLs (`polaris-web.kelpselp.workers.dev`), and checklist status.
+- **`docs/reference/cicd-deploy.md`**: updated to reflect actual wrangler configs, scripts, URLs (`polaris.kelpselp.workers.dev`), and checklist status.
 
 ---
 
@@ -404,9 +464,15 @@ All 14 slices of the P0 scope are implemented. The core product loop (sign-up �
   - **Cross-doc stale references**: found and fixed — `testing-strategy.md` §7.3 referenced non-existent `$lib/services/` and `$lib/types` paths; `api-routes.md` implementation status overstated S10 as live.
 - **Security review S2 (R2 attachments)**: confirmed not applicable — no attachment upload route exists (P1).
 - **Security review S3 (XSS)**: audited all `.svelte` files — zero uses of `{@html}`. All freeform fields rendered via Svelte's auto-escaped `{expression}` bindings. Rule upheld.
-- **Security review S5 (Dependabot)**: noted as a one-time repo setting (Settings → Code security → Dependabot alerts) — user action needed.
+- **Security review S5 (Dependabot)**: noted as a one-time repo setting (Settings -> Code security -> Dependabot alerts) — user action needed.
 - **Disaster-recovery S1.1**: first production D1 backup procedure documented and run — user action needed (`wrangler d1 export polaris-db --remote`).
 - **Stale doc references fixed**:
-  - `docs/reference/testing-strategy.md` — corrected §7.3 example path `$lib/services/` → `$lib/api/` and type import.
+  - `docs/reference/testing-strategy.md` — corrected §7.3 example path `$lib/services/` -> `$lib/api/` and type import.
   - `docs/reference/api-routes.md` — corrected implementation status from `S2–S10 live` to `S2–S8 live` with note that S9/S10/S11 are P1.
 - **Test counts unchanged** — frontend-only audit slice.
+
+### P0 Complete
+
+---
+
+## P1:

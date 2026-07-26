@@ -17,15 +17,26 @@ import timerSessionRoutes from './routes/timer-sessions';
 import checklistRoutes from './routes/checklist';
 import journalLogRoutes from './routes/journal-log';
 import reviewsRoutes, { reviewDayRoutes } from './routes/reviews';
+import { aiRouter } from './routes/ai';
+import templatesRoutes from './routes/templates';
 import { getMongoClient } from './lib/mongo';
 import type { JournalRetryMessage } from './routes/journal-log';
 
 const app = new Hono<{ Bindings: CloudflareBindings; Variables: { user: User | null; session: Session | null } }>();
 
-app.use('*', cors({
-  origin: ['http://localhost:5173', 'http://localhost:4173', 'https://polaris-web.kelpselp.workers.dev'],
-  credentials: true
-}));
+const allowedOrigins = ['http://localhost:5173', 'http://localhost:4173', 'https://paragon.kelpselp.workers.dev'];
+
+app.use('*', cors({ origin: allowedOrigins, credentials: true }));
+
+app.onError((err, c) => {
+  console.error(`[error] ${err.message}`);
+  const origin = c.req.header('origin') || '';
+  const headers: Record<string, string> = {
+    'Access-Control-Allow-Origin': allowedOrigins.includes(origin) ? origin : allowedOrigins[2],
+    'Access-Control-Allow-Credentials': 'true',
+  };
+  return c.json({ error: 'internal_error', message: 'An unexpected error occurred.' }, 500, headers);
+});
 
 app.post('/api/auth/recover', async (c) => {
   const { email, recovery_code, new_password } = await c.req.json();
@@ -58,6 +69,12 @@ app.route('/api/schedules', schedulesRoutes);
 
 // Dashboard
 app.route('/api/dashboard', dashboardRoutes);
+
+// Templates
+app.route('/api/templates', templatesRoutes);
+
+// AI
+app.route('/api/ai', aiRouter);
 
 // Instances
 app.route('/api/instances', instanceRoutes);

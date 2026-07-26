@@ -1,0 +1,45 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "paragon-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-07-07",
+  "compatibility_flags": ["nodejs_compat"],
+
+  "observability": {
+    "enabled": true,
+    "logs": { "head_sampling_rate": 1 },
+    "traces": { "enabled": true, "head_sampling_rate": 0.01 }
+  },
+
+  "triggers": {
+    "crons": ["0 15 * * *"]
+  },
+
+  "queues": {
+    "producers": [
+      {
+        "binding": "JOURNAL_RETRY_QUEUE",
+        "queue": "paragon-journal-retry"
+      }
+    ]
+  },
+
+  "vars": {
+    "MONGODB_URI": "mongodb://localhost:27017/paragon"
+  },
+
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "paragon-db",
+      "database_id": "fe4d1263-fbfc-4986-afd1-982e0533c200"
+    }
+  ],
+
+  "r2_buckets": [
+    {
+      "bucket_name": "paragon-attachments",
+      "binding": "ATTACHMENTS"
+    }
+  ]
+}

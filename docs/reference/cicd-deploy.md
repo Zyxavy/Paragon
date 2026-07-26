@@ -1,6 +1,6 @@
 # CI/CD & Deployment
 
-**Project:** *Polaris*
+**Project:** *Paragon*
 
 **Document type:** Deployment reference -- defines the CI pipeline, deploy order, environment configuration, and rollback strategy. Companion to the [Tech Stack ADR](../ADRs/001-tech-stack-adr.md) (owns the monorepo structure and deployment targets this document operationalizes), the [Testing Strategy](testing-strategy.md) (owns the CI pipeline's test stages), and the [API Route Design](api-routes.md) / [SvelteKit Route Architecture](sveltekit-route-architecture.md) (which define the two deployable artifacts).
 
@@ -33,18 +33,18 @@ Both artifacts are built and tested in parallel via CI's package matrix (S4) bef
 
 | Variable | Package | Dev | Production | Secret? |
 |---|---|---|---|---|
-| `VITE_API_BASE_URL` | `web` | `''` (empty -- same-origin via Vite proxy) | `https://polaris-api-production.kelpselp.workers.dev` | No |
+| `VITE_API_BASE_URL` | `web` | `''` (empty -- same-origin via Vite proxy) | `https://paragon-api.kelpselp.workers.dev` | No |
 | `ENVIRONMENT` | `api` | `development` | `production` | No |
 | `BETTER_AUTH_SECRET` | `api` | Auto-generated dev secret | Generated secret, stored in `wrangler secret` | Yes |
-| `BETTER_AUTH_URL` | `api` | `http://localhost:8787` | `https://polaris-api-production.kelpselp.workers.dev` | No |
-| `MONGODB_URI` | `api` | `mongodb://localhost:27017/polaris` (local Mongo) | Atlas connection string, stored in `wrangler secret` | Yes |
+| `BETTER_AUTH_URL` | `api` | `http://localhost:8787` | `https://paragon-api.kelpselp.workers.dev` | No |
+| `MONGODB_URI` | `api` | `mongodb://localhost:27017/paragon` (local Mongo) | Atlas connection string, stored in `wrangler secret` | Yes |
 
 ### 2.2 `wrangler.jsonc` -- `packages/api/`
 
 ```jsonc
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "polaris-api",
+  "name": "paragon-api",
   "main": "src/index.ts",
   "compatibility_date": "2026-07-07",
   "compatibility_flags": ["nodejs_compat"],
@@ -61,27 +61,27 @@ Both artifacts are built and tested in parallel via CI's package matrix (S4) bef
 
   "queues": {
     "producers": [
-      { "binding": "JOURNAL_RETRY_QUEUE", "queue": "polaris-journal-retry" }
+      { "binding": "JOURNAL_RETRY_QUEUE", "queue": "paragon-journal-retry" }
     ],
     "consumers": [
-      { "queue": "polaris-journal-retry", "max_batch_size": 10, "max_batch_timeout": 5 }
+      { "queue": "paragon-journal-retry", "max_batch_size": 10, "max_batch_timeout": 5 }
     ]
   },
 
   "vars": {
-    "MONGODB_URI": "mongodb://localhost:27017/polaris"   // dev only; production set via wrangler secret
+    "MONGODB_URI": "mongodb://localhost:27017/paragon"   // dev only; production set via wrangler secret
   },
 
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "polaris-db-dev",
+      "database_name": "paragon-db",
       "database_id": "bd7d9f42-2c4a-442c-9fd0-a53ded81cc6c"
     }
   ],
 
   "r2_buckets": [
-    { "bucket_name": "polaris-attachments", "binding": "ATTACHMENTS" }
+    { "bucket_name": "paragon-attachments", "binding": "ATTACHMENTS" }
   ],
 
   "env": {
@@ -89,7 +89,7 @@ Both artifacts are built and tested in parallel via CI's package matrix (S4) bef
       "d1_databases": [
         {
           "binding": "DB",
-          "database_name": "polaris-db",
+          "database_name": "paragon-db",
           "database_id": "6072aa3b-6fad-48a4-b2d6-72eaaaef6a3e"
         }
       ]
@@ -100,11 +100,11 @@ Both artifacts are built and tested in parallel via CI's package matrix (S4) bef
 
 **Secrets:** `BETTER_AUTH_SECRET` and `MONGODB_URI` (production) are NOT in `wrangler.jsonc` -- they are set via `wrangler secret put` and accessed via `env.BETTER_AUTH_SECRET` / `env.MONGODB_URI` at runtime. This keeps them out of version control.
 
-**Deploy with `--env production`** to use the production D1 database (`polaris-db`). Without the flag, the root config's dev database is used. Example:
+**Deploy with ``** to use the production D1 database (`paragon-db`). Without the flag, the root config's dev database is used. Example:
 ```bash
 cd packages/api
-wrangler d1 migrations apply DB --remote --env production
-wrangler deploy --env production
+wrangler d1 migrations apply DB --remote
+wrangler deploy
 ```
 
 ### 2.3 `wrangler.jsonc` -- `packages/web/`
@@ -112,7 +112,7 @@ wrangler deploy --env production
 ```jsonc
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "polaris-web",
+  "name": "Paragon",
   "compatibility_date": "2026-07-22",
   "assets": {
     "directory": "build",
@@ -127,7 +127,7 @@ Uses the modern Workers Static Assets pattern. No Worker script is needed -- the
 
 ```env
 # packages/web/.env.production
-VITE_API_BASE_URL=https://polaris-api-production.kelpselp.workers.dev
+VITE_API_BASE_URL=https://paragon-api.kelpselp.workers.dev
 ```
 
 For local development, `packages/web/.env.development` keeps `VITE_API_BASE_URL` empty so API calls use the Vite proxy (`localhost:5173/api` → `localhost:8787`).
@@ -181,7 +181,7 @@ Each package has its own scripts in its `package.json`:
     "lint": "eslint src/",
     "test:unit": "vitest run",
     "test:int": "vitest run",
-    "dev:e2e": "wrangler d1 migrations apply DB --local && wrangler dev --port 8787"
+    "dev:e2e": "wrangler d1 migrations apply DB --local --config wrangler.e2e.jsonc && wrangler dev --port 8787 --config wrangler.e2e.jsonc"
   }
 }
 
@@ -201,7 +201,7 @@ Each package has its own scripts in its `package.json`:
 
 Running `pnpm -r deploy` from the root runs both in workspace order (api first, web second) because pnpm respects the dependency graph: `web` depends on `api` (for types), so pnpm runs `api`'s deploy first.
 
-**Note:** The `deploy` script for both packages runs migrations (api) or the full build (web). The `deploy:api` and `deploy:web` root scripts are lower-level for targeted manual deploys (e.g., `pnpm deploy:api -- --env production`).
+**Note:** The `deploy` script for both packages runs migrations (api) or the full build (web). The `deploy:api` and `deploy:web` root scripts are lower-level for targeted manual deploys (e.g., `pnpm deploy:api --`).
 
 ### 3.2 Day-to-day manual deploy (fallback, pre-CI or local verification)
 
@@ -344,13 +344,13 @@ jobs:
 
       - name: Apply D1 migrations
         working-directory: packages/api
-        run: pnpm exec wrangler d1 migrations apply DB --remote --env production
+        run: pnpm exec wrangler d1 migrations apply DB --remote
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
       - name: Deploy API Worker
         working-directory: packages/api
-        run: pnpm exec wrangler deploy --env production
+        run: pnpm exec wrangler deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
@@ -379,9 +379,9 @@ jobs:
 | Environment | API URL | Web URL |
 |---|---|---|
 | Development (local) | `http://localhost:8787` | `http://localhost:5173` |
-| Production | `https://polaris-api-production.kelpselp.workers.dev` | `https://polaris-web.kelpselp.workers.dev` |
+| Production | `https://paragon-api.kelpselp.workers.dev` | `https://paragon.kelpselp.workers.dev` |
 
-These URLs are determined by the `name` field in each `wrangler.jsonc` (`polaris-api` and `polaris-web` substituted with the actual account subdomain `kelpselp`).
+These URLs are determined by the `name` field in each `wrangler.jsonc` (`paragon-api` and `paragon` substituted with the actual account subdomain `kelpselp`).
 
 ---
 
@@ -436,6 +436,8 @@ wrangler d1 migrations apply DB --local
 
 Workers AI calls (`env.AI.run()`) are **not emulated by Miniflare**. In local development, the AI route either calls the real Workers AI endpoint (if the environment has an active Workers AI account with remaining quota) or returns an error. To work on the System Creator's AI flow without burning neuron quota against a real model, the frontend can bypass the AI route entirely and type manual field values into the form.
 
+**E2E tests** use `wrangler.e2e.jsonc` — a separate wrangler config that omits the `ai` binding entirely. This prevents `wrangler dev` from attempting a remote proxy connection to Cloudflare's API during CI runs (which would fail without `CLOUDFLARE_API_TOKEN`). The E2E test suite does not cover the AI draft flow (per `testing-strategy.md` S3.3), so excluding the binding has no coverage impact.
+
 ---
 
 ## 8. Secrets Reference
@@ -454,9 +456,9 @@ These are stored in Cloudflare's secrets store, not in `.env` files or `wrangler
 ### 9.1 First-time setup (manual, once)
 
 - [x] Cloudflare account created
-- [x] D1 databases created (`wrangler d1 create polaris-db-dev`, `polaris-db`)
-- [x] R2 bucket created (`wrangler r2 bucket create polaris-attachments`)
-- [x] Queue created (`wrangler queues create polaris-journal-retry`)
+- [x] D1 databases created (`wrangler d1 create paragon-db`, `paragon-db`)
+- [x] R2 bucket created (`wrangler r2 bucket create paragon-attachments`)
+- [x] Queue created (`wrangler queues create paragon-journal-retry`)
 - [x] Secrets set locally (`wrangler secret put BETTER_AUTH_SECRET`, `MONGODB_URI`)
 - [x] Database UUIDs from step 2 written into both `wrangler.jsonc` files
 - [x] Migration files scaffolded via `wrangler d1 migrations create DB <name>` -- one per table, per ADR 002 S6.2's numbered plan
@@ -465,7 +467,7 @@ These are stored in Cloudflare's secrets store, not in `.env` files or `wrangler
 - [ ] `CLOUDFLARE_API_TOKEN` added to GitHub Actions repo secrets -- required for the `deploy` job (S4.2) to authenticate; note this is separate from the `wrangler secret put` values above, which live in Cloudflare's secrets store, not GitHub's
 - [x] `pnpm -r build` succeeds locally
 - [x] `pnpm -r deploy` succeeds locally (first manual deploy completed during Slice 12)
-- [ ] Verify: sign up at `https://polaris-web.kelpselp.workers.dev`, create a system, see it on the dashboard
+- [ ] Verify: sign up at `https://paragon.kelpselp.workers.dev`, create a system, see it on the dashboard
 - [ ] Push to `main` once and confirm the CI `deploy` job runs migrations + both deploys successfully end-to-end
 
 **Note:** Steps still unchecked (`CLOUDFLARE_API_TOKEN`, verification, and CI push) are pending the Slice 12 merge to `main`.

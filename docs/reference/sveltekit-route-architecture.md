@@ -1,11 +1,11 @@
 # SvelteKit Route Architecture
 
-**Project:** *Polaris*
+**Project:** *Paragon*
 
 **Document type:** Frontend architecture -- the page tree, auth guard, store design, component hierarchy, and navigation model for `packages/web`. Companion to the [API Route Design](api-routes.md) (owns every endpoint this frontend calls), [Auth Integration](auth-integration.md) (owns `authClient`/session primitives this document consumes), and the [PRD](../PRD/PRD-systems-app.md) (owns the user flows this route tree implements).
 **Status:** Draft -- v1 scope
 
-**Implementation status:** Current (S2–S11 live)
+**Implementation status:** Current (S2–S16 live)
 
 **Last updated:** July 22, 2026
 
@@ -507,25 +507,29 @@ A single-component page with three guide cards describing the core product loop.
 
 ### 7.2 System Creator (`(app)/systems/new/+page.svelte`)
 
-Design override: `design-system/polaris/pages/system-creator.md`. This page is a single scrollable form with stepper-styled section markers, not a gated wizard, so autosave can track every field from one form state.
+Design override: `design-system/paragon/pages/system-creator.md`. This page is a single scrollable form with stepper-styled section markers, not a gated wizard, so autosave can track every field from one form state.
 
 ```
 +page.svelte
-├── <TemplatePicker templates onSelect />       -- built-ins + user templates, GET /api/templates
+├── <TemplatePicker onSelect />                 -- built-ins + user templates, GET /api/templates
+│   └── passes templateDefaults (defaults prop) to SystemForm via $effect
 ├── <AIDraftPanel onDraft />                    -- "Draft with AI" button + prompt, POST /api/ai/draft-system
-└── <SystemForm>
+└── <SystemForm defaults={templateDefaults}>
     ├── field groups: Purpose, Philosophy, Protocol, Floor Action, Trigger, Barrier List, Environment Cue, Schedule
+    ├── $effect watches defaults prop, populates $state fields reactively
     ├── autosave: debounced PATCH on every field change (AUTOSAVE_DEBOUNCE_MS)
     └── <ConfirmButton onClick={() => confirmSystem(id)} />  -- POST /api/systems/:id/confirm
 ```
 
-`<TemplatePicker>` and `<AIDraftPanel>` both write into the same `<SystemForm>` field state rather than bypassing it -- this implements PRD 6.1's "AI output never bypasses the form" and PRD 5.6's "clone at instantiation, fully editable" for templates. Neither component ever calls `POST /api/systems` itself.
+`<TemplatePicker>` and `<AIDraftPanel>` both write into the same `<SystemForm>` field state (via the `defaults` prop) rather than bypassing it -- this implements PRD 6.1's "AI output never bypasses the form" and PRD 5.6's "clone at instantiation, fully editable" for templates. Neither component ever calls `POST /api/systems` itself.
 
-The edit route (`/systems/[id]/edit`) reuses `<SystemForm>` pre-filled from the existing System record, with the same autosave pattern.
+The System Detail page (`/systems/[id]`) includes a "Save as Template" action button that opens a `<Modal>` dialog, prompting for a template name and calling `POST /api/systems/:id/save-as-template` on confirm.
+
+The edit route (`/systems/[id]/edit`) reuses `<SystemForm>` pre-filled from the existing System record (passes the system data as `defaults`), with the same autosave pattern.
 
 ### 7.3 Workspace Builder (`(app)/systems/[id]/workspace/+page.svelte`)
 
-Design override: `design-system/polaris/pages/workspace-builder.md`. This page uses a drag-and-drop bento canvas with palette/canvas/save zones and widget-specific persistent content rules.
+Design override: `design-system/paragon/pages/workspace-builder.md`. This page uses a drag-and-drop bento canvas with palette/canvas/save zones and widget-specific persistent content rules.
 
 ```
 +page.svelte
@@ -619,7 +623,7 @@ Better Auth's CSRF check can reject proxied requests if `changeOrigin` strips th
 
 | Variable | Dev value | Prod value | Used in |
 |---|---|---|---|
-| `VITE_API_BASE_URL` | `''` (empty -- same-origin via proxy) | `https://polaris-api.kelpselp.workers.dev` | `auth-client.ts`, `api/client.ts` |
+| `VITE_API_BASE_URL` | `''` (empty -- same-origin via proxy) | `https://paragon-api.kelpselp.workers.dev` | `auth-client.ts`, `api/client.ts` |
 
 In dev, the proxy handles `/api/*` so `VITE_API_BASE_URL` is empty string and fetch paths are relative (`/api/systems`). In production, the frontend and API are on separate subdomains, so `VITE_API_BASE_URL` is the full origin of the API Worker.
 

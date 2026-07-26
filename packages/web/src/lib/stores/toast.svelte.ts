@@ -22,4 +22,8 @@ class ToastStore {
   }
 }
 
+export function addToast(type: ToastType, message: string) {
+    toastStore.push({ type, message });
+}
+
 export const toastStore = new ToastStore();

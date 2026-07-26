@@ -1,6 +1,6 @@
 # D1 Schema
 
-**Project:** *Polaris*
+**Project:** *Paragon*
 
 **Document type:** Database schema ADR -- companion to the [PRD](../PRD/PRD-systems-app.md) (owns field-level meaning) and the [Tech Stack ADR](001-tech-stack-adr.md) (owns the decision to use D1 at all). This document owns table shapes, types, constraints, indexes, and migration structure.
 
@@ -63,7 +63,7 @@ CREATE TABLE recovery_codes (
 CREATE INDEX idx_recovery_codes_user_id ON recovery_codes(user_id);
 ```
 
-Stores 3 recovery codes per user, generated at sign-up (see Auth Integration S5.2 for the sign-up flow and recovery route). `code` is stored plaintext so the settings page can display existing codes with a hide/show toggle. Generated with `crypto.randomUUID()` truncated to `POLARIS-XXXX-XXXX` format -- no external dependency.
+Stores 3 recovery codes per user, generated at sign-up (see Auth Integration S5.2 for the sign-up flow and recovery route). `code` is stored plaintext so the settings page can display existing codes with a hide/show toggle. Generated with `crypto.randomUUID()` truncated to `PARAGON-XXXX-XXXX` format -- no external dependency.
 
 ---
 
@@ -365,18 +365,20 @@ Per ADR 001 S5.10, migrations live in `packages/api/migrations/`, managed via `w
 0008_timer_sessions.sql
 0009_widget_entries.sql
 0010_reviews.sql
-0011_attachments.sql
-0012_seed_builtin_templates.sql
 0013_recovery_codes.sql
 0014_widget_entries_link_notes.sql
+0015_widget_entries_rename.sql
+0016_seed_builtin_templates.sql
 ```
 
 Split by table rather than one monolithic migration so future schema changes (e.g. a `system_version` column per PRD S5.7's contingency note) are isolated, reviewable diffs against a specific table's history -- consistent with the "log migrations in `LAYOUT_MIGRATIONS.md`" convention described in ADR 001 S5.10 (not yet created -- to be written during scaffolding).
 
+> **Migration numbering note:** The originally planned `0011_attachments.sql` and `0012_seed_builtin_templates.sql` were skipped in P0 (deferred to P1). By the time P1 started, `0013`–`0015` were already applied in production, so the seed migration was created as `0016_seed_builtin_templates.sql` to avoid filename collision. Attachments remain deferred.
+
 ### 6.3 Seed data -- the three built-in templates
 
 ```sql
--- 0012_seed_builtin_templates.sql
+-- 0016_seed_builtin_templates.sql
 
 INSERT INTO templates (
   id, user_id, name, source,
