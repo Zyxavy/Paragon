@@ -25,14 +25,22 @@ export function stripThinkTokens(raw: string): string {
   return raw.slice(idx + closeTag.length).trim();
 }
 
+export function stripMarkdownFences(raw: string): string {
+  const match = raw.match(/```(?:json)?\s*\n?([\s\S]*?)```/);
+  if (match) {
+    return match[1].trim();
+  }
+  return raw.trim();
+}
+
 export function parseSystemDraft(raw: string): SystemDraft {
-  const cleaned = stripThinkTokens(raw);
+  const stripped = stripMarkdownFences(stripThinkTokens(raw));
 
   let parsed: unknown;
   try {
-    parsed = JSON.parse(cleaned);
+    parsed = JSON.parse(stripped);
   } catch {
-    throw new AIParseError('AI response was not valid JSON after stripping think tokens', cleaned);
+    throw new AIParseError('AI response was not valid JSON after stripping think tokens and markdown fences', stripped);
   }
 
   const required: (keyof SystemDraft)[] = [
@@ -40,7 +48,7 @@ export function parseSystemDraft(raw: string): SystemDraft {
   ];
   for (const field of required) {
     if (!(field in (parsed as object))) {
-      throw new AIParseError(`AI response missing required field: ${field}`, cleaned);
+      throw new AIParseError(`AI response missing required field: ${field}`, stripped);
     }
   }
 

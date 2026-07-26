@@ -117,7 +117,7 @@ RULES:
 
 ## 4. Response Parsing
 
-DeepSeek R1 distill models produce a `<think>...</think>` block containing their reasoning before the actual response. This block must be stripped before JSON parsing.
+DeepSeek R1 distill models produce a `<think>...</think>` block containing their reasoning before the actual response. This block must be stripped before JSON parsing. Additionally, the model occasionally wraps JSON output in markdown code fences (` ```json ... ``` `) despite being instructed not to — a second stripping step handles this.
 
 **Parsing pipeline (`packages/api/src/ai/parse.ts`):**
 
@@ -132,6 +132,14 @@ export function stripThinkTokens(raw: string): string {
   return raw.slice(idx + closeTag.length).trim();
 }
 
+export function stripMarkdownFences(raw: string): string {
+  const match = raw.match(/```(?:json)?\s*\n?([\s\S]*?)```/);
+  if (match) {
+    return match[1].trim();
+  }
+  return raw.trim();
+}
+
 export interface SystemDraft {
   name: string;
   purpose: string;
@@ -144,7 +152,7 @@ export interface SystemDraft {
 }
 
 export function parseSystemDraft(raw: string): SystemDraft {
-  const cleaned = stripThinkTokens(raw);
+  const cleaned = stripMarkdownFences(stripThinkTokens(raw));
   
   let parsed: unknown;
   try {
@@ -175,6 +183,8 @@ export class AIParseError extends Error {
 ```
 
 **What to log on parse failure:** log the `rawResponse` (trimmed to 500 chars to avoid bloating logs) and the parse error message to Cloudflare Workers' built-in logging. Do not surface the raw model output to the client.
+
+**2026-07-26 update:** Added `stripMarkdownFences` after observing that the DeepSeek R1 distill 32B model occasionally wraps JSON in `` ```json ... ``` `` fences despite the system prompt's "no markdown fences" instruction. The parsing pipeline is now: `stripThinkTokens` → `stripMarkdownFences` → `JSON.parse` → field validation.
 
 ---
 

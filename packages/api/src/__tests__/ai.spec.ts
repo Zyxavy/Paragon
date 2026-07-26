@@ -29,7 +29,7 @@ describe('POST /api/ai/draft-system', () => {
     const app = getTestApp(userId);
 
     vi.spyOn(env.AI, 'run').mockResolvedValue({
-      response: '<think>Reasoning about reading habit</think>\n' +
+      response: '<think>Reasoning about reading habit</think>\n```json\n' +
         JSON.stringify({
           name: 'Daily Reading System',
           purpose: 'Build a consistent reading habit before bed',
@@ -39,7 +39,7 @@ describe('POST /api/ai/draft-system', () => {
           trigger: 'After I brush my teeth, I will open my book',
           barrier_list: ['Phone notifications', 'Falling asleep early'],
           environment_cue: 'Book left open on the nightstand'
-        })
+        }) + '\n```'
     });
 
     const res = await app.fetch(new Request('http://localhost/api/ai/draft-system', {
