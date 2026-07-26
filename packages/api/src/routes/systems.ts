@@ -10,6 +10,12 @@ const app = new Hono<{
 
 app.use('/*', requireAuth);
 
+function toStr(val: unknown): string {
+    if (Array.isArray(val)) return val.join('\n');
+    if (typeof val === 'string') return val;
+    return '';
+}
+
 function parseSystemRow(row: any) {
     return {
         ...row,
@@ -97,13 +103,13 @@ app.post('/', async (c) => {
         userId,
         body.name.trim(),
         body.domain ?? null,
-        body.purpose ?? '',
-        body.philosophy ?? '',
-        body.protocol ?? '',
-        body.floor_action ?? '',
-        body.trigger ?? '',
+        toStr(body.purpose),
+        toStr(body.philosophy),
+        toStr(body.protocol),
+        toStr(body.floor_action),
+        toStr(body.trigger),
         body.barrier_list ? JSON.stringify(body.barrier_list) : '[]',
-        body.environment_cue ?? '',
+        toStr(body.environment_cue),
         body.template_origin ?? null,
         now,
         now,
@@ -149,7 +155,8 @@ app.patch('/:id', async(c) => {
     for (const field of updatableFields) {
         if (body[field] !== undefined) {
             sets.push(`${field} = ?`);
-            params.push(field === 'name' ? String(body[field]).trim() : body[field]);
+            const val = body[field];
+            params.push(field === 'name' ? String(val).trim() : typeof val === 'string' ? val : toStr(val));
         }
     }
 
