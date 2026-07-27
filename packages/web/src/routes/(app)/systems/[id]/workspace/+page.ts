@@ -7,12 +7,15 @@ export async function load({ params }) {
     const systemId = params.id;
 
     let layout: Layout | null = null;
+    let workspaceId: string | null = null;
     try {
         const ws = await getWorkspace(systemId);
         layout = ws.layout;
+        workspaceId = ws.id;
     } catch (e) {
         if (!(e instanceof ApiError && e.status === 404)) throw e;
     }
+
 
     const today = new Date().toLocaleDateString('en-CA');
     let instanceId: string | null = null;
@@ -23,5 +26,5 @@ export async function load({ params }) {
         }
     } catch { /* no instance for today */ }
 
-    return { systemId, layout, instanceId };
+    return { systemId, layout, instanceId, workspaceId };
 }

@@ -24,6 +24,7 @@
             <WorkspaceCanvas
                 widgets={store.layout.widgets}
                 instanceId={data.instanceId}
+                workspaceId={data.workspaceId}
                 onReorder={(ws) => store.reorder(ws)}
                 onRemove={(id) => store.removeWidget(id)}
             />

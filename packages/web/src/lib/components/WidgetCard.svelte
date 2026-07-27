@@ -5,10 +5,13 @@
     import TimerWidget from './TimerWidget.svelte';
     import ChecklistWidget from './ChecklistWidget.svelte';
     import LogWidget from './LogWidget.svelte';
+    import LinkListWidget from './LinkListWidget.svelte';
+    import NotesWidget from './NotesWidget.svelte';
 
-    let { widget, instanceId, onRemove }: {
+    let { widget, instanceId, workspaceId, onRemove }: {
         widget: Widget;
         instanceId: string | null;
+        workspaceId: string | null;
         onRemove: (id: string) => void;
     } = $props();
 </script>
@@ -35,6 +38,10 @@
         <ChecklistWidget {widget} {instanceId} />
     {:else if widget.type === 'log'}
         <LogWidget {widget} {instanceId} />
+    {:else if widget.type === 'link-list'}
+        <LinkListWidget {widget} {workspaceId} />
+    {:else if widget.type === 'notes'}
+        <NotesWidget {widget} {workspaceId} />
     {:else}
         <div class="flex-1 flex items-center justify-center">
             <p class="text-xs text-muted-foreground">Coming in a future update</p>
