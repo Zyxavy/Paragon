@@ -656,10 +656,10 @@ Fully specified in the [AI Workers reference](ai-workers.md). The single route (
 | `GET` | `/api/instances/:instance_id/checklist/:widget_id` | ownership-scoped | |
 | `POST` | `/api/instances/:instance_id/journal_log/:widget_id` | ownership-scoped | MongoDB-backed; `201` direct or `202` queued retry |
 | `GET` | `/api/instances/:instance_id/journal_log/:widget_id` | ownership-scoped | cursor-paginated, newest-first; empty entries on Mongo failure |
-| `PUT` | `/api/workspaces/:workspace_id/link-list/:widget_id` | ownership-scoped | |
-| `GET` | `/api/workspaces/:workspace_id/link-list/:widget_id` | ownership-scoped | |
-| `PUT` | `/api/workspaces/:workspace_id/notes/:widget_id` | ownership-scoped | |
-| `GET` | `/api/workspaces/:workspace_id/notes/:widget_id` | ownership-scoped | |
+| `PUT` | `/api/workspaces/:workspace_id/link-list/:widget_id` | ownership-scoped | workspace-scoped (`instance_id IS NULL`) |
+| `GET` | `/api/workspaces/:workspace_id/link-list/:widget_id` | ownership-scoped | workspace-scoped (`instance_id IS NULL`) |
+| `PUT` | `/api/workspaces/:workspace_id/notes/:widget_id` | ownership-scoped | workspace-scoped (`instance_id IS NULL`) |
+| `GET` | `/api/workspaces/:workspace_id/notes/:widget_id` | ownership-scoped | workspace-scoped (`instance_id IS NULL`) |
 | `GET` | `/api/templates` | `user_id` (+ built-in) | |
 | `GET` | `/api/templates/:id` | `user_id` (+ built-in) | |
 | `GET` | `/api/systems/:system_id/reviews` | ownership-scoped | |

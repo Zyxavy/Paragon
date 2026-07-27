@@ -2,6 +2,36 @@
 
 ## [Unreleased]
 
+### Slice 17: Notes + Link List Widgets
+
+#### Backend
+
+- Created `packages/api/src/routes/link-list.ts` — `PUT`/`GET /api/workspaces/:workspace_id/link-list/:widget_id`, upserts into `widget_entries` with `entry_type = 'link_list'` and `instance_id = NULL`.
+- Created `packages/api/src/routes/notes.ts` — `PUT`/`GET /api/workspaces/:workspace_id/notes/:widget_id`, same upsert pattern with `entry_type = 'notes'`.
+- Added `getOwnedWorkspaceById` to `packages/api/src/lib/ownership.ts` — workspace_id-based ownership check for workspace-scoped widget routes.
+- Mounted both routers in `packages/api/src/index.ts` at `/api` prefix.
+
+#### Frontend
+
+- Created `packages/web/src/lib/api/link-list.ts` — `putLinkList()` and `getLinkList()` typed wrappers.
+- Created `packages/web/src/lib/api/notes.ts` — `putNotes()` and `getNotes()` typed wrappers.
+- Created `packages/web/src/lib/components/LinkListWidget.svelte` — label+URL pair list with add/remove rows and debounced `PUT` save.
+- Created `packages/web/src/lib/components/NotesWidget.svelte` — single `<textarea>` with debounced `PUT` on change (reuses `AUTOSAVE_DEBOUNCE_MS`).
+- Activated both widgets in `WidgetPalette.svelte` (`comingSoon: false`).
+- Added type dispatch branches for `link-list` and `notes` in `WidgetCard.svelte`.
+- Added `workspaceId` prop drilling through `+page.ts` → `+page.svelte` → `WorkspaceCanvas.svelte` → `WidgetCard.svelte`.
+
+#### Tests
+
+- Added 11 integration tests in `workspace.spec.ts`: 6 for link-list routes (404 before save, PUT creates, PUT replaces, invalid links, invalid shape, instance_id IS NULL) and 5 for notes routes (same minus invalid shape).
+- All three DoD items verified: workspace-scoped storage (`instance_id IS NULL`), replace-not-append, and palette activation.
+
+#### Docs
+
+- Updated `CHANGELOG.md` — this entry.
+- Updated `docs/reference/api-routes.md` — route inventory annotations for workspace-scoped rows.
+- **Test count:** 162 → 173 API integration.
+
 ### Slice 16: AI-Assisted Creation (Frontend + Backend)
 
 #### Backend
