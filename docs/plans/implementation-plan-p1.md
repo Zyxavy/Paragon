@@ -109,7 +109,7 @@ This is the first slice touching a binding P0 never wired up (`env.AI`).
 
 ---
 
-## Slice 17: Notes + Link List Widgets
+<!-- ## Slice 17: Notes + Link List Widgets
 
 **Branch:** `feat/notes-linklist-widgets`
 **Docs:** PRD S5.5, D1 Schema S3.3.1 ("Why Link List and Notes use `instance_id = NULL`"), `api-routes.md` S6.5–6.6, `component-inventory.md`.
@@ -137,11 +137,11 @@ Both widgets share one shape (`widget_entries`, workspace-scoped not instance-sc
 
 ### Definition of Done
 
-- [ ] Both widgets confirmed workspace-scoped (`instance_id = NULL`) at the DB row level in a test: this is the one detail easy to get wrong by copy-pasting instance-scoped Checklist code.
-- [ ] Replace-not-append verified for both.
-- [ ] Widget palette shows both as active, not "Coming Soon."
+- [x] Both widgets confirmed workspace-scoped (`instance_id = NULL`) at the DB row level in a test: this is the one detail easy to get wrong by copy-pasting instance-scoped Checklist code.
+- [x] Replace-not-append verified for both.
+- [x] Widget palette shows both as active, not "Coming Soon."
 
-**PR:** `feat/notes-linklist-widgets` > `main`.
+**PR:** `feat/notes-linklist-widgets` > `main`. -->
 
 ---
 
