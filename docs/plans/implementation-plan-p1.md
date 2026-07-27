@@ -71,7 +71,7 @@ D1 Schema S6.2's original plan assumed `0011_attachments.sql` and `0012_seed_bui
 
 ---
 
-## Slice 16: AI-Assisted Creation
+<!-- ## Slice 16: AI-Assisted Creation
 
 **Branch:** `feat/ai-draft-system`
 **Docs:** `ai-workers.md` (full doc: S1–S7, skip Appendix A entirely, it's explicitly deferred), PRD S6.1 (flow 3), S8, ADR 001 S5.9.
@@ -105,7 +105,7 @@ This is the first slice touching a binding P0 never wired up (`env.AI`).
 - [ ] 10ms CPU note: confirm this route's total JS work (prompt validation, `stripThinkTokens`, `JSON.parse`) is trivial relative to the `env.AI.run()` I/O wait, which doesn't count against the budget: cite `ai-workers.md` S8's reasoning in the PR rather than re-deriving it.
 - [ ] Manual verification of the happy path against a real deployed Worker, documented in the PR (screenshot or a copy of the returned draft): same "can't be automated, document it" pattern as the P0 plan's Slice 9 (Mongo retry path).
 
-**PR:** `feat/ai-draft-system` > `main`.
+**PR:** `feat/ai-draft-system` > `main`. -->
 
 ---
 
