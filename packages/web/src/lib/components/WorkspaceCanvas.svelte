@@ -78,7 +78,13 @@
     }
 </script>
 
-{#if isMobile}
+{#if widgets.length === 0}
+    <div class="flex items-center justify-center w-full min-h-[60vh] bg-surface rounded-xl p-6">
+        <p class="font-body text-sm text-muted-foreground text-center">
+            Drag widgets from the palette to build your workspace
+        </p>
+    </div>
+{:else if isMobile}
     <div class="flex flex-col gap-4 w-full min-h-[60vh] bg-surface rounded-xl p-6">
         {#each widgets as widget (widget.id)}
             <div class="bg-surface-container-lowest rounded-xl p-4 shadow-ambient-sm" style="min-height: {widget.h}px">
