@@ -216,7 +216,7 @@ The last piece of infra P0 provisioned (`paragon-attachments` R2 bucket exists s
 
 ---
 
-## Slice 20: `/account` Settings Page
+<!-- ## Slice 20: `/account` Settings Page
 
 **Branch:** `feat/account-settings`
 **Docs:** `sveltekit-route-architecture.md` S2.3 ("What is NOT a route in v1": this slice is what turns `/account` into an actual v1 route), `auth-integration.md` S5.2 (recovery codes display/regenerate contract, already backed by `GET`/`POST /api/recovery-codes*` from P0).
@@ -241,7 +241,7 @@ Small, self-contained slice: the backend already exists (P0 Slice 3); this is pu
 - [ ] `/account` reachable from both nav layouts (mobile pill icon set may need a 5th icon, or route it as a NavBar overflow item if 5 icons crowds the mobile pill: designer's call, flag in the PR if deviating from a straight 1-for-1 addition).
 - [ ] `component-inventory.md` updated with the new nav entry and `/account` page: don't leave this to the Slice 21 sweep if it's a one-line addition here.
 
-**PR:** `feat/account-settings` > `main`.
+**PR:** `feat/account-settings` > `main`. -->
 
 ---
 
