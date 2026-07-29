@@ -221,3 +221,32 @@ No square corners appear anywhere in the system. The smallest radius (`6px`) sti
 - **Don't** use shadows in dark mode — they become invisible against the near-black surface. Rely on tonal contrast alone.
 - **Don't** create button styles outside the three-tier system (gradient primary, bordered secondary, ghost text). A filled non-gradient button does not exist in the system.
 - **Don't** put text in primary-role containers — primary-surface contrast is too low for readability. Use primary only for small surfaces (buttons, icons) or as a gradient partner.
+
+---
+
+## Implementation Status
+
+The design system above is fully implemented across all pages of the Paragon web app (`packages/web/`). Every component and page uses CSS custom properties defined in `packages/web/src/routes/layout.css` and follows the spec in `design-system/paragon/MASTER.md`.
+
+### Built pages
+
+| Page | Key patterns |
+|---|---|
+| Landing (`/`) | Feature card grid, pill badges, hero gradient, logo header |
+| Sign in (`/sign-in`) | Centered form card, loading spinner on submit, inline validation |
+| Sign up (`/sign-up`) | Same form pattern, recovery codes overlay with blush accent |
+| Dashboard (`/dashboard`) | Status header (blush/secondary/muted), bento instance card grid 1/2/3 cols, skeleton loaders |
+| Systems list (`/systems`) | Two-column card grid, domain badges (secondary/10), status footer, empty state |
+| System creator (`/systems/new`) | Sectioned stepper form (4 sections), collapsible template picker + AI draft, autosave indicator |
+| System edit (`/systems/[id]/edit`) | Same form with back arrow, pre-filled, cancel link |
+| System detail (`/systems/[id]`) | Tabbed layout (Overview/Workspace/Reviews/Edit), blueprint cards, barriers chips, Save as template CTA |
+| Workspace (`/systems/[id]/workspace`) | Widget palette + canvas + save bar, drag/resize, mobile responsive |
+| Reviews list (`/systems/[id]/reviews`) | Period cards showing what_worked/what_broke, empty state |
+| New review (`/systems/[id]/reviews/new`) | Sectioned form (Reflection + Adjust + Change note), instance summary, Cancel link |
+| Review Day (`/review-day`) | Due system cards with instance summaries, "Start review" CTAs |
+| Guides (`/guides`) | Numbered guide cards with blush badges, fly transitions, quick-start CTA |
+| Account (`/account`) | Profile info card, recovery codes with reveal/hide toggle, regenerate modal |
+
+### CSS variable tokens (layout.css)
+
+All 40+ custom properties are defined: `--color-primary`, `--color-surface`, `--color-blush`, `--color-destructive`, `--font-display`, `--font-body`, `--shadow-ambient-*`, `--radius-*`, `--transition-*`.

@@ -1,36 +1,36 @@
 <script lang="ts">
-    import { WorkspaceEditorStore } from '$lib/stores/workspace-editor.svelte';
-    import WidgetPalette from '$lib/components/WidgetPalette.svelte';
-    import WorkspaceCanvas from '$lib/components/WorkspaceCanvas.svelte';
-    import SaveBar from '$lib/components/SaveBar.svelte';
+  import { WorkspaceEditorStore } from '$lib/stores/workspace-editor.svelte';
+  import WidgetPalette from '$lib/components/WidgetPalette.svelte';
+  import WorkspaceCanvas from '$lib/components/WorkspaceCanvas.svelte';
+  import SaveBar from '$lib/components/SaveBar.svelte';
 
-    let { data } = $props();
+  let { data } = $props();
 
-    let store = new WorkspaceEditorStore();
-    let loaded = $state(false);
+  let store = new WorkspaceEditorStore();
+  let loaded = $state(false);
 
-    $effect(() => {
-        store.load(data.systemId, data.layout);
-        loaded = true;
-    });
+  $effect(() => {
+    store.load(data.systemId, data.layout);
+    loaded = true;
+  });
 </script>
 
 {#if !loaded}
-    <div class="skeleton h-[60vh] rounded-xl"></div>
+  <div class="skeleton h-[60vh] rounded-xl animate-pulse"></div>
 {:else}
-    <div class="flex flex-col lg:flex-row gap-4">
-        <WidgetPalette onAdd={(t) => store.addWidget(t)} />
-        <div class="flex-1">
-            <WorkspaceCanvas
-                widgets={store.layout.widgets}
-                instanceId={data.instanceId}
-                workspaceId={data.workspaceId}
-                systemId={data.systemId}
-                onMove={(id, x, y) => store.moveWidget(id, x, y)}
-                onResize={(id, w, h) => store.resizeWidget(id, w, h)}
-                onRemove={(id) => store.removeWidget(id)}
-            />
-        </div>
+  <div class="flex flex-col lg:flex-row gap-4">
+    <WidgetPalette onAdd={(t) => store.addWidget(t)} />
+    <div class="flex-1">
+      <WorkspaceCanvas
+        widgets={store.layout.widgets}
+        instanceId={data.instanceId}
+        workspaceId={data.workspaceId}
+        systemId={data.systemId}
+        onMove={(id, x, y) => store.moveWidget(id, x, y)}
+        onResize={(id, w, h) => store.resizeWidget(id, w, h)}
+        onRemove={(id) => store.removeWidget(id)}
+      />
     </div>
-    <SaveBar dirty={store.dirty} onSave={() => store.save()} />
+  </div>
+  <SaveBar dirty={store.dirty} onSave={() => store.save()} />
 {/if}

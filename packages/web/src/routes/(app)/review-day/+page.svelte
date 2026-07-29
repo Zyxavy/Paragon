@@ -1,11 +1,20 @@
 <script lang="ts">
-    import DueReviewList from '$lib/components/DueReviewList.svelte';
+  import DueReviewList from '$lib/components/DueReviewList.svelte';
 
-    let { data } = $props();
-    let due = $derived(data.due);
+  let { data } = $props();
+  let due = $derived(data.due);
 </script>
 
-<div class="w-full md:max-w-2xl lg:max-w-4xl mx-auto px-4 md:px-0 flex flex-col gap-6">
-    <h1 class="font-display text-2xl text-on-surface">Review Day</h1>
-    <DueReviewList {due} />
+<div class="max-w-4xl mx-auto">
+  <div class="mb-8">
+    <h1 class="font-display text-2xl font-semibold text-on-surface">Review Day</h1>
+    <p class="font-body text-sm text-muted-foreground mt-1">
+      {#if due.length > 0}
+        {due.length} system{due.length !== 1 ? 's' : ''} due for review
+      {:else}
+        All caught up — no systems due for review
+      {/if}
+    </p>
+  </div>
+  <DueReviewList {due} />
 </div>
