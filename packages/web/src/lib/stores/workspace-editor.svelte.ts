@@ -83,8 +83,8 @@ export class WorkspaceEditorStore {
     resizeWidget(id: string, w: number, h: number) {
         this.layout = {
             ...this.layout,
-            widgets: this.layout.widgets.map(w =>
-                w.id === id ? { ...w, w, h } : w
+            widgets: this.layout.widgets.map(widget =>
+                widget.id === id ? { ...widget, w, h } : widget
             ),
         };
         this.dirty = true;
