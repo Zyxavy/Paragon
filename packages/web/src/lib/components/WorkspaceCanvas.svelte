@@ -69,13 +69,14 @@
             onMove(dragging.id, x, y);
         }
         if (resizing) {
-            const widget = widgets.find(w => w.id === resizing.id);
+            const r = resizing;
+            const widget = widgets.find(w => w.id === r.id);
             const min = widget ? getMinSize(widget.type) : { w: 160, h: 120 };
-            let w = resizing.origW + (e.clientX - resizing.startX);
-            let h = resizing.origH + (e.clientY - resizing.startY);
+            let w = r.origW + (e.clientX - r.startX);
+            let h = r.origH + (e.clientY - r.startY);
             if (w < min.w) w = min.w;
             if (h < min.h) h = min.h;
-            onResize(resizing.id, w, h);
+            onResize(r.id, w, h);
         }
     }
 
