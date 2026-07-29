@@ -23,6 +23,7 @@ import { getMongoClient } from './lib/mongo';
 import type { JournalRetryMessage } from './routes/journal-log';
 import linkListRoutes from './routes/link-list';
 import notesRoutes from './routes/notes';
+import attachmentsRoutes from './routes/attachments';
 
 const app = new Hono<{ Bindings: CloudflareBindings; Variables: { user: User | null; session: Session | null } }>();
 
@@ -96,6 +97,9 @@ app.route('/api', linkListRoutes);
 
 // Notes widget
 app.route('/api', notesRoutes);
+
+// Attachments
+app.route('/api', attachmentsRoutes);
 
 // Checklist
 app.route('/api', checklistRoutes);
