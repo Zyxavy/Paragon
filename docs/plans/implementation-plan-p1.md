@@ -245,7 +245,7 @@ Small, self-contained slice: the backend already exists (P0 Slice 3); this is pu
 
 ---
 
-## Slice 21: P1 Definition-of-Done Sweep
+<!-- ## Slice 21: P1 Definition-of-Done Sweep
 
 **Branch:** `chore/p1-hardening`
 **Docs:** `definition-of-done.md`, `security-review.md` S2 (now fully applicable: re-run this section for real against the Slice 19 implementation, it was explicitly marked "not applicable yet" in the P0-era Slice 13 sweep), `testing-strategy.md` S3.3 (confirm the "Not E2E-tested in v1" list is still accurate, or update it if any P1 slice added E2E coverage beyond what was scoped above).
@@ -267,7 +267,7 @@ Mirrors P0's closing Slice 13: the gate before considering P1 complete.
 - [ ] `README.md` and `AGENTS.md` tables updated to reflect P1 completion.
 - [ ] Fresh D1 backup taken and uploaded to `paragon-backups`.
 
-**PR:** `chore/p1-hardening` > `main`. **P1 is complete once this merges.**
+**PR:** `chore/p1-hardening` > `main`. **P1 is complete once this merges.** -->
 
 ---
 
