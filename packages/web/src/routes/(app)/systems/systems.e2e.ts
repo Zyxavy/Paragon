@@ -18,10 +18,10 @@ test('P0 flow #2: create system from scratch', async ({ page }) => {
 
     // Navigate to Systems page
     await page.goto('/systems');
-    await expect(page.locator('text=Create System')).toBeVisible();
+    await expect(page.locator('text=+ New system')).toBeVisible();
 
     // Click "New System"
-    await page.click('text=Create System');
+    await page.click('text=+ New system');
     await expect(page).toHaveURL('/systems/new');
 
     // Fill required fields
@@ -34,8 +34,8 @@ test('P0 flow #2: create system from scratch', async ({ page }) => {
     // Wait for autosave to complete
     await page.waitForTimeout(3000);
 
-    // Click "Save System" to confirm
-    await page.click('text=Save System');
+    // Click "Confirm system" to confirm
+    await page.click('text=Confirm system');
 
     // Check confirm succeeded — no inline error appeared
     await expect(page.locator('text=Every system needs a floor action')).not.toBeVisible({ timeout: 3000 });

@@ -109,7 +109,7 @@
     <div class="bg-surface-container-lowest rounded-xl p-6 shadow-ambient-sm space-y-4">
       <div class="field-group">
         <label for="what_worked" class="font-body text-sm font-medium text-on-surface">What worked?</label>
-        <textarea id="what_worked" bind:value={whatWorked}
+        <textarea id="what_worked" name="what_worked" bind:value={whatWorked}
                   class="mt-1 w-full rounded-xl border-border bg-surface text-on-surface px-4 py-3 text-sm font-body
                          focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
                          placeholder:text-muted-foreground transition-all duration-200"
@@ -118,7 +118,7 @@
 
       <div class="field-group">
         <label for="what_broke" class="font-body text-sm font-medium text-on-surface">What broke?</label>
-        <textarea id="what_broke" bind:value={whatBroke}
+        <textarea id="what_broke" name="what_broke" bind:value={whatBroke}
                   class="mt-1 w-full rounded-xl border-border bg-surface text-on-surface px-4 py-3 text-sm font-body
                          focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
                          placeholder:text-muted-foreground transition-all duration-200"
@@ -145,7 +145,7 @@
     <div class="bg-surface-container-lowest rounded-xl p-6 shadow-ambient-sm space-y-4">
       <div class="field-group">
         <label for="floor_action" class="font-body text-sm font-medium text-on-surface">Floor action</label>
-        <textarea id="floor_action" bind:value={floorAction}
+        <textarea id="floor_action" name="floor_action" bind:value={floorAction}
                   class="mt-1 w-full rounded-xl border-border bg-surface text-on-surface px-4 py-3 text-sm font-body
                          focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
                          placeholder:text-muted-foreground transition-all duration-200"

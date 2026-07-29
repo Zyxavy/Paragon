@@ -16,7 +16,7 @@ test('P1 flow: create system from built-in template', async ({ page }) => {
 
     // 2. Go to System Creator
     await page.goto('/systems/new');
-    await expect(page.locator('h1:has-text("Create System")')).toBeVisible();
+    await expect(page.locator('h1:has-text("Create a system")')).toBeVisible();
 
     // 3. Expand template picker
     await page.click('summary:has-text("Use a template")');
@@ -33,7 +33,7 @@ test('P1 flow: create system from built-in template', async ({ page }) => {
 
     // 7. Wait for autosave, then confirm
     await page.waitForTimeout(3000);
-    await page.click('text=Save System');
+    await page.click('text=Confirm system');
     await expect(page.locator('text=Every system needs a floor action')).not.toBeVisible({ timeout: 3000 });
 
     // 8. Verify the original template is unchanged via API
