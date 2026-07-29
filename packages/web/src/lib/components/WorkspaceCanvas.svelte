@@ -109,7 +109,8 @@
             onpointerdown={handlePointerDown}
             onpointermove={handlePointerMove}
             onpointerup={handlePointerUp}
-            class="relative w-full min-h-[80vh] bg-surface rounded-xl p-6 overflow-auto"
+            onpointercancel={handlePointerUp}
+            class="relative w-full min-h-[80vh] bg-surface rounded-xl p-6 overflow-auto touch-action-none"
             style={snapToGrid ? 'background-image: radial-gradient(circle, var(--color-outline) 0.5px, transparent 0.5px); background-size: 20px 20px;' : ''}
         >
             {#each widgets as widget (widget.id)}
