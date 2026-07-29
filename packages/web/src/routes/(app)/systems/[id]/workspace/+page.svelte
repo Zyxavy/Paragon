@@ -26,7 +26,8 @@
                 instanceId={data.instanceId}
                 workspaceId={data.workspaceId}
                 systemId={data.systemId}
-                onReorder={(ws) => store.reorder(ws)}
+                onMove={(id, x, y) => store.moveWidget(id, x, y)}
+                onResize={(id, w, h) => store.resizeWidget(id, w, h)}
                 onRemove={(id) => store.removeWidget(id)}
             />
         </div>
