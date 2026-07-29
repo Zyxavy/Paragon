@@ -2,6 +2,33 @@
 
 ## [Unreleased]
 
+### Slice 19: R2 Attachments
+
+#### Backend
+
+- Created `packages/api/migrations/0017_attachments.sql` — attachments table DDL (`id`, `workspace_id`, `widget_id`, `r2_key`, `filename`, `content_type`, `size_bytes`, `created_at`).
+- Created `packages/api/src/lib/attachments.ts` — shared MIME allowlist (13 types) + `MAX_ATTACHMENT_SIZE_BYTES` (25 MB) constant.
+- Added `getOwnedAttachment` to `packages/api/src/lib/ownership.ts` — D1 + R2 ownership check joining through `workspaces` → `systems`.
+- Created `packages/api/src/routes/attachments.ts` — three routes: `POST /api/attachments` (proxied upload with MIME + size validation, R2-then-D1 write ordering), `GET /api/attachments/:id` (streams R2 object with `Content-Disposition: inline`), `GET /api/attachments?workspace_id=&widget_id=` (lists attachments for a workspace+widget combo, ownership-gated, excludes `r2_key`).
+- Mounted in `packages/api/src/index.ts` at `/api` prefix.
+
+#### Frontend
+
+- Created `packages/web/src/lib/api/attachments.ts` — `uploadAttachment()`, `getAttachments()`, `getAttachmentUrl()` typed wrappers via `apiFetch`.
+- Created `packages/web/src/lib/components/AttachmentUpload.svelte` — file input with drag-to-upload UX, attachment list with links to individual file streams.
+- Integrated `AttachmentUpload` into `LogWidget.svelte` (added `workspaceId` prop) and `LinkListWidget.svelte`.
+
+#### Tests
+
+- 13 integration tests in `packages/api/src/__tests__/attachments.spec.ts`: PDF upload (201), unsupported MIME (400), oversized file (400), missing file (400), non-owned workspace (404), stream back (200), non-existent (404), non-owned (404), list by workspace+widget (200), missing params (400), empty list (200).
+- All routes ownership-gated and edge-case tested.
+
+#### Docs
+
+- Updated `docs/reference/api-routes.md` §9 — added list endpoint docs, fixed 10 MB → 25 MB, updated route inventory.
+- Updated `docs/ADRs/001-tech-stack-adr.md` §5.7 — presigned URL approach documented as future consideration with migration path.
+- **Test count:** 173 → 186 API integration, 11 web unit.
+
 ### Slice 18: Streak View + Progress Chart Widgets (read-only)
 
 #### Backend

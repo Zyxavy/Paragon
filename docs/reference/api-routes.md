@@ -588,9 +588,10 @@ Response 200:
 ## 9. Attachments
 
 | Method | Path |
-|---|---|
+|---|---|---|
 | `POST` | `/api/attachments` |
 | `GET` | `/api/attachments/:id` |
+| `GET` | `/api/attachments` |
 
 Implements ADR 001 S5.7's proxied-upload flow exactly -- this document just pins down the HTTP contract around it.
 
@@ -608,8 +609,19 @@ Fields: file (binary), workspace_id, widget_id
 
 Response 201: { "id": "att_...", "workspace_id": "...", "widget_id": "...", "filename": "notes.pdf", "content_type": "application/pdf", "size_bytes": 48213, "created_at": "..." }
 Response 400: { "error": "unsupported_file_type" }
-Response 400: { "error": "file_too_large" }   // 10 MB limit, checked before R2 put()
+Response 400: { "error": "file_too_large" }   // 25 MB limit, checked before R2 put()
 ```
+
+`GET /api/attachments?workspace_id=&widget_id=` lists attachments for a given workspace + widget combo. The route verifies workspace ownership first (404 if not owned by caller).
+
+```
+GET /api/attachments?workspace_id=<uuid>&widget_id=<id>
+
+Response 200: { "attachments": [ { "id": "...", "filename": "...", "content_type": "...", "size_bytes": 123, "created_at": "..." }, ... ] }
+Response 400: { "error": "missing_params" }    // when workspace_id or widget_id omitted
+```
+
+Note: `r2_key` is intentionally excluded from the list response — the frontend requests individual attachments via `GET /api/attachments/:id` on click.
 
 `GET /api/attachments/:id` streams the R2 object back directly (`Content-Type` set from the stored `content_type`, `Content-Disposition: inline` so PDFs/images render in-browser rather than force-downloading) rather than returning a JSON pointer -- the frontend links directly to this URL as an `<a href>` / `<img src>`.
 
@@ -667,4 +679,5 @@ Fully specified in the [AI Workers reference](ai-workers.md). The single route (
 | `GET` | `/api/review-day` | `user_id` | |
 | `POST` | `/api/attachments` | ownership-scoped (via workspace_id) | proxied R2 upload, MIME + size validation per Security Review S2 |
 | `GET` | `/api/attachments/:id` | ownership-scoped | streams R2 object |
+| `GET` | `/api/attachments` | ownership-scoped (via workspace_id) | lists attachments for workspace+widget |
 | `POST` | `/api/ai/draft-system` | session only | see ADR 003 |

@@ -4,6 +4,7 @@
     import type { LinkEntry } from '$lib/api/link-list';
     import type { Widget } from '$lib/api/workspaces';
     import { AUTOSAVE_DEBOUNCE_MS } from '$lib/components/system-form.config';
+    import AttachmentUpload from './AttachmentUpload.svelte';
 
     let { widget, workspaceId }: { widget: Widget; workspaceId: string | null } = $props();
 
@@ -113,4 +114,6 @@
             <p class="text-xs text-muted-foreground text-right">Saving...</p>
         {/if}
     </div>
+
+    <AttachmentUpload {workspaceId} widgetId={widget.id} />
 {/if}

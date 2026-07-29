@@ -3,8 +3,9 @@
     import { postJournalEntry, getJournalEntries, type JournalEntryResult } from '$lib/api/journal-log';
     import { ApiError } from '$lib/api/client';
     import { Send } from '@lucide/svelte';
+    import AttachmentUpload from './AttachmentUpload.svelte';
 
-    let {widget, instanceId}: {widget: Widget; instanceId: string | null } = $props();
+    let {widget, instanceId, workspaceId}: {widget: Widget; instanceId: string | null; workspaceId: string | null } = $props();
 
     let entries = $state<JournalEntryResult[]>([]);
     let text = $state('');
@@ -156,5 +157,9 @@
                 </button>
             {/if}
         </div>
+
+        {#if workspaceId}
+            <AttachmentUpload {workspaceId} widgetId={widget.id} />
+        {/if}
     </div>
 {/if}

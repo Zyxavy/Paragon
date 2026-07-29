@@ -40,7 +40,7 @@
     {:else if widget.type === 'checklist'}
         <ChecklistWidget {widget} {instanceId} />
     {:else if widget.type === 'log'}
-        <LogWidget {widget} {instanceId} />
+        <LogWidget {widget} {instanceId} {workspaceId} />
     {:else if widget.type === 'link-list'}
         <LinkListWidget {widget} {workspaceId} />
     {:else if widget.type === 'notes'}
