@@ -13,6 +13,20 @@ function defaultWidgetSize(type: string): { w: number; h: number } {
     }
 }
 
+export function defaultMinWidgetSize(type: string): { w: number; h: number } {
+    switch (type) {
+        case 'timer': return { w: 200, h: 140 };
+        case 'counter': return { w: 160, h: 120 };
+        case 'checklist': return { w: 200, h: 140 };
+        case 'log': return { w: 260, h: 180 };
+        case 'link-list': return { w: 280, h: 160 };
+        case 'notes': return { w: 200, h: 180 };
+        case 'streak': return { w: 160, h: 120 };
+        case 'progress': return { w: 200, h: 140 };
+        default: return { w: 200, h: 140 };
+    }
+}
+
 function defaultLabel(type: string): string {
     const labels: Record<string, string> = {
         timer: 'Timer',
