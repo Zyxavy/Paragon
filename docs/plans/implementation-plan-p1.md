@@ -1,6 +1,6 @@
 # Paragon: P1 Implementation Plan
 
-**Implementation status:** Planned / Target Architecture
+**Implementation status:** Current — P1 complete July 2026
 
 **Scope:** P1 per PRD S7: Built-in Systems Framework template library, user-saved templates, remaining widget types (Link List, Streak view, Progress Chart, Notes), AI-assisted creation (suggest-only), R2 attachments (called out as a v1 dependency in PRD S13 decision #2 but explicitly deferred out of the P0 plan's scope), and the `/account` settings surface (recovery-code display/regenerate) that P0 stubbed via the sign-up modal only.
 

@@ -252,7 +252,7 @@ Edited Systems take effect on their next scheduled Instance. Past Instances are 
 | Priority | Feature |
 |---|---|
 | **P0** | System Creator (manual), Instance auto-generation, Dashboard (full/floor/missed), basic Workspace with 3-4 widget types (Timer, Counter, Log, Checklist), Schedule (day/time window), per-System Review, Review Day aggregation view, Auth, barrier_list, environment_cue in the System Creator form |
-| **P1** | Built-in Systems Framework template library, user-saved templates, remaining widget types (Link list, Streak view, Progress chart, Notes), AI-assisted creation (suggest-only) |
+| **P1** | Built-in Systems Framework template library, user-saved templates, remaining widget types (Link list, Streak view, Progress chart, Notes), AI-assisted creation (suggest-only) | Implemented July 2026 |
 | **P2** | workspace widget reordering/resizing polish, export/backup |
 
 ## 8. AI Assist Scope (v1)

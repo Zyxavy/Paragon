@@ -16,26 +16,24 @@ Build systems that survive your worst days. Log daily. Review weekly.
 |---|---|---|
 | Frontend | SvelteKit (CSR/SPA) + Tailwind CSS | Active |
 | Backend API | Hono (TypeScript) on Cloudflare Workers | Active (auth + systems CRUD + AI draft) |
-| Primary database | Cloudflare D1 (SQLite) | Configured (binding exists) |
-| File storage | Cloudflare R2 | Configured (binding exists) |
+| Primary database | Cloudflare D1 (SQLite) | Active |
+| File storage | Cloudflare R2 | Active (file attachments) |
 | Auth | Better Auth (self-hosted on D1) | Active |
 | AI | Workers AI (`@cf/deepseek-ai/deepseek-r1-distill-qwen-32b`) | Active (system draft endpoint) |
 | Scheduling | Cloudflare Cron Triggers | Active (nightly instance pre-generation) |
 | Message queue | Cloudflare Queues | Active (journal retry) |
+| Secondary database | MongoDB Atlas (journal/reflections only) | Active (journal writes + queue fallback) |
 | Monorepo | pnpm workspaces | Active |
 
 ## Tech Stack (Planned)
-
-| Layer | Choice | Status |
-|---|---|---|
-| Secondary database | MongoDB Atlas (journal/reflections only) | Live (journal writes + queue fallback) |
 
 ## Documentation
 
 ### Current
 
 - [AGENTS.md](AGENTS.md): coding conventions and tooling
-- [Implementation Plan](docs/plans/implementation-plan-p0.md): P0 feature build plan
+- [Implementation Plan (P0)](docs/plans/implementation-plan-p0.md): P0 feature build plan
+- [Implementation Plan (P1)](docs/plans/implementation-plan-p1.md): P1 feature build plan
 
 ### Reference Documentation
 

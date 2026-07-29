@@ -142,6 +142,7 @@ These test the Hono routes with **real D1 bindings** (Miniflare in-memory SQLite
 **Not E2E-tested in v1:**
 - AI-assisted creation (requires a live Workers AI call in test environment - deferred; tested manually).
 - File attachments (R2 upload in E2E environment requires real R2 or a local stub - deferred; tested in integration layer against Miniflare R2).
+- Account settings recovery-code management (low-risk settings page — covered by unit tests).
 
 ---
 
