@@ -6,6 +6,7 @@
   import ClipboardCheck from '@lucide/svelte/icons/clipboard-check';
   import BookOpen from '@lucide/svelte/icons/book-open';
   import type { Component } from 'svelte';
+  import UserCircle from '@lucide/svelte/icons/user-circle';
 
   let { session }: { session: any } = $props();
 
@@ -22,7 +23,9 @@
     { label: 'Systems', href: '/systems', icon: Cog },
     { label: 'Review Day', href: '/review-day', icon: ClipboardCheck },
     { label: 'Guides', href: '/guides', icon: BookOpen },
+    { label: 'Account', href: '/account', icon: UserCircle },
   ];
+
 </script>
 
 <nav
@@ -45,6 +48,7 @@
       <span class="hidden sm:inline">{item.label}</span>
     </a>
   {/each}
+
 </nav>
 
 <aside
@@ -53,7 +57,7 @@
 >
   <div class="flex flex-col gap-1">
     <span class="font-display font-semibold text-primary text-lg mb-6">Paragon</span>
-    {#each navItems as item}
+    {#each navItems.filter(n => n.href !== '/account') as item}
       <a
         href={item.href}
         class="flex items-center gap-2 px-3 py-2 rounded-lg font-body text-sm
@@ -70,6 +74,17 @@
   </div>
 
   <div class="flex flex-col gap-2 border-t border-border/50 pt-4">
+    <a
+      href="/account"
+      class="flex items-center gap-2 px-3 py-2 rounded-lg font-body text-sm
+             transition-colors duration-150
+             {active.startsWith('/account')
+               ? 'bg-primary/10 text-primary font-semibold'
+               : 'text-muted-foreground hover:text-on-surface hover:bg-muted'}"
+    >
+      <UserCircle class="w-4 h-4" />
+      Account
+    </a>
     <span class="font-body text-xs text-muted-foreground truncate">{session?.user?.email}</span>
     <button
       onclick={async () => { await authClient.signOut(); window.location.href = '/'; }}

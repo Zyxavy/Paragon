@@ -125,7 +125,7 @@
     <button
       onclick={handleRegenerate}
       disabled={regenerating}
-      class="px-4 py-2 rounded-lg bg-destructive text-on-destructive text-sm font-semibold
+      class="px-4 py-2 rounded-lg bg-destructive text-white text-sm font-semibold
              hover:opacity-90 transition-colors disabled:opacity-40 cursor-pointer"
     >
       {regenerating ? 'Regenerating...' : 'Yes, regenerate'}

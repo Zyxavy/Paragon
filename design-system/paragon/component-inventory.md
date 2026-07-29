@@ -35,6 +35,7 @@ type Props = {
 | Guides | `/guides` | Book icon | Highlighted on first visit post-signup |
 | Review Day | `/review-day` | Clipboard icon | Badge if systems due |
 | Systems | `/systems` | Layers icon | Always |
+| Account | `/account` | UserCircle icon | Bottom section on desktop sidebar, 5th pill on mobile |
 **Variants:** Desktop sidebar (hidden on mobile), floating pill (mobile visible)
 **Design ref:** MASTER.md §Floating Bottom Navigation
 
@@ -287,6 +288,7 @@ These are inline in the page Svelte file or have no reusable wrapper.
 | System Detail Overview (`/systems/[id]`) | Blueprint display, streak calendar, action links — inline, reads from layout data |
 | System Reviews List (`/systems/[id]/reviews`) | Review cards + Start Review CTA — inline |
 | Review Day (`/review-day`) | Uses `<DueReviewList>` and `<DueReviewCard>` |
+| Account Settings (`/account`) | Recovery codes list with hide/show toggle, regenerate confirmation modal — all inline in `+page.svelte` |
 
 ---
 
@@ -296,6 +298,6 @@ These are inline in the page Svelte file or have no reusable wrapper.
 |-------|-------|-------|
 | Global | 9 | `NavBar`, `ToastContainer`, `Modal`, `RingChart`, `InstanceSummary`, `Input`, `Textarea`, `SchedulePicker` |
 | Shared | 14 | `InstanceList`, `InstanceCard`, `TemplatePicker`, `AIDraftPanel`, `SystemForm`, `WidgetPalette`, `WorkspaceCanvas`, `WidgetCard`, `SaveBar`, `ReviewForm`, `DueReviewList`, `DueReviewCard`, `AuthShell` |
-| Page-specific | ~8 | Inline per page |
+| Page-specific | ~9 | Inline per page |
 
 **Total: ~23 reusable components + ~8 page-specific inline sections**
