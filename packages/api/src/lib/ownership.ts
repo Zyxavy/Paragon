@@ -62,3 +62,12 @@ export async function getOwnedWidgetEntry(db: D1Database, instanceId: string, wi
         AND s.user_id = ?
     `).bind(instanceId, widgetId, entryType, userId).first<any>();
 }
+
+export async function getOwnedAttachment(db: D1Database, attachmentId: string, userId: string) {
+  return await db.prepare(`
+    SELECT a.* FROM attachments a
+    JOIN workspaces w ON a.workspace_id = w.id
+    JOIN systems s ON w.system_id = s.id
+    WHERE a.id = ? AND s.user_id = ?
+  `).bind(attachmentId, userId).first<any>();
+}
