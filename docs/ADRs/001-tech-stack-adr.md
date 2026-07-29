@@ -144,7 +144,7 @@ Better Auth is an open-source, self-hosted auth library with native D1 support (
 
 **Why R2 over an external object store:** same reasoning as D1 -- same network, same account, no extra service to provision or pay for. Free tier (10 GB-month storage, 1M Class A operations/month, 10M Class B operations/month) is far beyond personal-app volume, and R2 has zero egress fees, which matters if attachments get viewed often (e.g. repeatedly opening a reference PDF).
 
-**Upload flow -- proxied through the Worker:** R2's Workers binding (`env.R2_BUCKET.put(key, body)`) does not support presigned URLs in the same way as S3. Presigned URL generation requires enabling R2's S3-compatible API and issuing separate S3 credentials -- an added surface that's unnecessary for a single-user personal app. Instead, all file uploads are proxied directly through the Hono API Worker:
+**Upload flow -- proxied through the Worker (v1):** All file uploads are proxied directly through the Hono API Worker:
 
 1. Frontend sends a `multipart/form-data` POST to `/api/attachments`.
 2. Hono reads the file stream from the request body.
@@ -152,7 +152,21 @@ Better Auth is an open-source, self-hosted auth library with native D1 support (
 4. On success, Hono writes a pointer row to D1 (`r2_key`, `filename`, `content_type`, `size_bytes`, `widget_id`) and returns the pointer's `id` to the client.
 5. For retrieval, the client requests `/api/attachments/{id}` and the Worker streams the R2 object back.
 
-**Implication:** file bytes transit the Worker on upload. For a personal-use app with infrequent, small attachments (PDFs, photos), this is not a bottleneck. If large files become a use case, revisiting the S3-compatible presigned URL path is the right move at that point, not in v1.
+**Future consideration -- presigned URLs:** For a future optimization that avoids proxying file bytes through the Worker, R2 supports [presigned URLs](https://developers.cloudflare.com/r2/api/s3/presigned-urls/) via its S3-compatible API. The v1 proxied approach was chosen over presigned URLs for the following reasons (which should be re-evaluated if large-file uploads become a bottleneck):
+
+- **New dependency:** presigned URL generation requires `@aws-sdk/client-s3` + `@aws-sdk/s3-request-presigner`, adding significant bundle weight that risks exceeding the Workers free-tier 1 MB uncompressed script limit.
+- **Infrastructure setup:** requires enabling the R2 S3-compatible API, creating an R2 API token, storing `R2_ACCESS_KEY_ID`/`R2_SECRET_ACCESS_KEY` as env vars, and configuring a CORS policy on the bucket for browser-based uploads.
+- **Multi-step flow:** upload becomes a 3-step sequence (request presigned URL → client PUT to R2 → confirm completion), requiring a `status` column (`'pending'` / `'ready'`) on the `attachments` table and a confirmation endpoint.
+- **Test complexity:** Miniflare does not support the S3-compatible API, so integration tests would need real credentials or a different approach.
+- **Unnecessary at current scale:** Free-tier Workers quota (1M requests/day) and R2 bandwidth are far beyond personal-app volume; the proxied path is simpler and sufficient.
+
+If presigned URLs are adopted in a future slice, the migration path is:
+1. Add `status TEXT NOT NULL DEFAULT 'ready'` column to `attachments` (new migration).
+2. Install `@aws-sdk/client-s3` + `@aws-sdk/s3-request-presigner` in `packages/api`.
+3. Add R2 API credentials as env vars + CORS policy on the bucket.
+4. Replace `POST /api/attachments` (multipart) with `POST /api/attachments/presign` (JSON) + `POST /api/attachments/:id/confirm`.
+5. Update the frontend `uploadAttachment()` function for the multi-step flow.
+6. Update tests and docs (ADR 001 §5.7, security-review.md §2, api-routes.md §9).
 
 **Orphaned object handling:** if the R2 write succeeds but the subsequent D1 pointer write fails, an orphaned R2 object exists with no DB reference. Mitigation: always write D1 *after* R2 confirms; if D1 fails, log the orphaned key for manual cleanup. At personal-app scale and R2's free-tier storage (10 GB), orphaned objects from transient D1 failures are a negligible concern -- no automated cleanup process is needed in v1.
 
