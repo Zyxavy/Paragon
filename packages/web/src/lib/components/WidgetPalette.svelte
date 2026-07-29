@@ -9,8 +9,8 @@
         { type: 'checklist', label: 'Checklist', icon: ListChecks, comingSoon: false },
         { type: 'log', label: 'Log', icon: FileText, comingSoon: false  },
         { type: 'link-list', label: 'Link List', icon: Link, comingSoon: false },
-        { type: 'streak', label: 'Streak', icon: Flame, comingSoon: true },
-        { type: 'progress', label: 'Progress Chart', icon: ChartLine, comingSoon: true },
+        { type: 'streak', label: 'Streak', icon: Flame, comingSoon: false },
+        { type: 'progress', label: 'Progress Chart', icon: ChartLine, comingSoon: false },
         { type: 'notes', label: 'Notes', icon: StickyNote, comingSoon: false },
     ];
 </script>

@@ -4,11 +4,12 @@
     import type { Widget } from '$lib/api/workspaces';
 
     let {
-        widgets, instanceId, workspaceId, onReorder, onRemove,
+        widgets, instanceId, workspaceId, systemId, onReorder, onRemove,
     }: {
         widgets: Widget[];
         instanceId: string | null;
         workspaceId: string | null;
+        systemId: string | null;
         onReorder: (widgets: Widget[]) => void;
         onRemove: (id: string) => void;
     } = $props();
@@ -38,7 +39,7 @@
                grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 auto-rows-min"
     >
         {#each widgets as widget (widget.id)}
-            <WidgetCard {widget} {instanceId} {workspaceId} {onRemove} />
+            <WidgetCard {widget} {instanceId} {workspaceId} {systemId} {onRemove} />
         {/each}
     </div>
 {/if}

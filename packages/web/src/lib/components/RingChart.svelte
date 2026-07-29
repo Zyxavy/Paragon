@@ -2,9 +2,9 @@
     let { value, size = 64 }: { value: number; size?: number } = $props();
 
     const stroke = 12;
-    const radius = (size - stroke) / 2; // 26 for size=64
-    const circumference = 2 * Math.PI * radius;
-    const offset = circumference - (Math.min(value, 100) / 100) * circumference;
+    const radius = $derived((size - stroke) / 2);
+    const circumference = $derived(2 * Math.PI * radius);
+    const offset = $derived(circumference - (Math.min(value, 100) / 100) * circumference);
 </script>
 
 <svg width={size} height={size} class="transform -rotate-90">

@@ -2,6 +2,28 @@
 
 ## [Unreleased]
 
+### Slice 18: Streak View + Progress Chart Widgets (read-only)
+
+#### Backend
+
+- No new routes — both widgets are read-only and derive from existing endpoints.
+
+#### Frontend
+
+- Created `packages/web/src/lib/components/RingChart.svelte` — reusable SVG ring/donut chart (12pt stroke, round caps, gradient fill) per MASTER.md spec.
+- Created `packages/web/src/lib/lib/streak.ts` — pure `calculateStreak()` function returning `{ current, longest }` from instance state data.
+- Created `packages/web/src/lib/components/StreakWidget.svelte` — displays current streak as RingChart percentage of personal best, with Flame icon and non-punitive "Best: N days" text.
+- Created `packages/web/src/lib/components/ProgressChartWidget.svelte` — hand-rolled SVG bar chart of counter-log values grouped by date over the last 7 days (client-side aggregation, no new charting dependency).
+- Activated both widgets in `WidgetPalette.svelte` (`comingSoon: false`).
+- Added type dispatch branches for `streak` and `progress` in `WidgetCard.svelte`.
+- Added `systemId` prop drilling through `WorkspaceCanvas.svelte` for streak widget access to instance history.
+
+#### Tests
+
+- Created `packages/web/src/lib/lib/streak.spec.ts` — 5 unit tests for `calculateStreak`: empty history, missed current, consecutive run, longest vs current, broken-then-resumed.
+- All three DoD items verified: streak is a pure tested function, no new dependencies added, non-punitive tone confirmed.
+- **Test count:** 173 API + 11 web unit (5 new streak + 6 existing).
+
 ### Slice 17: Notes + Link List Widgets
 
 #### Backend

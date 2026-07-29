@@ -7,11 +7,14 @@
     import LogWidget from './LogWidget.svelte';
     import LinkListWidget from './LinkListWidget.svelte';
     import NotesWidget from './NotesWidget.svelte';
+    import StreakWidget from './StreakWidget.svelte';
+    import ProgressChartWidget from './ProgressChartWidget.svelte';
 
-    let { widget, instanceId, workspaceId, onRemove }: {
+    let { widget, instanceId, workspaceId, systemId, onRemove }: {
         widget: Widget;
         instanceId: string | null;
         workspaceId: string | null;
+        systemId: string | null;
         onRemove: (id: string) => void;
     } = $props();
 </script>
@@ -42,6 +45,10 @@
         <LinkListWidget {widget} {workspaceId} />
     {:else if widget.type === 'notes'}
         <NotesWidget {widget} {workspaceId} />
+    {:else if widget.type === 'streak'}
+        <StreakWidget {widget} {systemId} />
+    {:else if widget.type === 'progress'}
+        <ProgressChartWidget {widget} />
     {:else}
         <div class="flex-1 flex items-center justify-center">
             <p class="text-xs text-muted-foreground">Coming in a future update</p>
