@@ -73,7 +73,8 @@
     {/each}
   </div>
 
-  <div class="flex flex-col gap-2 border-t border-border/50 pt-4">
+  <div class="flex flex-col gap-1 pt-4">
+    <span class="font-body text-xs text-muted-foreground truncate px-3 pb-1">{session?.user?.email}</span>
     <a
       href="/account"
       class="flex items-center gap-2 px-3 py-2 rounded-lg font-body text-sm
@@ -85,10 +86,10 @@
       <UserCircle class="w-4 h-4" />
       Account
     </a>
-    <span class="font-body text-xs text-muted-foreground truncate">{session?.user?.email}</span>
     <button
       onclick={async () => { await authClient.signOut(); window.location.href = '/'; }}
-      class="text-left text-sm text-destructive hover:underline font-body cursor-pointer"
+      class="text-left text-sm text-muted-foreground hover:text-on-surface px-3 py-2 rounded-lg font-body
+             transition-colors duration-150 hover:bg-muted cursor-pointer w-full"
     >
       Sign out
     </button>

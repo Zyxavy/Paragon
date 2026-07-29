@@ -4,8 +4,8 @@
 
   const bg = (type: string) =>
     type === 'error' ? 'bg-destructive text-white' :
-    type === 'success' ? 'bg-primary text-white' :
-    'bg-primary text-white';
+    type === 'success' ? 'bg-primary text-on-primary' :
+    'bg-primary text-on-primary';
 </script>
 
 {#if toastStore.items.length > 0}

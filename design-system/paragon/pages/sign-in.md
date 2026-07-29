@@ -67,7 +67,7 @@ Centered, minimal form layout. No nav shell. The `(auth)` route group wraps all 
 ## Visual Tone for Auth Pages
 
 - Centered column, max-w-sm — intentionally narrow to keep forms digestible
-- Logo at top anchors the page, uses the sage primary color
+- Logo at top anchors the page, uses the warm brown primary color
 - Form card is `surface-container-lowest` with ambient shadow — floats gently on the page background
 - No decorative elements, no illustrations — the focus is the form
 - Error states (invalid email, wrong password): inline validation below the field in destructive (`#C24545`) at `text-sm`

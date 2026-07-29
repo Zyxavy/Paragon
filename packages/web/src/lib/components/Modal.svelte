@@ -9,7 +9,7 @@
 
 {#if open}
     <!-- svelte-ignore a11y_click_events_have_key_events a11y_interactive_supports_focus -->
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-on-surface/30 backdrop-blur-sm"
          onclick={onclose} onkeydown={(e) => { if (e.key === 'Escape') onclose(); }} role="presentation">
         <div class="bg-surface rounded-2xl shadow-ambient-lg p-6 max-w-sm w-full mx-4"
              onclick={(e) => e.stopPropagation()} role="document">
