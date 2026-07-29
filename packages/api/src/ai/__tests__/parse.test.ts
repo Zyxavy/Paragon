@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { stripThinkTokens, parseSystemDraft, AIParseError } from '../parse';
+import { stripThinkTokens, stripMarkdownFences, parseSystemDraft, AIParseError } from '../parse';
 
 describe('stripThinkTokens', () => {
   it('strips content before and including </think>', () => {
@@ -24,6 +24,37 @@ describe('stripThinkTokens', () => {
 
   it('handles empty string', () => {
     expect(stripThinkTokens('')).toBe('');
+  });
+});
+
+describe('stripMarkdownFences', () => {
+  it('strips ```json fences with newlines', () => {
+    const input = '```json\n{"name":"Reading System"}\n```';
+    expect(stripMarkdownFences(input)).toBe('{"name":"Reading System"}');
+  });
+
+  it('strips ``` fences without language tag', () => {
+    const input = '```\n{"name":"Reading System"}\n```';
+    expect(stripMarkdownFences(input)).toBe('{"name":"Reading System"}');
+  });
+
+  it('strips inline fences without newlines', () => {
+    const input = '```json{"name":"Reading System"}```';
+    expect(stripMarkdownFences(input)).toBe('{"name":"Reading System"}');
+  });
+
+  it('returns full string when no fences are present', () => {
+    const input = '{"name":"Reading System"}';
+    expect(stripMarkdownFences(input)).toBe('{"name":"Reading System"}');
+  });
+
+  it('handles fences with leading whitespace after think block', () => {
+    const input = '\n\n```json\n{"name":"Reading System"}\n```';
+    expect(stripMarkdownFences(input)).toBe('{"name":"Reading System"}');
+  });
+
+  it('handles empty string', () => {
+    expect(stripMarkdownFences('')).toBe('');
   });
 });
 
@@ -72,5 +103,23 @@ describe('parseSystemDraft', () => {
       .toThrow(AIParseError);
     expect(() => parseSystemDraft(JSON.stringify(missingField)))
       .toThrow(/missing required field/);
+  });
+
+  it('parses JSON wrapped in markdown fences with think block', () => {
+    const raw = `<think>User wants to read more</think>\n\`\`\`json\n${JSON.stringify(validDraft)}\n\`\`\``;
+    const result = parseSystemDraft(raw);
+    expect(result).toEqual(validDraft);
+  });
+
+  it('parses JSON wrapped in markdown fences without language tag', () => {
+    const raw = `\`\`\`\n${JSON.stringify(validDraft)}\n\`\`\``;
+    const result = parseSystemDraft(raw);
+    expect(result).toEqual(validDraft);
+  });
+
+  it('parses JSON wrapped in inline fences', () => {
+    const raw = '```json' + JSON.stringify(validDraft) + '```';
+    const result = parseSystemDraft(raw);
+    expect(result).toEqual(validDraft);
   });
 });

@@ -2,6 +2,85 @@
 
 ## [Unreleased]
 
+### Slice 19: R2 Attachments
+
+#### Backend
+
+- Created `packages/api/migrations/0017_attachments.sql` — attachments table DDL (`id`, `workspace_id`, `widget_id`, `r2_key`, `filename`, `content_type`, `size_bytes`, `created_at`).
+- Created `packages/api/src/lib/attachments.ts` — shared MIME allowlist (13 types) + `MAX_ATTACHMENT_SIZE_BYTES` (25 MB) constant.
+- Added `getOwnedAttachment` to `packages/api/src/lib/ownership.ts` — D1 + R2 ownership check joining through `workspaces` → `systems`.
+- Created `packages/api/src/routes/attachments.ts` — three routes: `POST /api/attachments` (proxied upload with MIME + size validation, R2-then-D1 write ordering), `GET /api/attachments/:id` (streams R2 object with `Content-Disposition: inline`), `GET /api/attachments?workspace_id=&widget_id=` (lists attachments for a workspace+widget combo, ownership-gated, excludes `r2_key`).
+- Mounted in `packages/api/src/index.ts` at `/api` prefix.
+
+#### Frontend
+
+- Created `packages/web/src/lib/api/attachments.ts` — `uploadAttachment()`, `getAttachments()`, `getAttachmentUrl()` typed wrappers via `apiFetch`.
+- Created `packages/web/src/lib/components/AttachmentUpload.svelte` — file input with drag-to-upload UX, attachment list with links to individual file streams.
+- Integrated `AttachmentUpload` into `LogWidget.svelte` (added `workspaceId` prop) and `LinkListWidget.svelte`.
+
+#### Tests
+
+- 13 integration tests in `packages/api/src/__tests__/attachments.spec.ts`: PDF upload (201), unsupported MIME (400), oversized file (400), missing file (400), non-owned workspace (404), stream back (200), non-existent (404), non-owned (404), list by workspace+widget (200), missing params (400), empty list (200).
+- All routes ownership-gated and edge-case tested.
+
+#### Docs
+
+- Updated `docs/reference/api-routes.md` §9 — added list endpoint docs, fixed 10 MB → 25 MB, updated route inventory.
+- Updated `docs/ADRs/001-tech-stack-adr.md` §5.7 — presigned URL approach documented as future consideration with migration path.
+- **Test count:** 173 → 186 API integration, 11 web unit.
+
+### Slice 18: Streak View + Progress Chart Widgets (read-only)
+
+#### Backend
+
+- No new routes — both widgets are read-only and derive from existing endpoints.
+
+#### Frontend
+
+- Created `packages/web/src/lib/components/RingChart.svelte` — reusable SVG ring/donut chart (12pt stroke, round caps, gradient fill) per MASTER.md spec.
+- Created `packages/web/src/lib/lib/streak.ts` — pure `calculateStreak()` function returning `{ current, longest }` from instance state data.
+- Created `packages/web/src/lib/components/StreakWidget.svelte` — displays current streak as RingChart percentage of personal best, with Flame icon and non-punitive "Best: N days" text.
+- Created `packages/web/src/lib/components/ProgressChartWidget.svelte` — hand-rolled SVG bar chart of counter-log values grouped by date over the last 7 days (client-side aggregation, no new charting dependency).
+- Activated both widgets in `WidgetPalette.svelte` (`comingSoon: false`).
+- Added type dispatch branches for `streak` and `progress` in `WidgetCard.svelte`.
+- Added `systemId` prop drilling through `WorkspaceCanvas.svelte` for streak widget access to instance history.
+
+#### Tests
+
+- Created `packages/web/src/lib/lib/streak.spec.ts` — 5 unit tests for `calculateStreak`: empty history, missed current, consecutive run, longest vs current, broken-then-resumed.
+- All three DoD items verified: streak is a pure tested function, no new dependencies added, non-punitive tone confirmed.
+- **Test count:** 173 API + 11 web unit (5 new streak + 6 existing).
+
+### Slice 17: Notes + Link List Widgets
+
+#### Backend
+
+- Created `packages/api/src/routes/link-list.ts` — `PUT`/`GET /api/workspaces/:workspace_id/link-list/:widget_id`, upserts into `widget_entries` with `entry_type = 'link_list'` and `instance_id = NULL`.
+- Created `packages/api/src/routes/notes.ts` — `PUT`/`GET /api/workspaces/:workspace_id/notes/:widget_id`, same upsert pattern with `entry_type = 'notes'`.
+- Added `getOwnedWorkspaceById` to `packages/api/src/lib/ownership.ts` — workspace_id-based ownership check for workspace-scoped widget routes.
+- Mounted both routers in `packages/api/src/index.ts` at `/api` prefix.
+
+#### Frontend
+
+- Created `packages/web/src/lib/api/link-list.ts` — `putLinkList()` and `getLinkList()` typed wrappers.
+- Created `packages/web/src/lib/api/notes.ts` — `putNotes()` and `getNotes()` typed wrappers.
+- Created `packages/web/src/lib/components/LinkListWidget.svelte` — label+URL pair list with add/remove rows and debounced `PUT` save.
+- Created `packages/web/src/lib/components/NotesWidget.svelte` — single `<textarea>` with debounced `PUT` on change (reuses `AUTOSAVE_DEBOUNCE_MS`).
+- Activated both widgets in `WidgetPalette.svelte` (`comingSoon: false`).
+- Added type dispatch branches for `link-list` and `notes` in `WidgetCard.svelte`.
+- Added `workspaceId` prop drilling through `+page.ts` → `+page.svelte` → `WorkspaceCanvas.svelte` → `WidgetCard.svelte`.
+
+#### Tests
+
+- Added 11 integration tests in `workspace.spec.ts`: 6 for link-list routes (404 before save, PUT creates, PUT replaces, invalid links, invalid shape, instance_id IS NULL) and 5 for notes routes (same minus invalid shape).
+- All three DoD items verified: workspace-scoped storage (`instance_id IS NULL`), replace-not-append, and palette activation.
+
+#### Docs
+
+- Updated `CHANGELOG.md` — this entry.
+- Updated `docs/reference/api-routes.md` — route inventory annotations for workspace-scoped rows.
+- **Test count:** 162 → 173 API integration.
+
 ### Slice 16: AI-Assisted Creation (Frontend + Backend)
 
 #### Backend

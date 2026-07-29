@@ -5,18 +5,24 @@
     import TimerWidget from './TimerWidget.svelte';
     import ChecklistWidget from './ChecklistWidget.svelte';
     import LogWidget from './LogWidget.svelte';
+    import LinkListWidget from './LinkListWidget.svelte';
+    import NotesWidget from './NotesWidget.svelte';
+    import StreakWidget from './StreakWidget.svelte';
+    import ProgressChartWidget from './ProgressChartWidget.svelte';
 
-    let { widget, instanceId, onRemove }: {
+    let { widget, instanceId, workspaceId, systemId, onRemove }: {
         widget: Widget;
         instanceId: string | null;
+        workspaceId: string | null;
+        systemId: string | null;
         onRemove: (id: string) => void;
     } = $props();
 </script>
 
 <div class="bg-surface-container-lowest rounded-xl p-4 shadow-ambient-sm
             transition-shadow duration-200 hover:shadow-ambient-md
-            min-h-[140px] flex flex-col">
-    <div class="flex items-center justify-between mb-3">
+            min-h-[140px] flex flex-col relative">
+    <div class="drag-handle flex items-center justify-between mb-3 cursor-grab active:cursor-grabbing select-none" data-drag-handle={widget.id}>
         <h4 class="font-body text-sm font-semibold text-on-surface">{widget.label}</h4>
         <button
             onclick={() => onRemove(widget.id)}
@@ -34,10 +40,24 @@
     {:else if widget.type === 'checklist'}
         <ChecklistWidget {widget} {instanceId} />
     {:else if widget.type === 'log'}
-        <LogWidget {widget} {instanceId} />
+        <LogWidget {widget} {instanceId} {workspaceId} />
+    {:else if widget.type === 'link-list'}
+        <LinkListWidget {widget} {workspaceId} />
+    {:else if widget.type === 'notes'}
+        <NotesWidget {widget} {workspaceId} />
+    {:else if widget.type === 'streak'}
+        <StreakWidget {widget} {systemId} />
+    {:else if widget.type === 'progress'}
+        <ProgressChartWidget {widget} />
     {:else}
         <div class="flex-1 flex items-center justify-center">
             <p class="text-xs text-muted-foreground">Coming in a future update</p>
         </div>
     {/if}
+
+    <div
+        class="resize-handle absolute bottom-0 right-0 w-4 h-4 cursor-se-resize z-10"
+        style="background: linear-gradient(135deg, transparent 50%, var(--color-outline) 50%); border-radius: 0 0 8px 0;"
+        data-resize-handle={widget.id}
+    ></div>
 </div>

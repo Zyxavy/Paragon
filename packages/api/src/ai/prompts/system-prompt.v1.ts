@@ -16,7 +16,7 @@ REQUIRED JSON SCHEMA:
   "name": "Short, specific name for this system (e.g. 'Daily Reading System', 'Morning Workout System')",
   "purpose": "1-2 sentences: why this system exists and what outcome it produces",
   "philosophy": "2-3 sentences: the identity-level reason to do this system even on bad days. Written as if the user is saying it to themselves.",
-  "protocol": "The full version - 3 to 6 numbered steps, specific and actionable",
+  "protocol": "The full version as a single string with numbered steps separated by newlines (e.g. \"1. Prepare my book.\\n2. Find a quiet spot.\\n3. Read 10 pages.\")",
   "floor_action": "The absolute minimum. One sentence. Must be completable in under 5 minutes with zero energy.",
   "trigger": "After I [specific existing habit], I will [first step of this system].",
   "barrier_list": ["barrier 1", "barrier 2", "barrier 3"],

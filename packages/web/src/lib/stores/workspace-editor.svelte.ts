@@ -5,8 +5,11 @@ const CURRENT_LAYOUT_VERSION = 1;
 
 function defaultWidgetSize(type: string): { w: number; h: number } {
     switch (type) {
-        case 'checklist': return { w: 2, h: 1 };
-        default: return { w: 1, h: 1 };
+        case 'checklist': return { w: 360, h: 180 };
+        case 'notes': return { w: 360, h: 240 };
+        case 'log': return { w: 360, h: 240 };
+        case 'link-list': return { w: 360, h: 240 };
+        default: return { w: 240, h: 180 };
     }
 }
 
@@ -49,11 +52,12 @@ export class WorkspaceEditorStore {
         const id = crypto.randomUUID();
         const config: Record<string, any> = {};
         const defaults = defaultWidgetSize(type);
+        const idx = this.layout.widgets.length;
         const widget: Widget = {
             id,
             type,
-            x: 0,
-            y: this.layout.widgets.length,
+            x: 16 + idx * 24,
+            y: 16 + idx * 24,
             w: defaults.w,
             h: defaults.h,
             config,
@@ -62,6 +66,26 @@ export class WorkspaceEditorStore {
         this.layout = {
             ...this.layout,
             widgets: [...this.layout.widgets, widget],
+        };
+        this.dirty = true;
+    }
+
+    moveWidget(id: string, x: number, y: number) {
+        this.layout = {
+            ...this.layout,
+            widgets: this.layout.widgets.map(w =>
+                w.id === id ? { ...w, x, y } : w
+            ),
+        };
+        this.dirty = true;
+    }
+
+    resizeWidget(id: string, w: number, h: number) {
+        this.layout = {
+            ...this.layout,
+            widgets: this.layout.widgets.map(w =>
+                w.id === id ? { ...w, w, h } : w
+            ),
         };
         this.dirty = true;
     }

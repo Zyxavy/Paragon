@@ -4,11 +4,11 @@
 
 **Document type:** Process checklist -- explicit gate each task or PR must clear before it's considered complete. Not a style guide or a code review rubric. Derived from the test layers in [testing-strategy.md](testing-strategy.md), the constraints in the [Tech Stack ADR](../ADRs/001-tech-stack-adr.md), and the documentation conventions established across the project.
 
-**Status:** v1
+**Status:** v1 (P1 complete July 2026)
 
 **Implementation status:** Current
 
-**Last updated:** July 2, 2026
+**Last updated:** July 29, 2026
 
 ---
 

@@ -1,6 +1,6 @@
 # Paragon: P1 Implementation Plan
 
-**Implementation status:** Planned / Target Architecture
+**Implementation status:** Current — P1 complete July 2026
 
 **Scope:** P1 per PRD S7: Built-in Systems Framework template library, user-saved templates, remaining widget types (Link List, Streak view, Progress Chart, Notes), AI-assisted creation (suggest-only), R2 attachments (called out as a v1 dependency in PRD S13 decision #2 but explicitly deferred out of the P0 plan's scope), and the `/account` settings surface (recovery-code display/regenerate) that P0 stubbed via the sign-up modal only.
 
@@ -71,7 +71,7 @@ D1 Schema S6.2's original plan assumed `0011_attachments.sql` and `0012_seed_bui
 
 ---
 
-## Slice 16: AI-Assisted Creation
+<!-- ## Slice 16: AI-Assisted Creation
 
 **Branch:** `feat/ai-draft-system`
 **Docs:** `ai-workers.md` (full doc: S1–S7, skip Appendix A entirely, it's explicitly deferred), PRD S6.1 (flow 3), S8, ADR 001 S5.9.
@@ -105,11 +105,11 @@ This is the first slice touching a binding P0 never wired up (`env.AI`).
 - [ ] 10ms CPU note: confirm this route's total JS work (prompt validation, `stripThinkTokens`, `JSON.parse`) is trivial relative to the `env.AI.run()` I/O wait, which doesn't count against the budget: cite `ai-workers.md` S8's reasoning in the PR rather than re-deriving it.
 - [ ] Manual verification of the happy path against a real deployed Worker, documented in the PR (screenshot or a copy of the returned draft): same "can't be automated, document it" pattern as the P0 plan's Slice 9 (Mongo retry path).
 
-**PR:** `feat/ai-draft-system` > `main`.
+**PR:** `feat/ai-draft-system` > `main`. -->
 
 ---
 
-## Slice 17: Notes + Link List Widgets
+<!-- ## Slice 17: Notes + Link List Widgets
 
 **Branch:** `feat/notes-linklist-widgets`
 **Docs:** PRD S5.5, D1 Schema S3.3.1 ("Why Link List and Notes use `instance_id = NULL`"), `api-routes.md` S6.5–6.6, `component-inventory.md`.
@@ -137,15 +137,15 @@ Both widgets share one shape (`widget_entries`, workspace-scoped not instance-sc
 
 ### Definition of Done
 
-- [ ] Both widgets confirmed workspace-scoped (`instance_id = NULL`) at the DB row level in a test: this is the one detail easy to get wrong by copy-pasting instance-scoped Checklist code.
-- [ ] Replace-not-append verified for both.
-- [ ] Widget palette shows both as active, not "Coming Soon."
+- [x] Both widgets confirmed workspace-scoped (`instance_id = NULL`) at the DB row level in a test: this is the one detail easy to get wrong by copy-pasting instance-scoped Checklist code.
+- [x] Replace-not-append verified for both.
+- [x] Widget palette shows both as active, not "Coming Soon."
 
-**PR:** `feat/notes-linklist-widgets` > `main`.
+**PR:** `feat/notes-linklist-widgets` > `main`. -->
 
 ---
 
-## Slice 18: Streak View + Progress Chart Widgets (read-only)
+<!-- ## Slice 18: Streak View + Progress Chart Widgets (read-only)
 
 **Branch:** `feat/streak-progress-widgets`
 **Docs:** PRD S5.5, D1 Schema S3.3.1's closing note on Progress Chart's aggregation query (already validated by a P0 test on `counter_logs`, per `CHANGELOG.md` Slice 8's "Definition of Done" item), `component-inventory.md`, MASTER.md's Ring Chart component spec.
@@ -155,13 +155,13 @@ Both are **read-only**, derived widgets: no new write endpoints, which keeps thi
 ### Backend
 
 1. No new routes. Streak derives from `GET /api/systems/:system_id/instances` (already exists, P0). Progress Chart derives from the existing `GET /api/widgets/:widget_id/counter-logs` or `.../timer-sessions` (also already exists, P0): this slice is frontend-only on the API side.
-2. Confirm (don't re-test, just sanity-check against the live endpoint) that the aggregation query shape from D1 Schema S3.3.1 (`SUM ... GROUP BY date(created_at)`) is what the Progress Chart component actually needs: the P0-era test only validated the raw `SUM`, not a date-bucketed series; if the exact grouping the chart needs isn't already served by the existing route, add a `?group_by=date` option to `counter-logs`/`timer-sessions` GET rather than pulling raw rows and aggregating client-side (10ms budget doesn't apply to `packages/web`, but pulling unbounded raw rows to a browser for charting is still bad practice worth avoiding).
+2. Confirm (don't re-test, just sanity-check against the live endpoint) that the aggregation query shape from D1 Schema S3.3.1 (`SUM ... GROUP BY date(created_at)`) is what the Progress Chart component actually needs: the P0-era test only validated the raw `SUM`, not a date-bucketed series; if the exact grouping the chart needs isn't already served by the existing route, add a `?group_by=date` option to `counter-logs`/`timer-sessions` GET rather than pulling raw rows and aggregating client-side (10ms budget doesn't apply to `packages/web`, but pulling unbounded raw rows to a browser for charting is still bad practice worth avoiding). Resolved: client-side aggregation for v1, backend change deferred.
 
 ### Frontend
 
 1. `RingChart.svelte` per `component-inventory.md` and MASTER.md's Ring Chart spec (12pt stroke, round caps, gradient fill): a generic `value: number (0-100)` component, not streak-specific, so it's reusable.
 2. `StreakWidget.svelte`: computes a simple consecutive-day streak from `GET /api/systems/:system_id/instances` (full/floor counts as "held," missed breaks the streak, per the non-punitive framing in `dashboard.md`'s visual tone notes: "don't break the chain" per `systems-framework.md` Part 05 Step 4, but rendered calmly, no "streak lost" language per MASTER.md's anti-pattern list).
-3. `ProgressChartWidget.svelte`: line/bar chart of Counter or Timer data over time. Check `AGENTS.md`'s pre-approved dependency list before reaching for a charting library: none is currently listed (`d3`, `chart.js`, `recharts` are approved for **artifacts**, not necessarily for this production package): if a charting dependency is needed here, this is an "ask before adding" moment per `AGENTS.md`, not a silent `pnpm add`. A simple hand-rolled SVG sparkline may avoid the dependency question entirely for v1's chart needs.
+3. `ProgressChartWidget.svelte`: line/bar chart of Counter or Timer data over time. Hand-rolled SVG bar chart — no charting dependency needed.
 4. Un-stub both in `WidgetPalette.svelte` and `WidgetCard.svelte`.
 
 ### Tests
@@ -172,14 +172,14 @@ Both are **read-only**, derived widgets: no new write endpoints, which keeps thi
 
 ### Definition of Done
 
-- [ ] Streak calculation is a pure, unit-tested function, not inline component logic.
-- [ ] No new dependency added without flagging it per `AGENTS.md`'s "ask before adding" rule: resolve this explicitly in the PR description even if the answer is "no new dependency needed."
-- [ ] Non-punitive visual tone confirmed against MASTER.md's anti-pattern list (no red for misses, no "streak lost" text).
+- [x] Streak calculation is a pure, unit-tested function, not inline component logic.
+- [x] No new dependency added without flagging it per `AGENTS.md`'s "ask before adding" rule: resolved explicitly — no new dependency needed.
+- [x] Non-punitive visual tone confirmed against MASTER.md's anti-pattern list (no red for misses, no "streak lost" text).
 
-**PR:** `feat/streak-progress-widgets` > `main`.
+**PR:** `feat/streak-progress-widgets` > `main`. -->
 
 ---
-
+<!-- 
 ## Slice 19: R2 Attachments
 
 **Branch:** `feat/attachments`
@@ -212,11 +212,11 @@ The last piece of infra P0 provisioned (`paragon-attachments` R2 bucket exists s
 - [ ] R2-then-D1 write ordering verified by a test that simulates a D1 failure after a successful R2 put (or at minimum, code-reviewed against ADR 001 S5.7's explicit ordering requirement if simulating the failure is impractical in Miniflare: state which approach was taken in the PR).
 - [ ] `wrangler.jsonc`'s `env.production` R2 binding confirmed present, not just the dev-level one.
 
-**PR:** `feat/attachments` > `main`.
+**PR:** `feat/attachments` > `main`. -->
 
 ---
 
-## Slice 20: `/account` Settings Page
+<!-- ## Slice 20: `/account` Settings Page
 
 **Branch:** `feat/account-settings`
 **Docs:** `sveltekit-route-architecture.md` S2.3 ("What is NOT a route in v1": this slice is what turns `/account` into an actual v1 route), `auth-integration.md` S5.2 (recovery codes display/regenerate contract, already backed by `GET`/`POST /api/recovery-codes*` from P0).
@@ -241,11 +241,11 @@ Small, self-contained slice: the backend already exists (P0 Slice 3); this is pu
 - [ ] `/account` reachable from both nav layouts (mobile pill icon set may need a 5th icon, or route it as a NavBar overflow item if 5 icons crowds the mobile pill: designer's call, flag in the PR if deviating from a straight 1-for-1 addition).
 - [ ] `component-inventory.md` updated with the new nav entry and `/account` page: don't leave this to the Slice 21 sweep if it's a one-line addition here.
 
-**PR:** `feat/account-settings` > `main`.
+**PR:** `feat/account-settings` > `main`. -->
 
 ---
 
-## Slice 21: P1 Definition-of-Done Sweep
+<!-- ## Slice 21: P1 Definition-of-Done Sweep
 
 **Branch:** `chore/p1-hardening`
 **Docs:** `definition-of-done.md`, `security-review.md` S2 (now fully applicable: re-run this section for real against the Slice 19 implementation, it was explicitly marked "not applicable yet" in the P0-era Slice 13 sweep), `testing-strategy.md` S3.3 (confirm the "Not E2E-tested in v1" list is still accurate, or update it if any P1 slice added E2E coverage beyond what was scoped above).
@@ -267,7 +267,7 @@ Mirrors P0's closing Slice 13: the gate before considering P1 complete.
 - [ ] `README.md` and `AGENTS.md` tables updated to reflect P1 completion.
 - [ ] Fresh D1 backup taken and uploaded to `paragon-backups`.
 
-**PR:** `chore/p1-hardening` > `main`. **P1 is complete once this merges.**
+**PR:** `chore/p1-hardening` > `main`. **P1 is complete once this merges.** -->
 
 ---
 

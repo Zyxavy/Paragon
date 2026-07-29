@@ -43,7 +43,7 @@
                 name = defaultsProp.name ?? '';
                 purpose = defaultsProp.purpose ?? '';
                 philosophy = defaultsProp.philosophy ?? '';
-                protocol = defaultsProp.protocol ?? '';
+                protocol = Array.isArray(defaultsProp.protocol) ? defaultsProp.protocol.join('\n') : (defaultsProp.protocol ?? '');
                 floor_action = defaultsProp.floor_action ?? '';
                 trigger = defaultsProp.trigger ?? '';
                 barrier_list = defaultsProp.barrier_list ?? [];

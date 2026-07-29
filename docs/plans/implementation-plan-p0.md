@@ -127,7 +127,7 @@ No PR needed for this slice — it's infra, not code. Move straight to Slice 1.
 
 Only migrate the tables P0 actually needs. Skip `attachments` (0011), skip the built-in template seed (0012) — the empty `templates` table is still needed for the FK, but no seed data yet since templates-as-a-feature is P1.
 
-> **Update (P1 complete):** The built-in template seed was later added as `0016_seed_builtin_templates.sql` (Slice 14). Attachments remain deferred. The gap was filled out of order per P1's migration-numbering convention.
+> **Update (P1 complete):** The built-in template seed was later added as `0016_seed_builtin_templates.sql` (Slice 14). Attachments were shipped as `0017_attachments.sql` (Slice 19). The gap was filled out of order per P1's migration-numbering convention.
 
 ### Migration files to create (in this order, per D1 Schema S6.2)
 
@@ -148,7 +148,7 @@ packages/api/migrations/
 
 Copy each `CREATE TABLE` statement verbatim from D1 Schema ADR S3.1–3.7, S2.1 (`recovery_codes`), and S6.1 (the `PRAGMA foreign_keys = ON` in `0001`). Don't hand-modify column types or constraints — if something looks wrong, flag it to me before deviating; the schema doc is deliberately the single source of truth other docs reference.
 
-**Note on `systems.template_origin`:** it references `templates(id)`. Since `0004_templates.sql` creates an empty table with no rows in P0, `template_origin` will always be `NULL` in this phase — that's fine, the column and FK just sit unused until the P1 templates slice populates the table.
+**Note on `systems.template_origin`:** it references `templates(id)`. Since `0004_templates.sql` creates an empty table with no rows in P0, `template_origin` will always be `NULL` in this phase — that's fine, the column and FK just sit unused until the P1 templates slice populates the table (later done in Slice 14 via `0016_seed_builtin_templates.sql`).
 
 ### Auth tables
 
@@ -388,7 +388,7 @@ The Log/Journal widget (Mongo-backed) is deliberately split into its own slice (
 ### Frontend
 
 1. `WidgetPalette`, `WorkspaceCanvas` (using `svelte-dnd-action`, pre-approved dep), `WidgetCard` type-dispatch, `SaveBar` per `workspace-builder.md`.
-2. `TimerWidget`, `CounterWidget`, `ChecklistWidget` components — only these three plus the Slice 9 Log widget populate the palette in P0; the palette list itself can already show all 8 types from the catalog with the P1 ones disabled/grayed, or just list only the 4 P0 types — your call, but if you show all 8, the non-P0 ones must not be selectable (don't half-wire a broken widget type).
+2. `TimerWidget`, `CounterWidget`, `ChecklistWidget` components — only these three plus the Slice 9 Log widget populate the palette in P0; the palette list itself can already show all 8 types from the catalog with the P1 ones disabled/grayed, or just list only the 4 P0 types — your call, but if you show all 8, the non-P0 ones must not be selectable (don't half-wire a broken widget type). (P1 later enabled all 8 widget types in Slices 17-18.)
 3. `workspace-editor-store.ts` (Svelte 5 runes class) exactly per `sveltekit-route-architecture.md` S5.3.
 4. `/systems/[id]/workspace/+page.svelte`.
 
@@ -551,7 +551,7 @@ This is the "is P0 actually done" gate before you consider starting P1 (template
 ### Tasks
 
 1. Re-run every item in `definition-of-done.md`'s checklist against the whole P0 surface, not per-PR this time — a holistic pass.
-2. `security-review.md` S2 (R2 attachment validation) — **not applicable yet**, since attachments are P1 and no upload route exists. Confirm this explicitly rather than silently skipping.
+2. `security-review.md` S2 (R2 attachment validation) — **not applicable yet**, since attachments are P1 and no upload route exists. Confirm this explicitly rather than silently skipping. (Re-validated in P1's Slice 21 — all checks live.)
 3. `security-review.md` S3 (XSS in freeform fields) — audit every place `philosophy`/`purpose`/`protocol`/`barrier_list`/Log text/Review fields render, confirm none use `{@html}`.
 4. Run a manual D1 backup per `disaster-recovery.md` S1.1 for the first time against production data, confirm the R2 upload succeeds, note the cadence going forward (weekly-ish).
 5. Enable GitHub's free Dependabot alerts (Settings → Code security) per `security-review.md` S5 — a one-time repo setting, not code.

@@ -7,6 +7,8 @@ import workspaceRoutes from '../routes/workspace';
 import counterLogRoutes from '../routes/counter-logs';
 import timerSessionRoutes from '../routes/timer-sessions';
 import checklistRoutes from '../routes/checklist';
+import linkListRoutes from '../routes/link-list';
+import notesRoutes from '../routes/notes';
 
 const migrations = inject('migrations');
 
@@ -29,6 +31,8 @@ function getAuthedApp(userId: string) {
     app.route('/api', counterLogRoutes);
     app.route('/api', timerSessionRoutes);
     app.route('/api', checklistRoutes);
+    app.route('/api', linkListRoutes);
+    app.route('/api', notesRoutes);
     return app;
 }
 
@@ -52,12 +56,14 @@ async function seedInstance(db: D1Database, systemId: string, date: string): Pro
     return instanceId;
 }
 
-async function seedWorkspace(db: D1Database, systemId: string, layout: any): Promise<void> {
+async function seedWorkspace(db: D1Database, systemId: string, layout: any): Promise<string> {
     const now = new Date().toISOString();
+    const id = crypto.randomUUID();
     await db.prepare(
         `INSERT INTO workspaces (id, system_id, layout, created_at, updated_at)
          VALUES (?, ?, ?, ?, ?)`
-    ).bind(crypto.randomUUID(), systemId, JSON.stringify(layout), now, now).run();
+    ).bind(id, systemId, JSON.stringify(layout), now, now).run();
+    return id;
 }
 
 // Unit: upgradeLayout()
@@ -434,4 +440,173 @@ describe('checklist routes', () => {
         }), env);
         expect(res.status).toBe(400);
     });
+
+describe('link-list routes', () => {
+    let userId: string;
+    let systemId: string;
+    let workspaceId: string;
+    let app: ReturnType<typeof getAuthedApp>;
+
+    beforeEach(async () => {
+        await applyD1Migrations(env.DB, migrations);
+        userId = crypto.randomUUID();
+        await seedUser(env.DB, userId);
+        systemId = await seedSystem(env.DB, userId);
+        workspaceId = await seedWorkspace(env.DB, systemId, { v: 1, widgets: [{ id: 'link-widget', type: 'link-list', x: 0, y: 0, w: 2, h: 1, config: {} }] });
+        app = getAuthedApp(userId);
+    });
+
+    it('GET returns 404 when link list not yet saved', async () => {
+        const res = await app.fetch(new Request(`http://localhost/api/workspaces/${workspaceId}/link-list/link-widget`), env);
+        expect(res.status).toBe(404);
+    });
+
+    it('PUT creates link list, GET returns it', async () => {
+        const links = [
+            { label: 'Docs', url: 'https://docs.example.com' },
+            { label: 'Repo', url: 'https://github.com/example' },
+        ];
+
+        const putRes = await app.fetch(new Request(`http://localhost/api/workspaces/${workspaceId}/link-list/link-widget`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ links }),
+        }), env);
+        expect(putRes.status).toBe(201);
+        const putBody = await putRes.json() as any;
+        expect(putBody.data.links).toEqual(links);
+
+        const getRes = await app.fetch(new Request(`http://localhost/api/workspaces/${workspaceId}/link-list/link-widget`), env);
+        expect(getRes.status).toBe(200);
+        const getBody = await getRes.json() as any;
+        expect(getBody.links).toEqual(links);
+    });
+
+    it('PUT replaces link list (not appends)', async () => {
+        await app.fetch(new Request(`http://localhost/api/workspaces/${workspaceId}/link-list/link-widget`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ links: [{ label: 'Old', url: 'https://old.com' }] }),
+        }), env);
+
+        const newLinks = [
+            { label: 'New', url: 'https://new.com' },
+        ];
+        const putRes = await app.fetch(new Request(`http://localhost/api/workspaces/${workspaceId}/link-list/link-widget`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ links: newLinks }),
+        }), env);
+        expect(putRes.status).toBe(200);
+        const putBody = await putRes.json() as any;
+        expect(putBody.data.links).toEqual(newLinks);
+
+        const getRes = await app.fetch(new Request(`http://localhost/api/workspaces/${workspaceId}/link-list/link-widget`), env);
+        const getBody = await getRes.json() as any;
+        expect(getBody.links).toHaveLength(1);
+        expect(getBody.links[0].label).toBe('New');
+    });
+
+    it('PUT rejects non-array links', async () => {
+        const res = await app.fetch(new Request(`http://localhost/api/workspaces/${workspaceId}/link-list/link-widget`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ links: 'bad' }),
+        }), env);
+        expect(res.status).toBe(400);
+    });
+
+    it('PUT rejects invalid link shape', async () => {
+        const res = await app.fetch(new Request(`http://localhost/api/workspaces/${workspaceId}/link-list/link-widget`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ links: [{ label: 'missing url' }] }),
+        }), env);
+        expect(res.status).toBe(400);
+    });
+
+    it('stores workspace-scoped row (instance_id IS NULL)', async () => {
+        await app.fetch(new Request(`http://localhost/api/workspaces/${workspaceId}/link-list/link-widget`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ links: [{ label: 'Test', url: 'https://test.com' }] }),
+        }), env);
+
+        const row = await env.DB.prepare(
+            `SELECT instance_id FROM widget_entries WHERE widget_id = ? AND entry_type = ?`
+        ).bind('link-widget', 'link_list').first<any>();
+        expect(row.instance_id).toBeNull();
+    });
+});
+
+describe('notes routes', () => {
+    let userId: string;
+    let systemId: string;
+    let workspaceId: string;
+    let app: ReturnType<typeof getAuthedApp>;
+
+    beforeEach(async () => {
+        await applyD1Migrations(env.DB, migrations);
+        userId = crypto.randomUUID();
+        await seedUser(env.DB, userId);
+        systemId = await seedSystem(env.DB, userId);
+        workspaceId = await seedWorkspace(env.DB, systemId, { v: 1, widgets: [{ id: 'note-widget', type: 'notes', x: 0, y: 0, w: 1, h: 1, config: {} }] });
+        app = getAuthedApp(userId);
+    });
+
+    it('GET returns 404 when notes not yet saved', async () => {
+        const res = await app.fetch(new Request(`http://localhost/api/workspaces/${workspaceId}/notes/note-widget`), env);
+        expect(res.status).toBe(404);
+    });
+
+    it('PUT creates notes, GET returns it', async () => {
+        const putRes = await app.fetch(new Request(`http://localhost/api/workspaces/${workspaceId}/notes/note-widget`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: 'Hello notes' }),
+        }), env);
+        expect(putRes.status).toBe(201);
+        const putBody = await putRes.json() as any;
+        expect(putBody.data.text).toBe('Hello notes');
+
+        const getRes = await app.fetch(new Request(`http://localhost/api/workspaces/${workspaceId}/notes/note-widget`), env);
+        expect(getRes.status).toBe(200);
+        const getBody = await getRes.json() as any;
+        expect(getBody.text).toBe('Hello notes');
+    });
+
+    it('PUT replaces notes (not appends)', async () => {
+        await app.fetch(new Request(`http://localhost/api/workspaces/${workspaceId}/notes/note-widget`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: 'First draft' }),
+        }), env);
+
+        const putRes = await app.fetch(new Request(`http://localhost/api/workspaces/${workspaceId}/notes/note-widget`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: 'Final version' }),
+        }), env);
+        expect(putRes.status).toBe(200);
+        const putBody = await putRes.json() as any;
+        expect(putBody.data.text).toBe('Final version');
+
+        const getRes = await app.fetch(new Request(`http://localhost/api/workspaces/${workspaceId}/notes/note-widget`), env);
+        const getBody = await getRes.json() as any;
+        expect(getBody.text).toBe('Final version');
+    });
+
+    it('PUT rejects missing text', async () => {
+        const res = await app.fetch(new Request(`http://localhost/api/workspaces/${workspaceId}/notes/note-widget`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({}),
+        }), env);
+        expect(res.status).toBe(400);
+    });
+
+    it('stores workspace-scoped row (instance_id IS NULL)', async () => {
+        await app.fetch(new Request(`http://localhost/api/workspaces/${workspaceId}/notes/note-widget`, {
+            method: 'PUT', headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: 'test' }),
+        }), env);
+
+        const row = await env.DB.prepare(
+            `SELECT instance_id FROM widget_entries WHERE widget_id = ? AND entry_type = ?`
+        ).bind('note-widget', 'notes').first<any>();
+        expect(row.instance_id).toBeNull();
+    });
+});
 });

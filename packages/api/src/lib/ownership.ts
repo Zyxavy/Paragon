@@ -45,6 +45,14 @@ export async function getOwnedWorkspace(db: D1Database, systemId: string, userId
     `).bind(systemId, userId).first<any>();
 }
 
+export async function getOwnedWorkspaceById(db: D1Database, workspaceId: string, userId: string) {
+    return await db.prepare(`
+        SELECT w.* FROM workspaces w
+        JOIN systems s ON w.system_id = s.id
+        WHERE w.id = ? AND s.user_id = ?
+    `).bind(workspaceId, userId).first<any>();
+}
+
 export async function getOwnedWidgetEntry(db: D1Database, instanceId: string, widgetId: string, entryType: string, userId: string) {
     return await db.prepare(`
         SELECT we.* FROM widget_entries we
@@ -53,4 +61,13 @@ export async function getOwnedWidgetEntry(db: D1Database, instanceId: string, wi
         WHERE we.instance_id = ? AND we.widget_id = ? AND we.entry_type = ?
         AND s.user_id = ?
     `).bind(instanceId, widgetId, entryType, userId).first<any>();
+}
+
+export async function getOwnedAttachment(db: D1Database, attachmentId: string, userId: string) {
+  return await db.prepare(`
+    SELECT a.* FROM attachments a
+    JOIN workspaces w ON a.workspace_id = w.id
+    JOIN systems s ON w.system_id = s.id
+    WHERE a.id = ? AND s.user_id = ?
+  `).bind(attachmentId, userId).first<any>();
 }
