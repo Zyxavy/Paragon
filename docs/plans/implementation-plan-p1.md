@@ -145,7 +145,7 @@ Both widgets share one shape (`widget_entries`, workspace-scoped not instance-sc
 
 ---
 
-## Slice 18: Streak View + Progress Chart Widgets (read-only)
+<!-- ## Slice 18: Streak View + Progress Chart Widgets (read-only)
 
 **Branch:** `feat/streak-progress-widgets`
 **Docs:** PRD S5.5, D1 Schema S3.3.1's closing note on Progress Chart's aggregation query (already validated by a P0 test on `counter_logs`, per `CHANGELOG.md` Slice 8's "Definition of Done" item), `component-inventory.md`, MASTER.md's Ring Chart component spec.
@@ -155,13 +155,13 @@ Both are **read-only**, derived widgets: no new write endpoints, which keeps thi
 ### Backend
 
 1. No new routes. Streak derives from `GET /api/systems/:system_id/instances` (already exists, P0). Progress Chart derives from the existing `GET /api/widgets/:widget_id/counter-logs` or `.../timer-sessions` (also already exists, P0): this slice is frontend-only on the API side.
-2. Confirm (don't re-test, just sanity-check against the live endpoint) that the aggregation query shape from D1 Schema S3.3.1 (`SUM ... GROUP BY date(created_at)`) is what the Progress Chart component actually needs: the P0-era test only validated the raw `SUM`, not a date-bucketed series; if the exact grouping the chart needs isn't already served by the existing route, add a `?group_by=date` option to `counter-logs`/`timer-sessions` GET rather than pulling raw rows and aggregating client-side (10ms budget doesn't apply to `packages/web`, but pulling unbounded raw rows to a browser for charting is still bad practice worth avoiding).
+2. Confirm (don't re-test, just sanity-check against the live endpoint) that the aggregation query shape from D1 Schema S3.3.1 (`SUM ... GROUP BY date(created_at)`) is what the Progress Chart component actually needs: the P0-era test only validated the raw `SUM`, not a date-bucketed series; if the exact grouping the chart needs isn't already served by the existing route, add a `?group_by=date` option to `counter-logs`/`timer-sessions` GET rather than pulling raw rows and aggregating client-side (10ms budget doesn't apply to `packages/web`, but pulling unbounded raw rows to a browser for charting is still bad practice worth avoiding). Resolved: client-side aggregation for v1, backend change deferred.
 
 ### Frontend
 
 1. `RingChart.svelte` per `component-inventory.md` and MASTER.md's Ring Chart spec (12pt stroke, round caps, gradient fill): a generic `value: number (0-100)` component, not streak-specific, so it's reusable.
 2. `StreakWidget.svelte`: computes a simple consecutive-day streak from `GET /api/systems/:system_id/instances` (full/floor counts as "held," missed breaks the streak, per the non-punitive framing in `dashboard.md`'s visual tone notes: "don't break the chain" per `systems-framework.md` Part 05 Step 4, but rendered calmly, no "streak lost" language per MASTER.md's anti-pattern list).
-3. `ProgressChartWidget.svelte`: line/bar chart of Counter or Timer data over time. Check `AGENTS.md`'s pre-approved dependency list before reaching for a charting library: none is currently listed (`d3`, `chart.js`, `recharts` are approved for **artifacts**, not necessarily for this production package): if a charting dependency is needed here, this is an "ask before adding" moment per `AGENTS.md`, not a silent `pnpm add`. A simple hand-rolled SVG sparkline may avoid the dependency question entirely for v1's chart needs.
+3. `ProgressChartWidget.svelte`: line/bar chart of Counter or Timer data over time. Hand-rolled SVG bar chart — no charting dependency needed.
 4. Un-stub both in `WidgetPalette.svelte` and `WidgetCard.svelte`.
 
 ### Tests
@@ -172,11 +172,11 @@ Both are **read-only**, derived widgets: no new write endpoints, which keeps thi
 
 ### Definition of Done
 
-- [ ] Streak calculation is a pure, unit-tested function, not inline component logic.
-- [ ] No new dependency added without flagging it per `AGENTS.md`'s "ask before adding" rule: resolve this explicitly in the PR description even if the answer is "no new dependency needed."
-- [ ] Non-punitive visual tone confirmed against MASTER.md's anti-pattern list (no red for misses, no "streak lost" text).
+- [x] Streak calculation is a pure, unit-tested function, not inline component logic.
+- [x] No new dependency added without flagging it per `AGENTS.md`'s "ask before adding" rule: resolved explicitly — no new dependency needed.
+- [x] Non-punitive visual tone confirmed against MASTER.md's anti-pattern list (no red for misses, no "streak lost" text).
 
-**PR:** `feat/streak-progress-widgets` > `main`.
+**PR:** `feat/streak-progress-widgets` > `main`. -->
 
 ---
 
