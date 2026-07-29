@@ -48,7 +48,7 @@ test('P0 flow #5: workspace widget CRUD: add, save, reload, persist', async ({ p
 
     // Reload the page
     await page.goto(`/systems/${system.id}/workspace`);
-    await expect(page.locator('text=Widgets')).toBeVisible({ timeout: 10000 });
+    await expect(page.getByRole('heading', { name: 'Widgets' })).toBeVisible({ timeout: 10000 });
 
     // Widgets should still be present after reload
     await expect(page.locator('h4:has-text("Timer")')).toBeVisible();
