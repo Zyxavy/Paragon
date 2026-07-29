@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-07-29T19:18:00.000Z",
+  "title": "Design System: Paragon",
+  "extensions": {
+    "colorMeta": {
+      "primary":                { "role": "primary",  "displayName": "Warm Earth",      "canonical": "#503b31", "tonalRamp": ["#2d1f14", "#3d2d22", "#503b31", "#634a3f", "#78594d", "#8e6b5d", "#a67f70", "#c09686"] },
+      "surface":               { "role": "neutral",  "displayName": "Aged Parchment",  "canonical": "#ece2d0", "tonalRamp": ["#c4b49e", "#d0c1ab", "#dccdb8", "#e5d8c4", "#ece2d0", "#f2eada", "#f7f1e5", "#fbf8f0"] },
+      "surface-container-low": { "role": "neutral",  "displayName": "Washed Taupe",    "canonical": "#cebebe", "tonalRamp": ["#8a7a78", "#9a8a88", "#aa9a98", "#bbaaa8", "#cebebe", "#d8caca", "#e2d6d6", "#ece3e3"] },
+      "primary-container":     { "role": "primary",  "displayName": "Terracotta Mid",   "canonical": "#705d56", "tonalRamp": ["#3d2f2b", "#4e3d38", "#5f4b45", "#705d56", "#826f67", "#958179", "#a9958d", "#bfaba2"] },
+      "blush":                 { "role": "tertiary", "displayName": "Blush Mauve",      "canonical": "#cebebe", "tonalRamp": ["#6a5a5e", "#7d6d71", "#908084", "#a49498", "#b8a8ac", "#cebebe", "#dbcdcf", "#e8dddf"] },
+      "on-surface":            { "role": "neutral",  "displayName": "Near Black",       "canonical": "#020202", "tonalRamp": ["#020202", "#1a1a1a", "#2d2d2d", "#404040", "#555555", "#6b6b6b", "#838383", "#9c9c9c"] },
+      "destructive":           { "role": "primary",  "displayName": "Alert Red",        "canonical": "#C24545", "tonalRamp": ["#5c1a1a", "#7a2424", "#993030", "#b83e3e", "#c24545", "#d15555", "#e07070", "#eb8f8f"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Page titles and major section headings. One per view." },
+      "title":   { "displayName": "Title",   "purpose": "Card titles, modal headings, system names." },
+      "body":    { "displayName": "Body",    "purpose": "All reading text, descriptions, paragraph content." },
+      "label":   { "displayName": "Label",   "purpose": "Form labels, button text, metadata, chip labels." }
+    },
+    "shadows": [
+      { "name": "ambient-sm", "value": "0 2px 8px rgba(80, 59, 49, 0.04)",   "purpose": "Resting state for cards and containers. Barely perceptible." },
+      { "name": "ambient-md", "value": "0 8px 24px rgba(80, 59, 49, 0.05)",  "purpose": "Hovered cards, sticky save bar, elevated containers." },
+      { "name": "ambient-lg", "value": "0 16px 40px rgba(80, 59, 49, 0.06)", "purpose": "Modals, dialogs, and elevated overlays." },
+      { "name": "ambient-xl", "value": "0 24px 60px rgba(80, 59, 49, 0.07)", "purpose": "Toasts and highest-priority overlays." }
+    ],
+    "motion": [
+      { "name": "ease-default",  "value": "cubic-bezier(0.4, 0, 0.2, 1)",   "purpose": "Default easing for state transitions (hover, focus, active)." },
+      { "name": "duration-fast", "value": "150ms",                            "purpose": "Fast transitions — color changes, opacity." },
+      { "name": "duration-base", "value": "200ms",                            "purpose": "Default transition duration for interactive elements." },
+      { "name": "duration-slow", "value": "300ms",                            "purpose": "Slow transitions — chart animations, progressive reveals." }
+    ],
+    "breakpoints": [
+      { "name": "sm",  "value": "640px",  "purpose": "Show nav item labels, 2-column grids begin." },
+      { "name": "md",  "value": "768px",  "purpose": "Page max-width constraints, 2-column layouts." },
+      { "name": "lg",  "value": "1024px", "purpose": "Side-by-side layouts, widget palette visible." },
+      { "name": "xl",  "value": "1280px", "purpose": "Desktop sidebar visible, 3-column card grids." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Gradient-filled primary call-to-action button with warm brown gradient and cream text. Used for save, submit, create, and confirm actions.",
+      "html": "<button class=\"ds-btn-primary\">Save Changes</button>",
+      "css": ".ds-btn-primary { background: linear-gradient(135deg, #503b31, #705d56); color: #ece2d0; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 600; font-size: 0.875rem; padding: 10px 20px; border: none; border-radius: 16px; cursor: pointer; transition: opacity 0.2s ease, transform 0.2s ease; } .ds-btn-primary:hover { opacity: 0.9; } .ds-btn-primary:active { transform: scale(0.98); } .ds-btn-primary:focus-visible { outline: 2px solid #503b31; outline-offset: 2px; } .ds-btn-primary:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Bordered secondary button with transparent background. Used for cancel, dismiss, and non-primary actions.",
+      "html": "<button class=\"ds-btn-secondary\">Cancel</button>",
+      "css": ".ds-btn-secondary { background: transparent; color: #020202; font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 500; font-size: 0.875rem; padding: 10px 20px; border: 1px solid rgba(2,2,2,0.12); border-radius: 12px; cursor: pointer; transition: background 0.2s ease; } .ds-btn-secondary:hover { background: rgba(2,2,2,0.04); } .ds-btn-secondary:focus-visible { outline: 2px solid #503b31; outline-offset: 2px; } .ds-btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }"
+    },
+    {
+      "name": "Text Input",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Standard text input with filled background and warm border. Uses soft rounded corners and a primary-colored focus ring.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"Enter text...\" />",
+      "css": ".ds-input { width: 100%; background: #ece2d0; color: #020202; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.875rem; padding: 8px 12px; border: 1px solid rgba(2,2,2,0.12); border-radius: 6px; outline: none; transition: border-color 0.15s ease, box-shadow 0.15s ease; } .ds-input::placeholder { color: #705d56; } .ds-input:focus { border-color: #503b31; box-shadow: 0 0 0 2px #503b31; } .ds-input:disabled { opacity: 0.5; cursor: not-allowed; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Standard content card with warm cream background, soft rounded corners, and a gentle ambient shadow.",
+      "html": "<div class=\"ds-card\"><h3 class=\"ds-card-title\">Card Title</h3><p class=\"ds-card-body\">Card content with descriptive text about the system or instance.</p></div>",
+      "css": ".ds-card { background: #f5efe3; border-radius: 12px; padding: 16px; box-shadow: 0 2px 8px rgba(80,59,49,0.04); transition: box-shadow 0.2s ease; display: flex; flex-direction: column; gap: 12px; } .ds-card:hover { box-shadow: 0 8px 24px rgba(80,59,49,0.05); } .ds-card-title { font-family: 'Manrope', sans-serif; font-weight: 600; font-size: 1rem; color: #020202; margin: 0; } .ds-card-body { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.875rem; color: #705d56; margin: 0; line-height: 1.5; }"
+    },
+    {
+      "name": "Mobile Nav Bar",
+      "kind": "nav",
+      "refersTo": "nav-mobile",
+      "description": "Floating pill-shaped bottom navigation bar with frosted glass effect. Replaced by a sidebar on desktop (1280px+).",
+      "html": "<nav class=\"ds-nav-mobile\"><a class=\"ds-nav-item ds-nav-active\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"7\" height=\"7\"/><rect x=\"14\" y=\"3\" width=\"7\" height=\"7\"/><rect x=\"14\" y=\"14\" width=\"7\" height=\"7\"/><rect x=\"3\" y=\"14\" width=\"7\" height=\"7\"/></svg></a><a class=\"ds-nav-item\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"3\"/><path d=\"M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z\"/></svg></a><a class=\"ds-nav-item\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2\"/><rect x=\"9\" y=\"3\" width=\"6\" height=\"4\" rx=\"1\"/><path d=\"M9 14l2 2 4-4\"/></svg></a></nav>",
+      "css": ".ds-nav-mobile { position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%); z-index: 50; display: flex; align-items: center; gap: 24px; height: 56px; padding: 0 24px; background: rgba(236,226,208,0.7); backdrop-filter: blur(24px); border-radius: 9999px; box-shadow: 0 16px 40px rgba(80,59,49,0.06); } .ds-nav-item { color: #705d56; transition: color 0.15s ease; display: flex; align-items: center; } .ds-nav-item:hover { color: #020202; } .ds-nav-active { color: #503b31; }"
+    },
+    {
+      "name": "Modal Dialog",
+      "kind": "card",
+      "refersTo": "modal",
+      "description": "Centered modal dialog with dark overlay, warm surface background, and elevated shadow.",
+      "html": "<div style=\"position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.3)\"><div class=\"ds-modal\"><h2 class=\"ds-modal-title\">Confirm Action</h2><p class=\"ds-modal-body\">Are you sure you want to proceed?</p><div style=\"display:flex;gap:12px;justify-content:flex-end;margin-top:16px\"><button class=\"ds-btn-secondary\">Cancel</button><button class=\"ds-btn-primary\">Confirm</button></div></div></div>",
+      "css": ".ds-modal { background: #ece2d0; border-radius: 16px; padding: 24px; box-shadow: 0 16px 40px rgba(80,59,49,0.06); max-width: 384px; width: calc(100% - 32px); margin: 0 16px; } .ds-modal-title { font-family: 'Manrope', sans-serif; font-weight: 600; font-size: 1.125rem; color: #020202; margin: 0 0 8px 0; } .ds-modal-body { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.875rem; color: #705d56; margin: 0; line-height: 1.5; }"
+    },
+    {
+      "name": "State Filter Chip",
+      "kind": "chip",
+      "refersTo": "state-chip",
+      "description": "Pill-shaped filter chip for instance state selection (full/floor/missed). Selected state uses tinted background, unselected uses a low container surface.",
+      "html": "<div style=\"display:flex;gap:8px\"><button class=\"ds-chip ds-chip-selected\">Full</button><button class=\"ds-chip\">Floor</button><button class=\"ds-chip\">Missed</button></div>",
+      "css": ".ds-chip { font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.75rem; font-weight: 500; padding: 6px 12px; border: none; border-radius: 9999px; cursor: pointer; transition: background 0.15s ease, color 0.15s ease; } .ds-chip { background: #cebebe; color: #705d56; } .ds-chip:hover { background: #f5efe3; } .ds-chip-selected { background: rgba(206,190,190,0.2); color: #cebebe; }"
+    },
+    {
+      "name": "Toast Notification",
+      "kind": "custom",
+      "refersTo": "toast",
+      "description": "Fixed-position toast notification for transient feedback. Slides in from the right, auto-dismisses.",
+      "html": "<div class=\"ds-toast\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" style=\"flex-shrink:0\"><path d=\"M22 11.08V12a10 10 0 1 1-5.93-9.14\"/><polyline points=\"22 4 12 14.01 9 11.01\"/></svg><span>Changes saved successfully</span><button class=\"ds-toast-close\">&times;</button></div>",
+      "css": ".ds-toast { position: fixed; top: 16px; right: 16px; z-index: 50; display: flex; align-items: center; gap: 12px; background: #503b31; color: #ece2d0; padding: 12px 16px; border-radius: 12px; box-shadow: 0 24px 60px rgba(80,59,49,0.07); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 0.875rem; max-width: 384px; } .ds-toast-close { background: none; border: none; color: inherit; opacity: 0.7; cursor: pointer; font-size: 1.25rem; padding: 0; line-height: 1; } .ds-toast-close:hover { opacity: 1; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Armchair Studio",
+    "overview": "Paragon's visual identity is warm, grounded, and unapologetically earnest — like a well-worn leather armchair in a room lit by a single desk lamp. This is not a productivity dashboard designed to maximize output; it is a personal workshop for designing systems that survive real life. The palette draws from terracotta clay and aged parchment: warm browns, soft beiges, and a blush-mauve accent. Corners are generous, shadows are gentle, and nothing demands attention. The interface recedes so the work itself — the systems, the reviews, the daily check-ins — becomes the focus. Dark mode shifts the same warm tones into a nocturnal atmosphere: near-black surfaces with muted taupe accents, like a study at midnight.",
+    "keyCharacteristics": [
+      "Earthy, warm, muted — no cold blues, grays, or clinical whites",
+      "Rounded and soft — generous corner radii across every surface",
+      "Gentle shadows suggest layering, not floating; in dark mode, depth is conveyed purely through tonal contrast",
+      "The brand voice is honest and direct; the visuals follow — supportive without being saccharine"
+    ],
+    "rules": [
+      { "name": "The Warmth Rule", "body": "No cool-toned grays, blues, or true whites enter the palette. Every neutral carries a brown or beige undertone.", "section": "colors" },
+      { "name": "The One-Face Rule", "body": "Hierarchy comes from weight, size, and case, not from mixing decorative faces. Manrope for headings, Plus Jakarta Sans for everything else.", "section": "typography" },
+      { "name": "The Layer-Not-Float Rule", "body": "Stack surfaces, don't float them. Shadows are secondary to tonal contrast.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use the gradient primary button for primary calls to action — the warmth of the gradient signals importance without relying on size alone.",
+      "Do prefer tonal layering over shadows for depth. A card on a cream surface reads as elevated; it does not need a pronounced drop shadow.",
+      "Do keep the mobile bottom nav pill-shaped and floating — the frosted glass effect distinguishes it from the content below.",
+      "Do use the full set of corner radii — tighter radii (md/lg) for functional inputs, larger radii (xl/2xl) for surfaces that should feel more deliberate.",
+      "Do maintain the 200ms transition duration consistently across all interactive elements."
+    ],
+    "donts": [
+      "Don't add cool-toned colors. No blues, grays without warm undertones, or pure whites. Every neutral must carry a brown or beige cast.",
+      "Don't use square corners. Every surface in the system has a minimum 6px radius.",
+      "Don't introduce a third font family. Manrope and Plus Jakarta Sans cover the full hierarchy.",
+      "Don't use shadows in dark mode — they become invisible against the near-black surface. Rely on tonal contrast alone.",
+      "Don't create button styles outside the three-tier system (gradient primary, bordered secondary, ghost text).",
+      "Don't put text in primary-role containers — primary-surface contrast is too low for readability."
+    ]
+  }
+}
