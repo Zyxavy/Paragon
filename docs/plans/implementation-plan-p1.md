@@ -179,7 +179,7 @@ Both are **read-only**, derived widgets: no new write endpoints, which keeps thi
 **PR:** `feat/streak-progress-widgets` > `main`. -->
 
 ---
-
+<!-- 
 ## Slice 19: R2 Attachments
 
 **Branch:** `feat/attachments`
@@ -212,7 +212,7 @@ The last piece of infra P0 provisioned (`paragon-attachments` R2 bucket exists s
 - [ ] R2-then-D1 write ordering verified by a test that simulates a D1 failure after a successful R2 put (or at minimum, code-reviewed against ADR 001 S5.7's explicit ordering requirement if simulating the failure is impractical in Miniflare: state which approach was taken in the PR).
 - [ ] `wrangler.jsonc`'s `env.production` R2 binding confirmed present, not just the dev-level one.
 
-**PR:** `feat/attachments` > `main`.
+**PR:** `feat/attachments` > `main`. -->
 
 ---
 
