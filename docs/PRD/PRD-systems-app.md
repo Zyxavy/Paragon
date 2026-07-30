@@ -6,7 +6,7 @@
 
 **Status:** Draft - v1 scope
 
-**Implementation status:** Planned / Target Architecture
+**Implementation status:** Current
 
 **Last updated:** July 1, 2026
 

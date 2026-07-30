@@ -40,3 +40,6 @@ docs/superpowers/
 .opencode/
 graphify-out/
 .superpowers/
+
+.github/hooks/
+.github/skills/

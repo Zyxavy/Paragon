@@ -82,32 +82,26 @@
 
 <style>
   .attachment-upload {
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid var(--color-border, #e5e7eb);
-  }
-
-  .upload-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
   }
 
   .file-label {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border: 1px dashed var(--color-border, #d1d5db);
-    border-radius: 6px;
+    gap: 0.375rem;
+    padding: 0.375rem 0.75rem;
+    border: 1px dashed var(--color-border);
+    border-radius: 0.5rem;
     cursor: pointer;
     font-size: 0.875rem;
-    color: var(--color-muted, #6b7280);
+    color: var(--color-muted-foreground);
+    transition: border-color 0.15s, color 0.15s;
   }
 
   .file-label:hover {
-    border-color: var(--color-primary, #3b82f6);
-    color: var(--color-primary, #3b82f6);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
   }
 
   .file-input {
@@ -115,29 +109,29 @@
   }
 
   .error {
-    color: #ef4444;
+    color: var(--color-destructive);
     font-size: 0.8rem;
-    margin-top: 4px;
+    margin-top: 0.25rem;
   }
 
   .attachment-list {
     list-style: none;
     padding: 0;
-    margin: 8px 0 0;
+    margin: 0.5rem 0 0;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: 0.25rem;
   }
 
   .attachment-list li {
     font-size: 0.85rem;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 0.375rem;
   }
 
   .attachment-list a {
-    color: var(--color-primary, #3b82f6);
+    color: var(--color-primary);
     text-decoration: none;
   }
 
@@ -146,7 +140,7 @@
   }
 
   .size {
-    color: var(--color-muted, #9ca3af);
+    color: var(--color-muted-foreground);
     font-size: 0.8rem;
   }
 </style>

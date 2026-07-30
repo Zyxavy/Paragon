@@ -9,6 +9,7 @@
     import NotesWidget from './NotesWidget.svelte';
     import StreakWidget from './StreakWidget.svelte';
     import ProgressChartWidget from './ProgressChartWidget.svelte';
+    import { defaultMinWidgetSize } from '$lib/stores/workspace-editor.svelte';
 
     let { widget, instanceId, workspaceId, systemId, onRemove }: {
         widget: Widget;
@@ -17,11 +18,14 @@
         systemId: string | null;
         onRemove: (id: string) => void;
     } = $props();
+
+    let minSize = $derived(defaultMinWidgetSize(widget.type));
 </script>
 
 <div class="bg-surface-container-lowest rounded-xl p-4 shadow-ambient-sm
             transition-shadow duration-200 hover:shadow-ambient-md
-            min-h-[140px] flex flex-col relative">
+            flex flex-col relative"
+     style="min-width: {minSize.w}px; min-height: {minSize.h}px;">
     <div class="drag-handle flex items-center justify-between mb-3 cursor-grab active:cursor-grabbing select-none" data-drag-handle={widget.id}>
         <h4 class="font-body text-sm font-semibold text-on-surface">{widget.label}</h4>
         <button

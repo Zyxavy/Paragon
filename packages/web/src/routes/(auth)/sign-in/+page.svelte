@@ -1,27 +1,32 @@
 <script lang="ts">
-    import { goto } from '$app/navigation';
-    import { authClient } from "$lib/auth-client";
-    
-    let email = $state('');
-    let password = $state('');
-    let error = $state('');
+  import { goto } from '$app/navigation';
+  import { authClient } from '$lib/auth-client';
+  import { LoaderCircle } from '@lucide/svelte';
 
-    async function handleSignIn(e: Event) {
-        e.preventDefault();
-        error = '';
-        const { error: err} = await authClient.signIn.email({ email, password});
-        if (err) {
-            error = err.message || 'Invalid email or password.';
-            return;
-        }
-        goto('/dashboard');
+  let email = $state('');
+  let password = $state('');
+  let error = $state('');
+  let loading = $state(false);
+
+  async function handleSignIn(e: Event) {
+    e.preventDefault();
+    if (loading) return;
+    error = '';
+    loading = true;
+    const { error: err } = await authClient.signIn.email({ email, password });
+    loading = false;
+    if (err) {
+      error = err.message || 'Invalid email or password.';
+      return;
     }
+    goto('/dashboard');
+  }
 </script>
 
 <div class="min-h-screen flex items-center justify-center px-4 bg-surface">
   <div class="w-full max-w-sm flex flex-col items-center gap-8">
     <a href="/" class="flex items-center gap-2 font-display text-2xl font-semibold text-primary">
-      <span class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-on-primary text-sm font-bold">P</span>
+      <img src="/apple-touch-icon.png" alt="Paragon" class="w-8 h-8 rounded-lg" />
       Paragon
     </a>
 
@@ -34,10 +39,10 @@
           <input id="email" type="email" bind:value={email}
                  class="w-full px-4 py-3 bg-surface-container-low text-on-surface
                         border border-border rounded-xl
-                        transition-colors duration-200
+                        transition-all duration-200
                         focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
-                        placeholder:text-muted-foreground"
-                 placeholder="you@example.com" />
+                        placeholder:text-muted-foreground disabled:opacity-50"
+                 placeholder="you@example.com" disabled={loading} />
         </div>
 
         <div class="flex flex-col gap-1.5">
@@ -45,22 +50,27 @@
           <input id="password" type="password" bind:value={password}
                  class="w-full px-4 py-3 bg-surface-container-low text-on-surface
                         border border-border rounded-xl
-                        transition-colors duration-200
+                        transition-all duration-200
                         focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
-                        placeholder:text-muted-foreground"
-                 placeholder="••••••••" />
+                        placeholder:text-muted-foreground disabled:opacity-50"
+                 placeholder="••••••••" disabled={loading} />
         </div>
 
         {#if error}
-          <p class="text-destructive text-sm font-body">{error}</p>
+          <p class="text-destructive text-sm font-body flex items-center gap-1.5" role="alert">{error}</p>
         {/if}
 
-        <button type="submit"
+        <button type="submit" disabled={loading}
                 class="w-full bg-gradient-to-br from-primary to-primary-container text-on-primary
-                       py-3 rounded-2xl font-semibold
+                       py-3 rounded-2xl font-semibold flex items-center justify-center gap-2
                        transition-all duration-200 hover:opacity-90 active:scale-[0.98]
-                       cursor-pointer">
-          Sign in
+                       cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100">
+          {#if loading}
+            <LoaderCircle class="w-4 h-4 animate-spin" />
+            Signing in&hellip;
+          {:else}
+            Sign in
+          {/if}
         </button>
       </form>
     </div>

@@ -6,7 +6,7 @@
 
 **Status:** Draft -- v1 scope
 
-**Implementation status:** Planned / Target Architecture
+**Implementation status:** Current
 
 **Last updated:** July 2, 2026
 
@@ -162,7 +162,7 @@ Open the browser's developer tools (F12 > Console / Network tab). The SPA runs e
 
 - **Network tab:** failed API requests (4xx/5xx), CORS errors, cookie issues (cross-subdomain session cookie per [auth-integration.md](auth-integration.md) S2)
 - **Console tab:** uncaught exceptions in Svelte components, the `apiFetch` wrapper's error handling per [sveltekit-route-architecture.md](sveltekit-route-architecture.md) S4
-- **Application tab > Cookies:** session cookie presence and expiry for the `paragon.kelpselp.workers.dev` domain
+- **Application tab > Cookies:** session cookie presence and expiry for the `paragons.pages.dev` domain
 
 ---
 

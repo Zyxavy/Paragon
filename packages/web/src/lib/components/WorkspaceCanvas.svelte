@@ -2,6 +2,7 @@
     import { Grid3x3 } from '@lucide/svelte';
     import WidgetCard from './WidgetCard.svelte';
     import type { Widget } from '$lib/api/workspaces';
+    import { defaultMinWidgetSize } from '$lib/stores/workspace-editor.svelte';
 
     let {
         widgets, instanceId, workspaceId, systemId, onMove, onResize, onRemove,
@@ -34,6 +35,10 @@
         return Math.round(v / 20) * 20;
     }
 
+    function getMinSize(type: string) {
+        return defaultMinWidgetSize(type);
+    }
+
     function handlePointerDown(e: PointerEvent) {
         const target = e.target as Element;
         const dragEl = target.closest('[data-drag-handle]');
@@ -64,11 +69,14 @@
             onMove(dragging.id, x, y);
         }
         if (resizing) {
-            let w = resizing.origW + (e.clientX - resizing.startX);
-            let h = resizing.origH + (e.clientY - resizing.startY);
-            if (w < 160) w = 160;
-            if (h < 120) h = 120;
-            onResize(resizing.id, w, h);
+            const r = resizing;
+            const widget = widgets.find(w => w.id === r.id);
+            const min = widget ? getMinSize(widget.type) : { w: 160, h: 120 };
+            let w = r.origW + (e.clientX - r.startX);
+            let h = r.origH + (e.clientY - r.startY);
+            if (w < min.w) w = min.w;
+            if (h < min.h) h = min.h;
+            onResize(r.id, w, h);
         }
     }
 
@@ -78,7 +86,13 @@
     }
 </script>
 
-{#if isMobile}
+{#if widgets.length === 0}
+    <div class="flex items-center justify-center w-full min-h-[60vh] bg-surface rounded-xl p-6">
+        <p class="font-body text-sm text-muted-foreground text-center">
+            Drag widgets from the palette to build your workspace
+        </p>
+    </div>
+{:else if isMobile}
     <div class="flex flex-col gap-4 w-full min-h-[60vh] bg-surface rounded-xl p-6">
         {#each widgets as widget (widget.id)}
             <div class="bg-surface-container-lowest rounded-xl p-4 shadow-ambient-sm" style="min-height: {widget.h}px">
@@ -116,7 +130,7 @@
             {#each widgets as widget (widget.id)}
                 <div
                     class="absolute"
-                    style="left: {widget.x}px; top: {widget.y}px; width: {widget.w}px;"
+                    style="left: {widget.x}px; top: {widget.y}px; width: {widget.w}px; min-width: {getMinSize(widget.type).w}px;"
                 >
                     <WidgetCard {widget} {instanceId} {workspaceId} {systemId} {onRemove} />
                 </div>

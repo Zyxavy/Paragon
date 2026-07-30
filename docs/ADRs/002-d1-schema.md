@@ -6,7 +6,7 @@
 
 **Status:** Draft -- v1 scope
 
-**Implementation status:** Current (P0 tables migrated; non-P0 tables planned)
+**Implementation status:** Current (all P0 and P1 tables migrated)
 
 **Last updated:** July 2, 2026
 

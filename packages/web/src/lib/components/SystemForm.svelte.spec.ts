@@ -55,7 +55,7 @@ describe('SystemForm validation', () => {
     it('submit button is disabled when name is empty', async () => {
         render(SystemForm);
 
-        const button = page.getByRole('button', { name: /Save System/ });
+        const button = page.getByRole('button', { name: /^Confirm system$/ });
         await expect.element(button).toBeDisabled();
     });
 
@@ -64,7 +64,7 @@ describe('SystemForm validation', () => {
 
         await page.getByPlaceholder('e.g. Reading System').fill('Reading System');
 
-        const button = page.getByRole('button', { name: /Save System/ });
+        const button = page.getByRole('button', { name: /^Confirm system$/ });
         await expect.element(button).toBeEnabled();
     });
 });

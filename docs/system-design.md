@@ -18,7 +18,7 @@ Paragon is a single-page web application for designing, running, and iterating o
 flowchart TB
     subgraph Cloudflare["Cloudflare Network"]
         direction TB
-        Assets["Workers Static Assets<br/>SvelteKit SPA (CSR)"]
+        Assets["Cloudflare Pages<br/>SvelteKit SPA (CSR)"]
         API["API Worker<br/>Hono (TypeScript)"]
         Cron["Nightly Cron Trigger<br/>(same Worker)"]
         D1[("Cloudflare D1<br/>SQLite: Systems, Instances<br/>Reviews, Workspaces")]
@@ -32,7 +32,7 @@ flowchart TB
         CRA["Cloudflare API<br/>(D1 migrations, wrangler deploy)"]
     end
 
-    Browser["Browser<br/>paragon.kelpselp.workers.dev"] --> Assets
+    Browser["Browser<br/>paragons.pages.dev"] --> Assets
     Browser --> API
     API --> D1
     API --> R2
@@ -78,7 +78,7 @@ Four constraints shaped every architectural decision, in priority order:
 ```mermaid
 flowchart LR
     User["User (Browser)"]
-    Domains["paragon.kelpselp.workers.dev<br/>(SvelteKit SPA)"]
+    Domains["paragons.pages.dev<br/>(SvelteKit SPA)"]
     ApiDomain["Paragon-api.kelpselp.workers.dev<br/>(Hono API Worker)"]
 
     subgraph CF["Cloudflare Workers"]
@@ -150,8 +150,8 @@ Paragon/
 flowchart LR
     subgraph Web["packages/web: SvelteKit SPA"]
         WBuild["pnpm build"]
-        WDeploy["wrangler deploy"]
-        WS[("Workers Static Assets<br/>paragon.kelpselp.workers.dev")]
+        WDeploy["wrangler pages deploy"]
+        WS[("Cloudflare Pages<br/>paragons.pages.dev")]
     end
 
     subgraph API["packages/api: Hono Worker"]
@@ -164,10 +164,10 @@ flowchart LR
     Root --> ABuild --> ADeploy --> AS
 ```
 
-The frontend and API are **separate Workers on separate subdomains** within the same `workers.dev` account. This means:
-- The frontend Worker serves static assets only: zero CPU budget used per page load.
+The frontend is served from **Cloudflare Pages** and the API runs as a **separate Worker**, with a Pages Function proxying `/api/*` requests to the API Worker. This means:
+- The frontend is pure static assets on Pages: zero CPU budget used per page load.
 - The API Worker handles all fetch, scheduled, and queue handlers: bound by the 10ms CPU limit.
-- The session cookie crosses subdomains via `sameSite: lax` (not `strict`), with `credentials: 'include'` on every API request.
+- The session cookie is same-origin (frontend and API share `paragons.pages.dev` via the Pages Function proxy), with `credentials: 'include'` on every API request.
 - They deploy independently: a frontend-only CSS change never touches the API Worker.
 
 ---
@@ -570,7 +570,7 @@ flowchart TB
 ### 5.2 Session Cookie Architecture
 
 ```
-                    paragon.kelpselp.workers.dev (frontend)
+                    paragons.pages.dev (frontend)
                               │
                               │ fetch() + credentials: 'include'
                               │ Cookie: better-auth-session-token=xyz...
@@ -588,7 +588,7 @@ flowchart TB
                     Better Auth validates session
 ```
 
-**Key design decision:** The frontend and API are on separate `*.workers.dev` subdomains. `sameSite: lax` is required: `strict` would silently break every cross-subdomain request. No explicit `domain` cookie scope is set, because `.workers.dev` is a public suffix and browsers reject cookies scoped to it.
+**Key design decision:** The frontend and API are same-origin via the Pages Function proxy (both served from `paragons.pages.dev`). `sameSite: lax` is the Better Auth default and works correctly. No explicit `domain` cookie scope is set, because `pages.dev` is a public suffix and browsers reject cookies scoped to it.
 
 ### 5.3 Recovery Codes Flow
 
@@ -772,8 +772,8 @@ flowchart TB
         BuildOut["Static Build<br/>build/index.html + assets"]
     end
 
-    subgraph Deploy["Deployed to Workers Static Assets"]
-        Assets["paragon.kelpselp.workers.dev"]
+    subgraph Deploy["Deployed to Cloudflare Pages"]
+        Assets["paragons.pages.dev"]
         Index["index.html<br/>(SPA fallback)"]
         JS["JS bundles"]
         CSS["CSS (Tailwind)"]
@@ -793,7 +793,7 @@ flowchart TB
     Router --> Stores
 ```
 
-**SSR is disabled** (`export const ssr = false` at root layout). The frontend is pure static files: zero Worker invocation for page loads. This is the most effective way to stay within the 10ms CPU budget: the frontend can't consume CPU time it never runs on.
+**SSR is disabled** (`export const ssr = false` at root layout). The frontend is pure static files served from Cloudflare Pages: zero Worker invocation for page loads. This is the most effective way to stay within the 10ms CPU budget: the frontend can't consume CPU time it never runs on.
 
 ### 7.2 Route Tree
 
@@ -990,7 +990,7 @@ flowchart LR
     end
 
     subgraph Production["Cloudflare"]
-        Web["Workers Static Assets<br/>paragon.kelpselp.workers.dev"]
+        Web["Cloudflare Pages<br/>paragons.pages.dev"]
         API["Worker<br/>Paragon-api.kelpselp.workers.dev"]
         D1_Prod["D1 Database<br/>(production binding)"]
     end
@@ -1033,7 +1033,7 @@ All services are comfortably within their free-tier limits for a personal app. T
 | `VITE_API_BASE_URL` | `''` (same-origin via Vite proxy) | `https://Paragon-api.kelpselp.workers.dev` |
 | `MONGODB_URI` | `mongodb://localhost:27017/Paragon` | Atlas cluster connection string (via `wrangler secret`) |
 | `BETTER_AUTH_SECRET` | Dev secret (local) | Production secret (via `wrangler secret`) |
-| `BETTER_AUTH_URL` | `http://localhost:8787` | `https://Paragon-api.kelpselp.workers.dev` |
+| `BETTER_AUTH_URL` | `http://localhost:8787` | `https://paragons.pages.dev` |
 
 ---
 

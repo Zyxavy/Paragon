@@ -25,8 +25,14 @@
   }
 </script>
 
-<div class="w-full md:max-w-2xl lg:max-w-3xl mx-auto px-4 md:px-0">
-  <h1 class="font-display text-2xl text-on-surface mb-6">Create System</h1>
+<div class="max-w-3xl mx-auto px-6 py-8">
+  <div class="mb-10">
+    <h1 class="font-display text-2xl font-semibold text-on-surface">Create a system</h1>
+    <p class="font-body text-sm text-muted-foreground mt-1">
+      Define a repeatable process that works even on your worst day.
+    </p>
+  </div>
+
   <TemplatePicker ontemplateSelect={onTemplateSelect} />
   <AIDraftPanel ondraft={onAIDraft} />
   <SystemForm defaults={formDefaults} />

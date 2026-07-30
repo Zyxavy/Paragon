@@ -4,9 +4,9 @@
 
 **Document type:** Architecture Decision Record -- a companion to the product PRD, covering technology choices, rationale, and component roles (not feature scope or schema, which live in the PRD).
 
-**Implementation status:** Planned / Target Architecture
+**Implementation status:** Current
 
-**Status:** Draft -- MVP architecture
+**Status:** Current -- MVP architecture
 
 **Last updated:** June 30, 2026
 
