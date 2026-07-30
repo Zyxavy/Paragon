@@ -105,10 +105,10 @@ jobs:
 
       - run: pnpm -r build
         env:
-          VITE_API_BASE_URL: "https://paragon-api.kelpselp.workers.dev"
+          VITE_API_BASE_URL: ""
 
-      - name: Deploy Web static assets
+      - name: Deploy Web to Pages
         working-directory: packages/web
-        run: pnpm exec wrangler deploy
+        run: pnpm exec wrangler pages deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
