@@ -1,5 +1,6 @@
 <script lang="ts">
     import { saveAsTemplate } from '$lib/api/templates';
+    import { exportSystem } from '$lib/api/export';
     import { addToast } from '$lib/stores/toast.svelte';
     import Modal from '$lib/components/Modal.svelte';
 
@@ -8,12 +9,36 @@
 
     let showTemplateModal = $state(false);
     let templateName = $state('');
+    let exporting = $state(false);
 
     async function handleSaveAsTemplate() {
         await saveAsTemplate(system.id, templateName.trim() || undefined);
         addToast('success', 'Template saved');
         showTemplateModal = false;
         templateName = '';
+    }
+
+    function sanitizeFilename(name: string): string {
+        return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') || 'system';
+    }
+
+    async function handleExport() {
+        exporting = true;
+        try {
+            const data = await exportSystem(system.id);
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${sanitizeFilename(system.name)}-export.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            addToast('success', 'System exported');
+        } catch {
+            addToast('error', 'Export failed');
+        } finally {
+            exporting = false;
+        }
     }
 
     const fields = $derived([
@@ -72,6 +97,20 @@
                    transition-all duration-200 hover:opacity-90 active:scale-[0.98]
                    cursor-pointer">
       Save
+    </button>
+  </div>
+
+  <div class="bg-surface-container-low rounded-xl p-5 flex items-center justify-between">
+    <div>
+      <h3 class="font-body text-sm font-semibold text-on-surface">Export system</h3>
+      <p class="font-body text-xs text-muted-foreground mt-0.5">Download this system's data as a JSON file</p>
+    </div>
+    <button onclick={handleExport} disabled={exporting}
+            class="rounded-2xl bg-gradient-to-br from-primary to-primary-container text-on-primary
+                   px-5 py-2.5 text-sm font-body font-semibold
+                   transition-all duration-200 hover:opacity-90 active:scale-[0.98]
+                   disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+      {exporting ? 'Exporting...' : 'Export'}
     </button>
   </div>
 </div>
