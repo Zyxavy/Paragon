@@ -65,7 +65,7 @@
   <nav class="fixed top-0 left-0 right-0 z-50 bg-surface/80 backdrop-blur-xl border-b border-border/20">
     <div class="max-w-6xl mx-auto flex items-center justify-between px-6 py-4">
       <a href="/" class="flex items-center gap-2.5 font-display text-lg font-semibold text-primary no-underline">
-        <span class="w-8 h-8 rounded-xl bg-gradient-to-br from-primary to-primary-container flex items-center justify-center text-on-primary text-sm font-bold">P</span>
+        <img src="/apple-touch-icon.png" alt="Paragon" class="w-8 h-8 rounded-xl" />
         Paragon
       </a>
       <div class="flex items-center gap-3">
@@ -97,7 +97,6 @@
             <a href="/sign-up"
                class="inline-flex items-center gap-2 bg-gradient-to-br from-primary to-primary-container text-on-primary px-8 py-3.5 rounded-2xl font-body font-semibold text-sm transition-all duration-200 hover:opacity-90 active:scale-[0.98] cursor-pointer no-underline">
               Get started free
-              <ArrowRight class="w-4 h-4" />
             </a>
           </div>
         </div>
