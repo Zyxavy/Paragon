@@ -180,7 +180,7 @@ GitHub Actions jobs run on isolated VMs. The `test` job (which runs `pnpm --filt
 ```yaml
 - run: pnpm -r build
   env:
-    VITE_API_BASE_URL: "https://paragon-api.kelpselp.workers.dev"
+    VITE_API_BASE_URL: ""
 - name: Deploy Web static assets
   working-directory: packages/web
   run: pnpm exec wrangler deploy

@@ -623,9 +623,9 @@ Better Auth's CSRF check can reject proxied requests if `changeOrigin` strips th
 
 | Variable | Dev value | Prod value | Used in |
 |---|---|---|---|
-| `VITE_API_BASE_URL` | `''` (empty -- same-origin via proxy) | `https://paragon-api.kelpselp.workers.dev` | `auth-client.ts`, `api/client.ts` |
+| `VITE_API_BASE_URL` | `''` (empty -- same-origin via proxy) | `''` (empty -- same-origin via Pages Function proxy) | `auth-client.ts`, `api/client.ts` |
 
-In dev, the proxy handles `/api/*` so `VITE_API_BASE_URL` is empty string and fetch paths are relative (`/api/systems`). In production, the frontend and API are on separate subdomains, so `VITE_API_BASE_URL` is the full origin of the API Worker.
+In dev, the proxy handles `/api/*` so `VITE_API_BASE_URL` is empty string and fetch paths are relative (`/api/systems`). In production, a Pages Function proxies `/api/*` to the API Worker, making the frontend and API same-origin. `VITE_API_BASE_URL` is empty and all API calls use relative paths.
 
 ### 8.3 Static adapter
 
@@ -648,7 +648,7 @@ export default {
 };
 ```
 
-`fallback: 'index.html'` is critical for SPA on Workers Static Assets -- without it, navigating directly to `/dashboard` would 404. With the fallback, any non-file path serves `index.html` and SvelteKit's client-side router takes over.
+`fallback: 'index.html'` is critical for SPA on Cloudflare Pages -- without it, navigating directly to `/dashboard` would 404. With the fallback, any non-file path serves `index.html` and SvelteKit's client-side router takes over.
 
 ---
 

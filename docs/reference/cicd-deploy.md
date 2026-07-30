@@ -19,7 +19,7 @@ Two independent deployments:
 | Artifact | Directory | Type | Wrangler command |
 |---|---|---|---|
 | API Worker | `packages/api/` | Workers script + scheduled handler + queue consumer | `wrangler deploy` |
-| Web static assets | `packages/web/` | Workers Static Assets (SPA build output) | `wrangler deploy` |
+| Web static assets | `packages/web/` | Cloudflare Pages (SPA build output) | `wrangler pages deploy` |
 
 They are deployed independently but always in a specific order (see 3.1). They have no circular dependency -- the Web assets are pure static files that make API calls to whatever origin `VITE_API_BASE_URL` is configured for. A new version of the API Worker can be deployed without touching the frontend, and vice versa, as long as the API contract is backward-compatible (which it always is in v1, since both artifacts are deployed in lockstep from the same commit).
 
@@ -33,7 +33,7 @@ Both artifacts are built and tested in parallel via CI's package matrix (S4) bef
 
 | Variable | Package | Dev | Production | Secret? |
 |---|---|---|---|---|
-| `VITE_API_BASE_URL` | `web` | `''` (empty -- same-origin via Vite proxy) | `https://paragon-api.kelpselp.workers.dev` | No |
+| `VITE_API_BASE_URL` | `web` | `''` (empty -- same-origin via Vite proxy) | `''` (empty -- same-origin via Pages Function proxy) | No |
 | `ENVIRONMENT` | `api` | `development` | `production` | No |
 | `BETTER_AUTH_SECRET` | `api` | Auto-generated dev secret | Generated secret, stored in `wrangler secret` | Yes |
 | `BETTER_AUTH_URL` | `api` | `http://localhost:8787` | `https://paragon-api.kelpselp.workers.dev` | No |
@@ -121,13 +121,14 @@ wrangler deploy
 }
 ```
 
-Uses the modern Workers Static Assets pattern. No Worker script is needed -- the platform serves files from `build/` directly. The `not_found_handling: "single-page-application"` option serves `index.html` for any unmatched route, providing SPA fallback automatically (the Worker from `packages/web/src/worker.ts` was removed in favor of this built-in feature).
+Uses Cloudflare Pages for static asset hosting. A Pages Function proxies `/api/*` requests to the API Worker, making the frontend and API same-origin in production. The `not_found_handling: "single-page-application"` option serves `index.html` for any unmatched route, providing SPA fallback automatically.
 
 **`VITE_API_BASE_URL`** is baked in at build time via `packages/web/.env.production`. It is NOT set at the Worker runtime -- Vite replaces `import.meta.env.VITE_*` during `vite build`, making the value static in the compiled JS bundle. The file is tracked in git (no secrets in it -- just a public URL).
 
 ```env
 # packages/web/.env.production
-VITE_API_BASE_URL=https://paragon-api.kelpselp.workers.dev
+# Empty — API calls go through Pages Function proxy on same origin
+VITE_API_BASE_URL=
 ```
 
 For local development, `packages/web/.env.development` keeps `VITE_API_BASE_URL` empty so API calls use the Vite proxy (`localhost:5173/api` → `localhost:8787`).
@@ -141,7 +142,7 @@ For local development, `packages/web/.env.development` keeps `VITE_API_BASE_URL`
 ```
 1. D1 migrations (packages/api)  -- wrangler d1 migrations apply DB
 2. API Worker (packages/api)     -- wrangler deploy
-3. Web static (packages/web)     -- wrangler deploy
+3. Web static (packages/web)     -- wrangler pages deploy
 ```
 
 Migrations run **before** the API Worker deploy so the new code sees the latest schema on its first request. The Web deploy runs last because it has no dependency on the API deployment order beyond `VITE_API_BASE_URL` being correct (which is baked at build time, not deploy time).
@@ -164,7 +165,7 @@ Migrations run **before** the API Worker deploy so the new code sees the latest 
     "deploy": "pnpm -r deploy",
     "deploy:migrations": "cd packages/api && wrangler d1 migrations apply DB",
     "deploy:api": "cd packages/api && wrangler deploy",
-    "deploy:web": "cd packages/web && vite build && wrangler deploy",
+    "deploy:web": "cd packages/web && vite build && wrangler pages deploy",
   }
 }
 ```
@@ -190,7 +191,7 @@ Each package has its own scripts in its `package.json`:
   "scripts": {
     "dev": "vite dev",
     "build": "svelte-kit sync && vite build",
-    "deploy": "vite build && wrangler deploy",
+    "deploy": "vite build && wrangler pages deploy",
     "lint": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
     "test:unit": "vitest",
     "test:e2e": "playwright install chromium && playwright test",
@@ -247,7 +248,7 @@ flowchart TD
     E2E --> Deploy
 
     subgraph Deploy["deploy (main branch only, sequential)"]
-        Mig[D1 migrations] --> ApiDeploy[Deploy API Worker] --> WebDeploy[Deploy Web static assets]
+        Mig[D1 migrations] --> ApiDeploy[Deploy API Worker] -->         WebDeploy[Deploy Web to Cloudflare Pages]
     end
 ```
 
@@ -354,7 +355,7 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
-      - name: Deploy Web static assets
+      - name: Deploy Web to Cloudflare Pages
         working-directory: packages/web
         run: pnpm exec wrangler deploy
         env:
@@ -379,9 +380,9 @@ jobs:
 | Environment | API URL | Web URL |
 |---|---|---|
 | Development (local) | `http://localhost:8787` | `http://localhost:5173` |
-| Production | `https://paragon-api.kelpselp.workers.dev` | `https://paragon.kelpselp.workers.dev` |
+| Production | `https://paragon-api.kelpselp.workers.dev` | `https://paragon-11x.pages.dev` |
 
-These URLs are determined by the `name` field in each `wrangler.jsonc` (`paragon-api` and `paragon` substituted with the actual account subdomain `kelpselp`).
+These URLs are determined by the `name` field in each `wrangler.jsonc` (`paragon-api` for the API Worker) and the Pages project name (`paragon-11x` for the frontend).
 
 ---
 
@@ -390,7 +391,7 @@ These URLs are determined by the `name` field in each `wrangler.jsonc` (`paragon
 For a single-developer personal app, rollback is manual and low-risk:
 
 1. **API Worker:** `wrangler rollback` reverts to the previous deployed version. Wrangler keeps a version history; the rollback is instantaneous and does not require a rebuild.
-2. **Web static assets:** `wrangler rollback` works the same way. If the static assets introduced a breaking client-side change and the API has already been rolled back, rolling back the web deployment restores the previous frontend version.
+2. **Web static assets:** `wrangler pages deploy` replaces the previous version; rollback re-deploys the prior build. If the static assets introduced a breaking client-side change and the API has already been rolled back, rolling back the web deployment restores the previous frontend version.
 3. **D1 schema:** Migrations are never rolled back automatically. If a migration introduces a breaking schema change that needs reversal, a new forward migration is written (not a revert of the previous one). This is consistent with SQLite/D1's migration conventions -- `ALTER TABLE` is limited, and a "revert" migration is often a separate `CREATE TABLE ... AS SELECT` pattern rather than a simple `DOWN` script. This is a personal app; a broken migration is fixed by writing a corrective one, not by reverting history.
 4. **Secrets:** `wrangler secret` changes are not versioned. If a secret rotation breaks the deployed Worker, re-set the previous value with `wrangler secret put`.
 
@@ -467,7 +468,7 @@ These are stored in Cloudflare's secrets store, not in `.env` files or `wrangler
 - [ ] `CLOUDFLARE_API_TOKEN` added to GitHub Actions repo secrets -- required for the `deploy` job (S4.2) to authenticate; note this is separate from the `wrangler secret put` values above, which live in Cloudflare's secrets store, not GitHub's
 - [x] `pnpm -r build` succeeds locally
 - [x] `pnpm -r deploy` succeeds locally (first manual deploy completed during Slice 12)
-- [ ] Verify: sign up at `https://paragon.kelpselp.workers.dev`, create a system, see it on the dashboard
+- [ ] Verify: sign up at `https://paragon-11x.pages.dev`, create a system, see it on the dashboard
 - [ ] Push to `main` once and confirm the CI `deploy` job runs migrations + both deploys successfully end-to-end
 
 **Note:** Steps still unchecked (`CLOUDFLARE_API_TOKEN`, verification, and CI push) are pending the Slice 12 merge to `main`.

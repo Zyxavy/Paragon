@@ -47,7 +47,7 @@ export function createAuth(env: {
     },
     trustedOrigins: [
       'http://localhost:5173',                          // Vite dev server
-      'https://paragon.kelpselp.workers.dev',       // production frontend origin
+      'https://paragon-11x.pages.dev',       // production frontend origin
     ],
   });
 }
@@ -112,14 +112,16 @@ Every route handler downstream reads `c.get('user').id` for the `user_id` scopin
 
 ## 2. Session Cookie Configuration
 
-Better Auth manages the cookie itself (name, `httpOnly`, `sameSite`, expiry) based on the `session` config in S1.1; this section covers the parts that need explicit attention for this specific deployment shape (two separate Workers, `*.workers.dev`, no custom domain).
+Better Auth manages the cookie itself (name, `httpOnly`, `sameSite`, expiry) based on the `session` config in S1.1; this section covers the parts that need explicit attention for the current deployment shape.
+
+The frontend is now served from `paragon-11x.pages.dev`, and the API is proxied through a Pages Function on the same domain. The browser sees all traffic as originating from `paragon-11x.pages.dev`, making cookies **same-origin** -- unlike the previous deployment where the frontend and API were on separate `*.workers.dev` subdomains.
 
 | Setting | Value | Why |
 |---|---|---|
 | `httpOnly` | `true` (Better Auth default) | Session token never touchable from frontend JS, irrelevant attack surface for XSS to exploit |
-| `secure` | `true` in production, relaxed in dev | `*.workers.dev` and `localhost` both need to work; Better Auth typically infers this from the request's protocol, confirm this against the installed version rather than hardcoding |
-| `sameSite` | `lax` | The frontend (`packages/web`, static assets) and the API (`packages/api`, Worker) are **separate deployments on separate subdomains** even though both are `*.workers.dev`; this is a cross-origin request from the cookie's point of view, so `sameSite: strict` would silently break every authenticated request. `lax` is the correct default for a same-site-navigation-friendly, cross-subdomain-fetch setup; `none` is unnecessary here since both origins share the `workers.dev` registrable domain in most cookie-scoping implementations, but if cookies aren't being sent as expected in testing, `sameSite: none` + `secure: true` is the fallback, not `strict`. |
-| domain scope | not explicitly set | Do not set an explicit cookie `domain` of `.workers.dev`; that's a public suffix, and browsers reject cookies scoped to a public suffix outright. Leave it unset so the cookie defaults to the exact issuing subdomain. |
+| `secure` | `true` in production, relaxed in dev | `paragon-11x.pages.dev` and `localhost` both need to work; Better Auth typically infers this from the request's protocol, confirm this against the installed version rather than hardcoding |
+| `sameSite` | `lax` | Same-origin via Pages Function proxy, so `lax` is safe and correct. `strict` would also work since the origin doesn't change between frontend and API, but `lax` is the Better Auth default and preserves compatibility with cross-origin navigation flows. |
+| domain scope | not explicitly set | Browsers reject cookies scoped to `pages.dev` (public suffix). Leave it unset so the cookie defaults to the exact issuing origin. |
 
 **Frontend fetch requirement:** every API call from SvelteKit must include `credentials: 'include'`; without it, the session cookie is never sent, and every request looks unauthenticated regardless of server config. This applies to the hand-rolled fetch wrapper (S4.1) and to `authClient` calls alike; Better Auth's client SDK handles this internally for its own calls, but any direct `fetch()` to `/api/*` (i.e. everything in API Route Design) must set it explicitly.
 
@@ -143,7 +145,7 @@ ADR 001 S8's open risk table flags "Better Auth CSRF blocks Vite proxy in dev" w
 import { createAuthClient } from 'better-auth/svelte';
 
 export const authClient = createAuthClient({
-  baseURL: import.meta.env.VITE_API_BASE_URL,   // e.g. https://paragon-api.kelpselp.workers.dev in prod, proxied path in dev
+  baseURL: import.meta.env.VITE_API_BASE_URL,   // '' in prod (same-origin via Pages Function), '' in dev (Vite proxy)
 });
 
 export const { useSession, signIn, signOut, signUp } = authClient;
