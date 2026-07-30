@@ -20,7 +20,7 @@ export function createAuth(env: {
     trustedOrigins: [
       'http://localhost:5173',
       'http://localhost:4173',
-      'https://paragon-11x.pages.dev',
+      'https://paragons.pages.dev',
     ],
   });
 }

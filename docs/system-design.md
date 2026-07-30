@@ -32,7 +32,7 @@ flowchart TB
         CRA["Cloudflare API<br/>(D1 migrations, wrangler deploy)"]
     end
 
-    Browser["Browser<br/>paragon-11x.pages.dev"] --> Assets
+    Browser["Browser<br/>paragons.pages.dev"] --> Assets
     Browser --> API
     API --> D1
     API --> R2
@@ -78,7 +78,7 @@ Four constraints shaped every architectural decision, in priority order:
 ```mermaid
 flowchart LR
     User["User (Browser)"]
-    Domains["paragon-11x.pages.dev<br/>(SvelteKit SPA)"]
+    Domains["paragons.pages.dev<br/>(SvelteKit SPA)"]
     ApiDomain["Paragon-api.kelpselp.workers.dev<br/>(Hono API Worker)"]
 
     subgraph CF["Cloudflare Workers"]
@@ -150,8 +150,8 @@ Paragon/
 flowchart LR
     subgraph Web["packages/web: SvelteKit SPA"]
         WBuild["pnpm build"]
-        WDeploy["wrangler deploy"]
-        WS[("Cloudflare Pages<br/>paragon-11x.pages.dev")]
+        WDeploy["wrangler pages deploy"]
+        WS[("Cloudflare Pages<br/>paragons.pages.dev")]
     end
 
     subgraph API["packages/api: Hono Worker"]
@@ -167,7 +167,7 @@ flowchart LR
 The frontend is served from **Cloudflare Pages** and the API runs as a **separate Worker**, with a Pages Function proxying `/api/*` requests to the API Worker. This means:
 - The frontend is pure static assets on Pages: zero CPU budget used per page load.
 - The API Worker handles all fetch, scheduled, and queue handlers: bound by the 10ms CPU limit.
-- The session cookie is same-origin (frontend and API share `paragon-11x.pages.dev` via the Pages Function proxy), with `credentials: 'include'` on every API request.
+- The session cookie is same-origin (frontend and API share `paragons.pages.dev` via the Pages Function proxy), with `credentials: 'include'` on every API request.
 - They deploy independently: a frontend-only CSS change never touches the API Worker.
 
 ---
@@ -570,7 +570,7 @@ flowchart TB
 ### 5.2 Session Cookie Architecture
 
 ```
-                    paragon-11x.pages.dev (frontend)
+                    paragons.pages.dev (frontend)
                               │
                               │ fetch() + credentials: 'include'
                               │ Cookie: better-auth-session-token=xyz...
@@ -588,7 +588,7 @@ flowchart TB
                     Better Auth validates session
 ```
 
-**Key design decision:** The frontend and API are same-origin via the Pages Function proxy (both served from `paragon-11x.pages.dev`). `sameSite: lax` is the Better Auth default and works correctly. No explicit `domain` cookie scope is set, because `pages.dev` is a public suffix and browsers reject cookies scoped to it.
+**Key design decision:** The frontend and API are same-origin via the Pages Function proxy (both served from `paragons.pages.dev`). `sameSite: lax` is the Better Auth default and works correctly. No explicit `domain` cookie scope is set, because `pages.dev` is a public suffix and browsers reject cookies scoped to it.
 
 ### 5.3 Recovery Codes Flow
 
@@ -773,7 +773,7 @@ flowchart TB
     end
 
     subgraph Deploy["Deployed to Cloudflare Pages"]
-        Assets["paragon-11x.pages.dev"]
+        Assets["paragons.pages.dev"]
         Index["index.html<br/>(SPA fallback)"]
         JS["JS bundles"]
         CSS["CSS (Tailwind)"]
@@ -990,7 +990,7 @@ flowchart LR
     end
 
     subgraph Production["Cloudflare"]
-        Web["Cloudflare Pages<br/>paragon-11x.pages.dev"]
+        Web["Cloudflare Pages<br/>paragons.pages.dev"]
         API["Worker<br/>Paragon-api.kelpselp.workers.dev"]
         D1_Prod["D1 Database<br/>(production binding)"]
     end
@@ -1033,7 +1033,7 @@ All services are comfortably within their free-tier limits for a personal app. T
 | `VITE_API_BASE_URL` | `''` (same-origin via Vite proxy) | `https://Paragon-api.kelpselp.workers.dev` |
 | `MONGODB_URI` | `mongodb://localhost:27017/Paragon` | Atlas cluster connection string (via `wrangler secret`) |
 | `BETTER_AUTH_SECRET` | Dev secret (local) | Production secret (via `wrangler secret`) |
-| `BETTER_AUTH_URL` | `http://localhost:8787` | `https://Paragon-api.kelpselp.workers.dev` |
+| `BETTER_AUTH_URL` | `http://localhost:8787` | `https://paragons.pages.dev` |
 
 ---
 

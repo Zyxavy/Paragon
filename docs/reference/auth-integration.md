@@ -47,7 +47,7 @@ export function createAuth(env: {
     },
     trustedOrigins: [
       'http://localhost:5173',                          // Vite dev server
-      'https://paragon-11x.pages.dev',       // production frontend origin
+      'https://paragons.pages.dev',       // production frontend origin
     ],
   });
 }
@@ -114,12 +114,12 @@ Every route handler downstream reads `c.get('user').id` for the `user_id` scopin
 
 Better Auth manages the cookie itself (name, `httpOnly`, `sameSite`, expiry) based on the `session` config in S1.1; this section covers the parts that need explicit attention for the current deployment shape.
 
-The frontend is now served from `paragon-11x.pages.dev`, and the API is proxied through a Pages Function on the same domain. The browser sees all traffic as originating from `paragon-11x.pages.dev`, making cookies **same-origin** -- unlike the previous deployment where the frontend and API were on separate `*.workers.dev` subdomains.
+The frontend is now served from `paragons.pages.dev`, and the API is proxied through a Pages Function on the same domain. The browser sees all traffic as originating from `paragons.pages.dev`, making cookies **same-origin** -- unlike the previous deployment where the frontend and API were on separate `*.workers.dev` subdomains.
 
 | Setting | Value | Why |
 |---|---|---|
 | `httpOnly` | `true` (Better Auth default) | Session token never touchable from frontend JS, irrelevant attack surface for XSS to exploit |
-| `secure` | `true` in production, relaxed in dev | `paragon-11x.pages.dev` and `localhost` both need to work; Better Auth typically infers this from the request's protocol, confirm this against the installed version rather than hardcoding |
+| `secure` | `true` in production, relaxed in dev | `paragons.pages.dev` and `localhost` both need to work; Better Auth typically infers this from the request's protocol, confirm this against the installed version rather than hardcoding |
 | `sameSite` | `lax` | Same-origin via Pages Function proxy, so `lax` is safe and correct. `strict` would also work since the origin doesn't change between frontend and API, but `lax` is the Better Auth default and preserves compatibility with cross-origin navigation flows. |
 | domain scope | not explicitly set | Browsers reject cookies scoped to `pages.dev` (public suffix). Leave it unset so the cookie defaults to the exact issuing origin. |
 

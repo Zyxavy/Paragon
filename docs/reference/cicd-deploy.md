@@ -36,7 +36,7 @@ Both artifacts are built and tested in parallel via CI's package matrix (S4) bef
 | `VITE_API_BASE_URL` | `web` | `''` (empty -- same-origin via Vite proxy) | `''` (empty -- same-origin via Pages Function proxy) | No |
 | `ENVIRONMENT` | `api` | `development` | `production` | No |
 | `BETTER_AUTH_SECRET` | `api` | Auto-generated dev secret | Generated secret, stored in `wrangler secret` | Yes |
-| `BETTER_AUTH_URL` | `api` | `http://localhost:8787` | `https://paragon-api.kelpselp.workers.dev` | No |
+| `BETTER_AUTH_URL` | `api` | `http://localhost:8787` | `https://paragons.pages.dev` | No |
 | `MONGODB_URI` | `api` | `mongodb://localhost:27017/paragon` (local Mongo) | Atlas connection string, stored in `wrangler secret` | Yes |
 
 ### 2.2 `wrangler.jsonc` -- `packages/api/`
@@ -357,7 +357,7 @@ jobs:
 
       - name: Deploy Web to Cloudflare Pages
         working-directory: packages/web
-        run: pnpm exec wrangler deploy
+        run: pnpm exec wrangler pages deploy
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 ```
@@ -380,9 +380,9 @@ jobs:
 | Environment | API URL | Web URL |
 |---|---|---|
 | Development (local) | `http://localhost:8787` | `http://localhost:5173` |
-| Production | `https://paragon-api.kelpselp.workers.dev` | `https://paragon-11x.pages.dev` |
+| Production | `https://paragon-api.kelpselp.workers.dev` | `https://paragons.pages.dev` |
 
-These URLs are determined by the `name` field in each `wrangler.jsonc` (`paragon-api` for the API Worker) and the Pages project name (`paragon-11x` for the frontend).
+These URLs are determined by the `name` field in each `wrangler.jsonc` (`paragon-api` for the API Worker) and the Pages project name (`paragons` for the frontend).
 
 ---
 
@@ -468,7 +468,7 @@ These are stored in Cloudflare's secrets store, not in `.env` files or `wrangler
 - [ ] `CLOUDFLARE_API_TOKEN` added to GitHub Actions repo secrets -- required for the `deploy` job (S4.2) to authenticate; note this is separate from the `wrangler secret put` values above, which live in Cloudflare's secrets store, not GitHub's
 - [x] `pnpm -r build` succeeds locally
 - [x] `pnpm -r deploy` succeeds locally (first manual deploy completed during Slice 12)
-- [ ] Verify: sign up at `https://paragon-11x.pages.dev`, create a system, see it on the dashboard
+- [ ] Verify: sign up at `https://paragons.pages.dev`, create a system, see it on the dashboard
 - [ ] Push to `main` once and confirm the CI `deploy` job runs migrations + both deploys successfully end-to-end
 
 **Note:** Steps still unchecked (`CLOUDFLARE_API_TOKEN`, verification, and CI push) are pending the Slice 12 merge to `main`.
