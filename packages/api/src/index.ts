@@ -24,6 +24,8 @@ import type { JournalRetryMessage } from './routes/journal-log';
 import linkListRoutes from './routes/link-list';
 import notesRoutes from './routes/notes';
 import attachmentsRoutes from './routes/attachments';
+import exportRoutes from './routes/export';
+import exportRoutes from './routes/export';
 
 const app = new Hono<{ Bindings: CloudflareBindings; Variables: { user: User | null; session: Session | null } }>();
 
@@ -85,6 +87,12 @@ app.route('/api/systems', systemInstanceRoutes);
 
 // Workspace
 app.route('/api/systems/:system_id/workspace', workspaceRoutes);
+
+// System export
+app.route('/api/systems/:system_id/export', exportRoutes);
+
+// System export
+app.route('/api/systems/:system_id/export', exportRoutes);
 
 // Counter logs
 app.route('/api', counterLogRoutes);
