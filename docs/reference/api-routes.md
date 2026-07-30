@@ -6,7 +6,7 @@
 
 **Status:** Draft -- v1 scope
 
-**Implementation status:** Partially Implemented (auth + systems + schedules + dashboard/instances + cron + workspace + MongoDB/log + reviews + templates + AI draft live; S9 Attachments and S11 Workspace Templates are P1 — not yet implemented)
+**Implementation status:** Implemented (all routes live)
 
 **Last updated:** July 22, 2026
 
