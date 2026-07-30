@@ -25,7 +25,6 @@ import linkListRoutes from './routes/link-list';
 import notesRoutes from './routes/notes';
 import attachmentsRoutes from './routes/attachments';
 import exportRoutes from './routes/export';
-import exportRoutes from './routes/export';
 
 const app = new Hono<{ Bindings: CloudflareBindings; Variables: { user: User | null; session: Session | null } }>();
 
