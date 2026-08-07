@@ -314,9 +314,14 @@ app.delete('/:id', async (c) => {
 
     // Step 2: Delete R2 objects
     if (c.env.ATTACHMENTS && attachmentKeys.length > 0) {
-        await Promise.allSettled(
+        const results = await Promise.allSettled(
             attachmentKeys.map((a) => c.env.ATTACHMENTS.delete(a.r2_key))
         );
+        attachmentKeys.forEach((a, i) => {
+            if (results[i].status === 'rejected') {
+                console.warn(`[attachments] R2 delete failed, orphaned key: ${a.r2_key}`, results[i].reason);
+            }
+        });
     }
 
     // Step 3: Delete attachments D1 rows
