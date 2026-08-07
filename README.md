@@ -1,12 +1,10 @@
 # Paragon
 
-*Repetition is the mother of learning, the father of action, which makes it the architect of accomplishment*
+## *Repetition is the mother of learning, the father of action, which makes it the architect of accomplishment*
 
 Build systems that survive your worst days. Log daily. Review weekly.
 
-**Website:** [paragon.kelpselp.workers.dev](https://paragon.kelpselp.workers.dev)
-
-**Implementation status:** Current
+**Website:** [paragons.pages.dev](https://paragons.pages.dev)
 
 ---
 
@@ -24,8 +22,6 @@ Build systems that survive your worst days. Log daily. Review weekly.
 | Message queue | Cloudflare Queues | Active (journal retry) |
 | Secondary database | MongoDB Atlas (journal/reflections only) | Active (journal writes + queue fallback) |
 | Monorepo | pnpm workspaces | Active |
-
-## Tech Stack (Planned)
 
 ## Documentation
 
