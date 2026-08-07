@@ -94,9 +94,6 @@ app.route('/api/systems/:system_id/workspace', workspaceRoutes);
 // System export
 app.route('/api/systems/:system_id/export', exportRoutes);
 
-// System export
-app.route('/api/systems/:system_id/export', exportRoutes);
-
 // Counter logs
 app.route('/api', counterLogRoutes);
 
