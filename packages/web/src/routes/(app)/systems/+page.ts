@@ -1,12 +1,14 @@
 import { getSystems } from '$lib/api/systems';
 import { getDashboard } from '$lib/api/dashboard';
+import { cachedFetch } from '$lib/api/cache';
 
 export async function load({ url }) {
     const raw = url.searchParams.get('status');
     const status = raw && ['active', 'paused', 'archived', 'all'].includes(raw) ? raw : 'active';
+    const qs = new URLSearchParams({ status });
     const [systemsData, dashboardData] = await Promise.all([
-        getSystems({ status }),
-        getDashboard().catch(() => null),
+        cachedFetch(() => getSystems({ status }), `/api/systems?${qs.toString()}`),
+        cachedFetch(() => getDashboard(), '/api/dashboard').catch(() => null),
     ]);
 
     const todayMap: Record<string, { state: string }> = {};
