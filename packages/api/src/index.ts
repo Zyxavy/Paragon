@@ -25,6 +25,7 @@ import linkListRoutes from './routes/link-list';
 import notesRoutes from './routes/notes';
 import attachmentsRoutes from './routes/attachments';
 import exportRoutes from './routes/export';
+import metricsRoutes from './routes/metrics';
 
 const app = new Hono<{ Bindings: CloudflareBindings; Variables: { user: User | null; session: Session | null } }>();
 
@@ -66,6 +67,9 @@ app.use('/api/*', async (c, next) => {
 
 // Systems route
 app.route('/api/systems', systemsRoutes);
+
+// System metrics
+app.route('/api/systems/:system_id/metrics', metricsRoutes);
 
 // Schedules
 app.route('/api/systems/:system_id/schedules', schedulesRoutes);
