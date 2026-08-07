@@ -140,7 +140,7 @@
   }
 </script>
 
-<form class="flex flex-col gap-10 max-w-2xl" onsubmit={async (e) => { e.preventDefault(); await handleConfirm(); }}>
+<form class="flex flex-col gap-10 max-w-5xl" onsubmit={async (e) => { e.preventDefault(); await handleConfirm(); }}>
   <!-- Section 1: Purpose -->
   <section>
     <div class="flex items-center gap-3 mb-4">
@@ -148,6 +148,7 @@
       <h2 class="font-body text-base font-semibold text-on-surface">Purpose</h2>
     </div>
     <div class="bg-surface-container-lowest rounded-xl p-6 shadow-ambient-sm space-y-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div class="field-group">
         <label for="name" class="font-body text-sm font-medium text-on-surface">Name *</label>
         <input id="name" type="text" bind:value={name} oninput={scheduleAutosave}
@@ -164,6 +165,7 @@
                       focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
                       placeholder:text-muted-foreground transition-all duration-200"
                placeholder="e.g. Study, Fitness, Writing" />
+      </div>
       </div>
 
       <div class="field-group">
@@ -210,6 +212,7 @@
         {/if}
       </div>
 
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div class="field-group">
         <label for="trigger" class="font-body text-sm font-medium text-on-surface">Trigger (after I [X], I will [Y])</label>
         <input id="trigger" type="text" bind:value={trigger} oninput={scheduleAutosave}
@@ -226,6 +229,7 @@
                          focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
                          placeholder:text-muted-foreground transition-all duration-200"
                   rows="2" placeholder="What are the steps or rules?"></textarea>
+      </div>
       </div>
     </div>
   </section>
