@@ -99,3 +99,28 @@ export async function deleteSystem(id: string): Promise<void> {
     });
 }
 
+export interface SystemMetrics {
+    system_id: string;
+    floor_hold_rate: {
+        full: number;
+        floor: number;
+        missed: number;
+        percentage: number;
+    };
+    review_completion: {
+        completed: number;
+        total_due: number;
+        with_changes: number;
+    };
+    current_streak: {
+        current: number;
+        longest: number;
+    };
+    total_instances: number;
+    survival_weeks: number;
+}
+
+export async function getMetrics(id: string): Promise<SystemMetrics> {
+    return apiFetch<SystemMetrics>(`/api/systems/${id}/metrics`);
+}
+

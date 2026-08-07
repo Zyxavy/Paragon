@@ -9,6 +9,7 @@
         { label: 'Overview', path: (id: string) => `/systems/${id}` },
         { label: 'Workspace', path: (id: string) => `/systems/${id}/workspace` },
         { label: 'Reviews', path: (id: string) => `/systems/${id}/reviews` },
+        { label: 'Metrics', path: (id: string) => `/systems/${id}/metrics` },
         { label: 'Edit', path: (id: string) => `/systems/${id}/edit` },
     ];
 
@@ -16,6 +17,7 @@
         const path = page.url.pathname;
         if (path.endsWith('/workspace')) return 'workspace';
         if (path.includes('/reviews')) return 'reviews';
+        if (path.includes('/metrics')) return 'metrics';
         if (path.endsWith('/edit')) return 'edit';
         return 'overview';
     }
