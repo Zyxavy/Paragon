@@ -15,6 +15,8 @@
 
     let showDeleteModal = $state(false);
     let deleteConfirmName = $state('');
+    let pausing = $state(false);
+    let deleting = $state(false);
 
     async function handleSaveAsTemplate() {
         await saveAsTemplate(system.id, templateName.trim() || undefined);
@@ -47,27 +49,37 @@
     }
 
     async function handlePause() {
+        if (pausing) return;
+        pausing = true;
         try {
             const updated = await pauseSystem(system.id);
             data.system = updated;
             addToast('success', 'System paused');
         } catch {
             addToast('error', 'Failed to pause system');
+        } finally {
+            pausing = false;
         }
     }
 
     async function handleUnarchive() {
+        if (pausing) return;
+        pausing = true;
         try {
             const updated = await unarchiveSystem(system.id);
             data.system = updated;
             addToast('success', 'System resumed');
         } catch {
             addToast('error', 'Failed to resume system');
+        } finally {
+            pausing = false;
         }
     }
 
     async function handleDelete() {
         if (deleteConfirmName.trim() !== system.name) return;
+        if (deleting) return;
+        deleting = true;
         try {
             await deleteSystem(system.id);
             addToast('success', 'System deleted');
@@ -76,6 +88,8 @@
             addToast('error', 'Failed to delete system');
             showDeleteModal = false;
             deleteConfirmName = '';
+        } finally {
+            deleting = false;
         }
     }
 
@@ -135,10 +149,11 @@
     </div>
     <div class="flex items-center gap-2">
       {#if system.status === 'active'}
-        <button onclick={handlePause}
+        <button onclick={handlePause} disabled={pausing}
                 class="rounded-2xl bg-secondary/10 text-on-surface px-4 py-2 text-sm font-body font-medium
-                       transition-all duration-200 hover:opacity-90 active:scale-[0.98] cursor-pointer">
-          Pause
+                       transition-all duration-200 hover:opacity-90 active:scale-[0.98]
+                       disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+          {pausing ? 'Pausing...' : 'Pause'}
         </button>
         <button onclick={() => { showDeleteModal = true; deleteConfirmName = ''; }}
                 class="rounded-2xl bg-destructive/10 text-destructive px-4 py-2 text-sm font-body font-medium
@@ -146,11 +161,12 @@
           Delete
         </button>
       {:else}
-        <button onclick={handleUnarchive}
+        <button onclick={handleUnarchive} disabled={pausing}
                 class="rounded-xl bg-gradient-to-br from-primary to-primary-container text-on-primary
                        px-5 py-2.5 text-sm font-body font-semibold
-                       transition-all duration-200 hover:opacity-90 active:scale-[0.98] cursor-pointer">
-          {system.status === 'paused' ? 'Resume' : 'Unarchive'}
+                       transition-all duration-200 hover:opacity-90 active:scale-[0.98]
+                       disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
+          {pausing ? 'Resuming...' : (system.status === 'paused' ? 'Resume' : 'Unarchive')}
         </button>
         {#if system.status === 'paused'}
           <button onclick={() => { showDeleteModal = true; deleteConfirmName = ''; }}
@@ -220,11 +236,11 @@
         <button onclick={() => { showDeleteModal = false; deleteConfirmName = ''; }}
                 class="rounded-xl border border-border text-on-surface px-4 py-2 text-sm font-body font-medium
                        transition-colors duration-150 hover:bg-surface/50 cursor-pointer">Cancel</button>
-        <button onclick={handleDelete} disabled={deleteConfirmName.trim() !== system.name}
+        <button onclick={handleDelete} disabled={deleteConfirmName.trim() !== system.name || deleting}
                 class="rounded-2xl px-4 py-2 text-sm font-body font-semibold cursor-pointer
                        disabled:opacity-50 disabled:cursor-not-allowed
                        {deleteConfirmName.trim() === system.name ? 'bg-destructive text-white hover:bg-destructive/90' : 'bg-destructive/10 text-destructive'}">
-            Delete permanently
+            {deleting ? 'Deleting...' : 'Delete permanently'}
         </button>
     </div>
 </Modal>
