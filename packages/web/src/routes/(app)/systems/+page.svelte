@@ -1,5 +1,6 @@
 <script lang="ts">
   import { Clock, Sparkles } from '@lucide/svelte';
+  import { goto } from '$app/navigation';
 
   let { data } = $props();
 
@@ -8,6 +9,7 @@
   let systems: any[] = $state([]);
   let next_cursor: string | null = $state(null);
   let todayMap: Record<string, any> = $state({});
+  let currentStatus = $state('active');
 
   $effect(() => {
     if (data) {
@@ -16,11 +18,27 @@
         systems = data.systems;
         next_cursor = data.next_cursor;
         todayMap = data.todayMap ?? {};
+        currentStatus = data.currentStatus ?? 'active';
       } else {
         loadError = true;
       }
     }
   });
+
+  const statusTabs = [
+    { label: 'Active', value: 'active' },
+    { label: 'Paused', value: 'paused' },
+    { label: 'Archived', value: 'archived' },
+    { label: 'All', value: '' },
+  ];
+
+  function navigateTab(status: string) {
+    if (status) {
+      goto(`/systems?status=${status}`);
+    } else {
+      goto('/systems');
+    }
+  }
 </script>
 
 {#if !ready}
@@ -50,11 +68,8 @@
   </div>
 {:else}
   <div class="max-w-6xl">
-    <div class="flex items-center justify-between mb-8">
-      <div>
-        <h1 class="font-display text-2xl font-semibold text-on-surface">Your systems</h1>
-        <p class="font-body text-sm text-muted-foreground mt-1">{systems.length} active</p>
-      </div>
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="font-display text-2xl font-semibold text-on-surface">Your systems</h1>
       <a href="/systems/new"
          class="bg-gradient-to-br from-primary to-primary-container text-on-primary
                 px-5 py-2.5 rounded-2xl font-semibold text-sm
@@ -63,12 +78,25 @@
       </a>
     </div>
 
+    <nav class="flex gap-4 overflow-x-auto border-b border-border/50 mb-6 pb-0">
+      {#each statusTabs as tab}
+        <button
+          onclick={() => navigateTab(tab.value)}
+          class="pb-3 font-body text-sm whitespace-nowrap transition-colors duration-150
+                 {currentStatus === tab.value ? 'text-primary font-semibold' : 'text-muted-foreground hover:text-on-surface'}">
+          {tab.label}
+        </button>
+      {/each}
+    </nav>
+
+    <p class="font-body text-sm text-muted-foreground mb-6">{systems.length} {currentStatus || 'total'} system{systems.length !== 1 ? 's' : ''}</p>
+
     {#if systems.length === 0}
       <div class="bg-surface-container-low rounded-xl p-10 text-center max-w-lg mx-auto">
         <div class="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4">
           <span class="text-2xl">+</span>
         </div>
-        <h2 class="font-body text-lg font-semibold text-on-surface mb-2">No systems yet</h2>
+        <h2 class="font-body text-lg font-semibold text-on-surface mb-2">{currentStatus === 'active' ? 'No active systems' : 'No systems yet'}</h2>
         <p class="font-body text-sm text-muted-foreground mx-auto mb-6">
           Create your first system to get started.
         </p>

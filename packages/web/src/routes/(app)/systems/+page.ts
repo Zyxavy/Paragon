@@ -1,9 +1,10 @@
 import { getSystems } from '$lib/api/systems';
 import { getDashboard } from '$lib/api/dashboard';
 
-export async function load() {
+export async function load({ url }) {
+    const status = url.searchParams.get('status') || 'active';
     const [systemsData, dashboardData] = await Promise.all([
-        getSystems(),
+        getSystems({ status }),
         getDashboard().catch(() => null),
     ]);
 
@@ -18,5 +19,6 @@ export async function load() {
         systems: systemsData.systems,
         next_cursor: systemsData.next_cursor,
         todayMap,
+        currentStatus: status,
     };
 }
