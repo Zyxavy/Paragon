@@ -234,6 +234,117 @@ app.post('/:id/archive', async (c) => {
     return c.json(parseSystemRow(updated));
 });
 
+app.post('/:id/pause', async (c) => {
+    const userId = c.get('user').id;
+    const db = c.env.DB;
+    const systemId = c.req.param('id');
+
+    const existing = await db.prepare(
+        'SELECT * FROM systems WHERE id = ? AND user_id = ?'
+    ).bind(systemId, userId).first<any>();
+
+    if (!existing) {
+        return c.json({ error: 'not_found', message: 'System not found.' }, 404);
+    }
+
+    if (existing.status === 'paused') {
+        return c.json({ error: 'already_paused', message: 'This system is already paused.' }, 409);
+    }
+
+    const now = new Date().toISOString();
+    await db.prepare(
+        "UPDATE systems SET status = 'paused', updated_at = ? WHERE id = ? AND user_id = ?"
+    ).bind(now, systemId, userId).run();
+
+    const updated = await db.prepare(
+        'SELECT * FROM systems WHERE id = ? AND user_id = ?'
+    ).bind(systemId, userId).first<any>();
+
+    return c.json(parseSystemRow(updated));
+});
+
+app.post('/:id/unarchive', async (c) => {
+    const userId = c.get('user').id;
+    const db = c.env.DB;
+    const systemId = c.req.param('id');
+
+    const existing = await db.prepare(
+        'SELECT * FROM systems WHERE id = ? AND user_id = ?'
+    ).bind(systemId, userId).first<any>();
+
+    if (!existing) {
+        return c.json({ error: 'not_found', message: 'System not found.' }, 404);
+    }
+
+    if (existing.status === 'active') {
+        return c.json({ error: 'already_active', message: 'This system is already active.' }, 409);
+    }
+
+    const now = new Date().toISOString();
+    await db.prepare(
+        "UPDATE systems SET status = 'active', updated_at = ? WHERE id = ? AND user_id = ?"
+    ).bind(now, systemId, userId).run();
+
+    const updated = await db.prepare(
+        'SELECT * FROM systems WHERE id = ? AND user_id = ?'
+    ).bind(systemId, userId).first<any>();
+
+    return c.json(parseSystemRow(updated));
+});
+
+app.delete('/:id', async (c) => {
+    const userId = c.get('user').id;
+    const db = c.env.DB;
+    const systemId = c.req.param('id');
+
+    const existing = await db.prepare(
+        'SELECT * FROM systems WHERE id = ? AND user_id = ?'
+    ).bind(systemId, userId).first<any>();
+
+    if (!existing) {
+        return c.json({ error: 'not_found', message: 'System not found.' }, 404);
+    }
+
+    // Step 1: Collect R2 attachment keys via workspace JOIN
+    const { results: attachmentKeys } = await db.prepare(
+        `SELECT a.r2_key, a.id FROM attachments a
+         JOIN workspaces w ON a.workspace_id = w.id
+         WHERE w.system_id = ?`
+    ).bind(systemId).all<{ r2_key: string; id: string }>();
+
+    // Step 2: Delete R2 objects
+    if (c.env.ATTACHMENTS && attachmentKeys.length > 0) {
+        await Promise.allSettled(
+            attachmentKeys.map((a) => c.env.ATTACHMENTS.delete(a.r2_key))
+        );
+    }
+
+    // Step 3: Delete attachments D1 rows
+    if (attachmentKeys.length > 0) {
+        const workspaceIds = new Set<string>();
+        const { results: workspaceRows } = await db.prepare(
+            'SELECT id FROM workspaces WHERE system_id = ?'
+        ).bind(systemId).all<{ id: string }>();
+
+        for (const w of workspaceRows) {
+            workspaceIds.add(w.id);
+        }
+
+        for (const wsId of workspaceIds) {
+            await db.prepare(
+                'DELETE FROM attachments WHERE workspace_id = ?'
+            ).bind(wsId).run();
+        }
+    }
+
+    // Step 4: Delete system row — D1 cascades handle schedules, instances, reviews, workspaces, widget_entries
+    await db.prepare(
+        'DELETE FROM systems WHERE id = ? AND user_id = ?'
+    ).bind(systemId, userId).run();
+
+    return c.body(null, 204);
+});
+
 app.post('/:id/save-as-template', async (c) => {
     const userId = c.get('user').id;
     const db = c.env.DB;
