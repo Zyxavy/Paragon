@@ -204,6 +204,7 @@
                          focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
                          placeholder:text-muted-foreground transition-all duration-200"
                   rows="2" placeholder="e.g. Read one page"></textarea>
+        <p class="mt-1 font-body text-xs text-muted-foreground">What would count as a win on your worst day?</p>
         {#if confirmError}
           <p class="mt-1 text-sm text-destructive font-body">{confirmError}</p>
         {/if}
