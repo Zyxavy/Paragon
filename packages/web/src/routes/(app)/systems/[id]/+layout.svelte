@@ -25,7 +25,7 @@
     let activeTab = $derived(tabFromUrl());
 </script>
 
-<div class="w-full md:max-w-2xl lg:max-w-4xl mx-auto px-4 md:px-0">
+<div class="w-full">
   <div class="flex items-start mb-6">
     <div>
       <h1 class="font-display text-2xl text-on-surface">{system.name}</h1>
