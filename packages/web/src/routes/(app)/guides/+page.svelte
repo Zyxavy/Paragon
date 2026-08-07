@@ -1,5 +1,6 @@
 <script lang="ts">
   import { fly } from 'svelte/transition';
+  import { ExternalLink } from '@lucide/svelte';
 
   const guides = [
     {
@@ -40,6 +41,17 @@
       ],
     },
   ];
+
+  const sources = [
+    { number: 1, title: 'How To Set Systems Instead Of Goals', creator: '', url: 'https://www.youtube.com/watch?v=hyUr5E_xwjk' },
+    { number: 2, title: 'How to Build Systems to Actually Achieve Your Goals', creator: 'Dr. Justin Sung', url: 'https://www.youtube.com/watch?v=fXyRprdoEoE' },
+    { number: 3, title: 'Productivity is Hard Until You Build Systems Like This', creator: 'Dr. Justin Sung', url: 'https://www.youtube.com/watch?v=AeV5F0ppaGw' },
+    { number: 4, title: 'Success Is Hard Until You Build Systems Like This', creator: 'Ali Abdaal', url: 'https://www.youtube.com/watch?v=MBPHU7aaklM' },
+    { number: 5, title: 'How to Build Systems (with AI) to ACTUALLY Achieve Your Goals', creator: 'Dan Martell', url: 'https://www.youtube.com/watch?v=y5jL8KsUwaI' },
+    { number: 6, title: 'How to Create Systems in Your Life', creator: '', url: 'https://www.youtube.com/watch?v=e-hhoaTi2T0' },
+    { number: 7, title: 'Success Is Hard Until You Build Systems Like This', creator: 'MIT Monk', url: 'https://www.youtube.com/watch?v=p3F-1QyvHnY' },
+    { number: 8, title: 'Success Is Hard Until You Build Systems Like This', creator: 'Matt Gray', url: 'https://youtu.be/iemuHxed0nY' },
+  ];
 </script>
 
 <div class="max-w-3xl mx-auto px-6 py-12">
@@ -72,6 +84,38 @@
       </div>
     </article>
   {/each}
+
+  <div class="mt-12">
+    <h2 class="font-display text-xl font-semibold text-on-surface mb-4">Sources</h2>
+    <p class="font-body text-sm text-muted-foreground mb-6 max-w-2xl">
+      These are the creators and frameworks the Paragon guides are built on.
+    </p>
+    <div class="flex flex-col gap-3">
+      {#each sources as source}
+        <a
+          href={source.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex items-center gap-4 bg-surface-container-lowest rounded-xl p-4 shadow-ambient-sm
+                 transition-shadow duration-200 hover:shadow-ambient-md no-underline"
+        >
+          <span
+            class="w-8 h-8 rounded-lg bg-blush/20 text-blush
+                   flex items-center justify-center font-display text-sm font-semibold shrink-0"
+          >
+            {source.number}
+          </span>
+          <span class="flex-1 min-w-0">
+            <span class="block font-body text-sm font-semibold text-on-surface truncate">{source.title}</span>
+            {#if source.creator}
+              <span class="block font-body text-xs text-muted-foreground">{source.creator}</span>
+            {/if}
+          </span>
+          <ExternalLink class="w-4 h-4 text-muted-foreground shrink-0" />
+        </a>
+      {/each}
+    </div>
+  </div>
 
   <div class="mt-12 bg-surface-container-low rounded-xl p-8 text-center">
     <h2 class="font-display text-xl font-semibold text-on-surface mb-3">Ready to start?</h2>
