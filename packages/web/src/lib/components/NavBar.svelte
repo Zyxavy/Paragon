@@ -66,7 +66,10 @@
 >
   <div class="flex flex-col gap-1 min-w-48 p-6">
     <div class="flex items-center justify-between mb-6">
-      <span class="font-display font-semibold text-primary text-lg" class:hidden={collapsed}>Paragon</span>
+      <a href="/dashboard" class="flex items-center gap-2 no-underline" aria-label="Paragon dashboard">
+        <img src="/apple-touch-icon.png" alt="Paragon" class="w-8 h-8 rounded-xl shrink-0" />
+        <span class="font-display font-semibold text-primary text-lg" class:hidden={collapsed}>Paragon</span>
+      </a>
       <button
         onclick={ontoggle}
         class="text-muted-foreground hover:text-on-surface transition-colors cursor-pointer bg-transparent border-none p-1 rounded"
