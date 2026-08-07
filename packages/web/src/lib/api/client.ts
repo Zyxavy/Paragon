@@ -22,6 +22,6 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
         throw new ApiError(res.status, body.error, body.message);
     }
 
-    return res.json();
+    return res.status === 204 ? (undefined as T) : res.json();
 }
 
