@@ -2,7 +2,8 @@ import { getSystems } from '$lib/api/systems';
 import { getDashboard } from '$lib/api/dashboard';
 
 export async function load({ url }) {
-    const status = url.searchParams.get('status') || 'active';
+    const raw = url.searchParams.get('status');
+    const status = raw && ['active', 'paused', 'archived', 'all'].includes(raw) ? raw : 'active';
     const [systemsData, dashboardData] = await Promise.all([
         getSystems({ status }),
         getDashboard().catch(() => null),

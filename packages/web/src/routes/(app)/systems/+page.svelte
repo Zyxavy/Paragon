@@ -26,18 +26,14 @@
   });
 
   const statusTabs = [
+    { label: 'All', value: 'all' },
     { label: 'Active', value: 'active' },
     { label: 'Paused', value: 'paused' },
     { label: 'Archived', value: 'archived' },
-    { label: 'All', value: '' },
   ];
 
   function navigateTab(status: string) {
-    if (status) {
-      goto(`/systems?status=${status}`);
-    } else {
-      goto('/systems');
-    }
+    goto(`/systems?status=${status}`);
   }
 </script>
 
@@ -89,14 +85,19 @@
       {/each}
     </nav>
 
-    <p class="font-body text-sm text-muted-foreground mb-6">{systems.length} {currentStatus || 'total'} system{systems.length !== 1 ? 's' : ''}</p>
+    <p class="font-body text-sm text-muted-foreground mb-6">{systems.length} {currentStatus === 'all' ? 'total' : currentStatus} system{systems.length !== 1 ? 's' : ''}</p>
 
     {#if systems.length === 0}
       <div class="bg-surface-container-low rounded-xl p-10 text-center max-w-lg mx-auto">
         <div class="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4">
           <span class="text-2xl">+</span>
         </div>
-        <h2 class="font-body text-lg font-semibold text-on-surface mb-2">{currentStatus === 'active' ? 'No active systems' : 'No systems yet'}</h2>
+        <h2 class="font-body text-lg font-semibold text-on-surface mb-2">
+          {currentStatus === 'active' ? 'No active systems' :
+           currentStatus === 'paused' ? 'No paused systems' :
+           currentStatus === 'archived' ? 'No archived systems' :
+           'No systems yet'}
+        </h2>
         <p class="font-body text-sm text-muted-foreground mx-auto mb-6">
           Create your first system to get started.
         </p>
