@@ -43,6 +43,7 @@
   {#each navItems as item}
     <a
       href={item.href}
+      data-sveltekit-preload-code="hover"
       class="flex items-center gap-1.5 font-body text-sm
              transition-colors duration-150
              {active.startsWith(item.href)
@@ -85,6 +86,7 @@
     {#each navItems.filter(n => n.href !== '/account') as item}
       <a
         href={item.href}
+        data-sveltekit-preload-code="hover"
         class="flex items-center gap-2 px-3 py-2 rounded-lg font-body text-sm
                transition-colors duration-150
                {active.startsWith(item.href)
@@ -103,6 +105,7 @@
     <span class="font-body text-xs text-muted-foreground truncate pb-1" class:hidden={collapsed} class:px-3={!collapsed}>{session?.user?.email}</span>
     <a
       href="/account"
+      data-sveltekit-preload-code="hover"
       class="flex items-center gap-2 px-3 py-2 rounded-lg font-body text-sm
              transition-colors duration-150
              {active.startsWith('/account')

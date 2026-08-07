@@ -112,6 +112,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         {#each systems as system (system.id)}
           <a href="/systems/{system.id}"
+             data-sveltekit-preload-code="hover"
              class="bg-surface-container-lowest rounded-xl p-6 shadow-ambient-sm
                     transition-all duration-200 hover:shadow-ambient-md
                     cursor-pointer block">
