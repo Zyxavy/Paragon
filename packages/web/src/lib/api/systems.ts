@@ -79,3 +79,23 @@ export async function archiveSystem(id: string): Promise<System> {
     });
 }
 
+export async function pauseSystem(id: string): Promise<System> {
+    return apiFetch<System>(`/api/systems/${id}/pause`, {
+        method: 'POST',
+        body: JSON.stringify({}),
+    });
+}
+
+export async function unarchiveSystem(id: string): Promise<System> {
+    return apiFetch<System>(`/api/systems/${id}/unarchive`, {
+        method: 'POST',
+        body: JSON.stringify({}),
+    });
+}
+
+export async function deleteSystem(id: string): Promise<void> {
+    return apiFetch<void>(`/api/systems/${id}`, {
+        method: 'DELETE',
+    });
+}
+
