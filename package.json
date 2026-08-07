@@ -7,7 +7,7 @@
     "deploy": "pnpm -r deploy",
     "deploy:migrations": "cd packages/api && wrangler d1 migrations apply DB",
     "deploy:api": "cd packages/api && wrangler deploy",
-    "deploy:web": "cd packages/web && vite build && wrangler deploy",
+    "deploy:web": "cd packages/web && vite build && wrangler pages deploy",
     "build": "pnpm -r build",
     "lint": "pnpm -r lint",
     "test:unit": "pnpm -r test:unit",

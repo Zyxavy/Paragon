@@ -6,6 +6,8 @@ Build systems that survive your worst days. Log daily. Review weekly.
 
 **Website:** [paragons.pages.dev](https://paragons.pages.dev)
 
+**Implementation status:** Current
+
 ---
 
 ## Tech Stack (Current)

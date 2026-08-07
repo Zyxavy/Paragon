@@ -29,7 +29,7 @@ import metricsRoutes from './routes/metrics';
 
 const app = new Hono<{ Bindings: CloudflareBindings; Variables: { user: User | null; session: Session | null } }>();
 
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:4173', 'https://paragon.kelpselp.workers.dev'];
+const allowedOrigins = ['http://localhost:5173', 'http://localhost:4173', 'https://paragons.pages.dev'];
 
 app.use('*', cors({ origin: allowedOrigins, credentials: true }));
 
