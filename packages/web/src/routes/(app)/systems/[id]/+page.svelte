@@ -106,7 +106,7 @@
 <div class="flex flex-col gap-6">
   <section class="bg-surface-container-low rounded-xl p-6">
     <h2 class="font-body text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-5">Blueprint</h2>
-    <dl class="flex flex-col gap-5">
+    <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-5">
       {#each fields as field}
         <div>
           <dt class="font-body text-xs font-medium text-muted-foreground mb-1">{field.label}</dt>
@@ -138,6 +138,7 @@
     </div>
   </div>
 
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
   <div class="bg-surface-container-low rounded-xl p-5 flex items-center justify-between">
     <div>
       <h3 class="font-body text-sm font-semibold text-on-surface">System actions</h3>
@@ -205,6 +206,7 @@
                    disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
       {exporting ? 'Exporting...' : 'Export'}
     </button>
+  </div>
   </div>
 </div>
 
