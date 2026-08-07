@@ -5,13 +5,23 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="description" content="Paragon — Systems that work on your worst day. A personal tool for designing, running, and refining repeatable processes." />
 		<script>
-			window.addEventListener('error', function (e) {
-				var msg = e && e.message ? String(e.message) : '';
-				if (
+			function isChunkLoadFailure(msg) {
+				return (
 					msg.indexOf('error loading dynamically imported module') !== -1 ||
 					msg.indexOf('Importing a module script failed') !== -1 ||
 					msg.indexOf('failed to fetch dynamically imported module') !== -1
-				) {
+				);
+			}
+			window.addEventListener('error', function (e) {
+				var msg = e && e.message ? String(e.message) : '';
+				if (isChunkLoadFailure(msg)) {
+					window.location.reload();
+				}
+			});
+			window.addEventListener('unhandledrejection', function (e) {
+				var reason = e && e.reason;
+				var msg = reason && reason.message ? String(reason.message) : '';
+				if (isChunkLoadFailure(msg)) {
 					window.location.reload();
 				}
 			});
