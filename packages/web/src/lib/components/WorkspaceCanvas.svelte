@@ -41,6 +41,7 @@
 
     function handlePointerDown(e: PointerEvent) {
         const target = e.target as Element;
+        if (target.closest('button')) return;
         const dragEl = target.closest('[data-drag-handle]');
         const resizeEl = target.closest('[data-resize-handle]');
 

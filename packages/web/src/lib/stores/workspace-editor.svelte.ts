@@ -3,6 +3,9 @@ import type { Layout, Widget } from '$lib/api/workspaces';
 
 const CURRENT_LAYOUT_VERSION = 1;
 
+const CASCADE_STEP = 56;
+const CASCADE_COLS = 6;
+
 function defaultWidgetSize(type: string): { w: number; h: number } {
     switch (type) {
         case 'checklist': return { w: 360, h: 180 };
@@ -67,11 +70,13 @@ export class WorkspaceEditorStore {
         const config: Record<string, any> = {};
         const defaults = defaultWidgetSize(type);
         const idx = this.layout.widgets.length;
+        const col = idx % CASCADE_COLS;
+        const row = Math.floor(idx / CASCADE_COLS);
         const widget: Widget = {
             id,
             type,
-            x: 16 + idx * 24,
-            y: 16 + idx * 24,
+            x: 16 + col * CASCADE_STEP,
+            y: 16 + row * CASCADE_STEP,
             w: defaults.w,
             h: defaults.h,
             config,
