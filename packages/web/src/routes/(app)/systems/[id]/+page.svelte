@@ -7,7 +7,7 @@
     import Modal from '$lib/components/Modal.svelte';
 
     let { data } = $props();
-    let system = $derived(data.system);
+    let system = $state(data.system);
 
     let showTemplateModal = $state(false);
     let templateName = $state('');
@@ -53,7 +53,7 @@
         pausing = true;
         try {
             const updated = await pauseSystem(system.id);
-            data.system = updated;
+            system = updated;
             addToast('success', 'System paused');
         } catch {
             addToast('error', 'Failed to pause system');
@@ -67,7 +67,7 @@
         pausing = true;
         try {
             const updated = await unarchiveSystem(system.id);
-            data.system = updated;
+            system = updated;
             addToast('success', 'System resumed');
         } catch {
             addToast('error', 'Failed to resume system');

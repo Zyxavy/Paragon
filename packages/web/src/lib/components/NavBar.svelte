@@ -65,9 +65,9 @@
   class:w-16={collapsed}
   class:w-48={!collapsed}
 >
-  <div class="flex flex-col gap-1 min-w-48 p-6">
-    <div class="flex items-center justify-between mb-6">
-      <a href="/dashboard" class="flex items-center gap-2 no-underline" aria-label="Paragon dashboard">
+  <div class="flex flex-col gap-1 p-6" class:min-w-48={!collapsed} class:min-w-0={collapsed}>
+    <div class="flex items-center justify-between mb-6" class:justify-center={collapsed}>
+      <a href="/dashboard" class="flex items-center gap-2 no-underline" aria-label="Paragon dashboard" class:hidden={collapsed}>
         <img src="/apple-touch-icon.png" alt="Paragon" class="w-8 h-8 rounded-xl shrink-0" />
         <span class="font-display font-semibold text-primary text-lg" class:hidden={collapsed}>Paragon</span>
       </a>
@@ -101,7 +101,7 @@
     {/each}
   </div>
 
-  <div class="flex flex-col gap-1 pt-4 min-w-48 p-6">
+  <div class="flex flex-col gap-1 pt-4 p-6" class:min-w-48={!collapsed} class:min-w-0={collapsed}>
     <span class="font-body text-xs text-muted-foreground truncate pb-1" class:hidden={collapsed} class:px-3={!collapsed}>{session?.user?.email}</span>
     <a
       href="/account"

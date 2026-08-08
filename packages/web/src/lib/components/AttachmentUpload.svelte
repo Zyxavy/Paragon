@@ -1,11 +1,12 @@
 <script lang="ts">
-  import { uploadAttachment, getAttachments, getAttachmentUrl, type AttachmentMetadata } from '$lib/api/attachments';
-  import { Upload } from '@lucide/svelte';
+  import { uploadAttachment, getAttachments, getAttachmentUrl, deleteAttachment, type AttachmentMetadata } from '$lib/api/attachments';
+  import { Upload, Trash2 } from '@lucide/svelte';
 
   let { workspaceId, widgetId }: { workspaceId: string; widgetId: string } = $props();
 
   let attachments = $state<AttachmentMetadata[]>([]);
   let uploading = $state(false);
+  let deletingId = $state<string | null>(null);
   let error = $state<string | null>(null);
 
   async function loadAttachments() {
@@ -34,6 +35,19 @@
       error = e.message || 'Upload failed.';
     } finally {
       uploading = false;
+    }
+  }
+
+  async function handleDelete(id: string) {
+    deletingId = id;
+    error = null;
+    try {
+      await deleteAttachment(id);
+      attachments = attachments.filter((a) => a.id !== id);
+    } catch (e: any) {
+      error = e.message || 'Delete failed.';
+    } finally {
+      deletingId = null;
     }
   }
 
@@ -74,6 +88,15 @@
             {attachment.filename}
           </a>
           <span class="size">({formatSize(attachment.size_bytes)})</span>
+          <button
+            type="button"
+            class="delete-button"
+            aria-label={`Delete ${attachment.filename}`}
+            disabled={deletingId !== null}
+            onclick={() => handleDelete(attachment.id)}
+          >
+            <Trash2 size="14" />
+          </button>
         </li>
       {/each}
     </ul>
@@ -128,6 +151,28 @@
     display: flex;
     align-items: center;
     gap: 0.375rem;
+  }
+
+  .delete-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.125rem;
+    border: none;
+    background: none;
+    color: var(--color-muted-foreground);
+    cursor: pointer;
+    border-radius: 0.25rem;
+    transition: color 0.15s;
+  }
+
+  .delete-button:hover {
+    color: var(--color-destructive);
+  }
+
+  .delete-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
   }
 
   .attachment-list a {

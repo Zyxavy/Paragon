@@ -40,6 +40,18 @@ export function getAttachments(workspaceId: string, widgetId: string): Promise<A
   ).then((res) => res.json());
 }
 
+export function deleteAttachment(id: string): Promise<void> {
+  return fetch(`${BASE}/api/attachments/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+    credentials: 'include',
+  }).then(async (res) => {
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({ error: 'unknown', message: 'Delete failed.' }));
+      throw Object.assign(new Error(body.message), { status: res.status, code: body.error });
+    }
+  });
+}
+
 export function getAttachmentUrl(id: string): string {
   return `${BASE}/api/attachments/${encodeURIComponent(id)}`;
 }

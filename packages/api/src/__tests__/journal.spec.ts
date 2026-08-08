@@ -65,6 +65,13 @@ async function seedInstance(db: D1Database, systemId: string, date: string): Pro
     return instanceId;
 }
 
+async function seedD1JournalEntry(id: string, text: string, createdAt: string, workspaceId: string, instanceId: string, widgetId: string) {
+    await env.DB.prepare(
+        `INSERT INTO widget_entries (id, workspace_id, widget_id, instance_id, entry_type, data, created_at)
+         VALUES (?, ?, ?, ?, 'journal_entry', ?, ?)`
+    ).bind(id, workspaceId, widgetId, instanceId, JSON.stringify({ text }), createdAt).run();
+}
+
 // Factory helpers for mock MongoClient
 
 function mockMongoClient() {
@@ -100,13 +107,14 @@ describe('journal log routes', () => {
     const widgetId = 'w-log-1';
     const today = '2026-07-21';
     let systemId: string;
+    let workspaceId: string;
     let instanceId: string;
 
     beforeEach(async () => {
         await applyD1Migrations(env.DB, migrations);
         await seedUser(env.DB, userId);
         systemId = await seedSystem(env.DB, userId);
-        await seedWorkspace(env.DB, systemId);
+        workspaceId = await seedWorkspace(env.DB, systemId);
         instanceId = await seedInstance(env.DB, systemId, today);
         vi.clearAllMocks();
     });
@@ -182,7 +190,7 @@ describe('journal log routes', () => {
             expect(res.status).toBe(404);
         });
 
-        it('returns 202 and enqueues on Mongo write failure', async () => {
+        it('falls back to a D1 journal_entry row when Mongo write fails', async () => {
             const { insertOne } = mockMongoClient();
             insertOne.mockRejectedValue(new Error('Mongo down'));
 
@@ -191,16 +199,56 @@ describe('journal log routes', () => {
                 new Request(`http://localhost/api/instances/${instanceId}/journal_log/${widgetId}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text: 'Should queue' }),
+                    body: JSON.stringify({ text: 'Fallback entry' }),
                 }),
                 env
+            );
+
+            expect(res.status).toBe(201);
+            const body = await res.json() as any;
+            expect(body).toEqual({ entry_id: expect.any(String), created_at: expect.any(String), status: 'fallback' });
+
+            // Verify D1 fallback row was written
+            const row = await env.DB.prepare(
+                `SELECT entry_type, data FROM widget_entries WHERE id = ?`
+            ).bind(body.entry_id).first<{ entry_type: string; data: string }>();
+            expect(row).toBeTruthy();
+            expect(row!.entry_type).toBe('journal_entry');
+            expect(JSON.parse(row!.data)).toEqual({ text: 'Fallback entry' });
+        });
+
+        it('returns 202 and enqueues when both Mongo and D1 writes fail', async () => {
+            const { insertOne } = mockMongoClient();
+            insertOne.mockRejectedValue(new Error('Mongo down'));
+
+            // Wrap the D1 binding so only widget_entries INSERTs fail
+            const brokenDb = new Proxy(env.DB, {
+                get(t, prop, r) {
+                    if (prop === 'prepare') {
+                        return (sql: string, ...args: unknown[]) => {
+                            if (sql.includes('INSERT INTO widget_entries')) throw new Error('D1 down');
+                            return t.prepare(sql, ...args);
+                        };
+                    }
+                    return Reflect.get(t, prop, r);
+                },
+            });
+
+            const app = getAuthedApp(userId);
+            const res = await app.fetch(
+                new Request(`http://localhost/api/instances/${instanceId}/journal_log/${widgetId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: 'Should queue' }),
+                }),
+                { ...env, DB: brokenDb }
             );
 
             expect(res.status).toBe(202);
             const body = await res.json() as any;
             expect(body).toEqual({ entry_id: expect.any(String), created_at: expect.any(String), status: 'pending' });
 
-            // Verify NO D1 pointer row was written
+            // Verify NO D1 row was written
             const row = await env.DB.prepare(
                 `SELECT id FROM widget_entries WHERE id = ?`
             ).bind(body.entry_id).first();
@@ -269,6 +317,68 @@ describe('journal log routes', () => {
             const body = await res.json() as any;
             expect(body.entries).toEqual([]);
             expect(body.next_cursor).toBeNull();
+        });
+
+        it('returns D1 fallback entries when Mongo is unreachable', async () => {
+            vi.mocked(getMongoClient).mockRejectedValue(new Error('Mongo down'));
+            await seedD1JournalEntry('d1-entry-2', 'From D1 second', '2026-07-21T10:00:00.000Z', workspaceId, instanceId, widgetId);
+            await seedD1JournalEntry('d1-entry-1', 'From D1 first', '2026-07-21T09:00:00.000Z', workspaceId, instanceId, widgetId);
+
+            const app = getAuthedApp(userId);
+            const res = await app.fetch(
+                new Request(`http://localhost/api/instances/${instanceId}/journal_log/${widgetId}`),
+                env
+            );
+
+            expect(res.status).toBe(200);
+            const body = await res.json() as any;
+            expect(body.entries.map((e: any) => e.entry_id)).toEqual(['d1-entry-2', 'd1-entry-1']);
+            expect(body.entries[0].text).toBe('From D1 second');
+            expect(body.next_cursor).toBeNull();
+        });
+
+        it('merges and dedupes Mongo + D1 entries sorted newest-first', async () => {
+            const { toArray } = mockMongoClient();
+            toArray.mockResolvedValue([
+                { _id: 'mongo-2', text: 'From Mongo', created_at: new Date('2026-07-21T11:00:00Z') },
+                { _id: 'mongo-1', text: 'Older mongo', created_at: new Date('2026-07-21T08:00:00Z') },
+            ]);
+            await seedD1JournalEntry('d1-merge-1', 'From D1', '2026-07-21T10:00:00.000Z', workspaceId, instanceId, widgetId);
+
+            const app = getAuthedApp(userId);
+            const res = await app.fetch(
+                new Request(`http://localhost/api/instances/${instanceId}/journal_log/${widgetId}`),
+                env
+            );
+
+            expect(res.status).toBe(200);
+            const body = await res.json() as any;
+            expect(body.entries.map((e: any) => e.entry_id)).toEqual(['mongo-2', 'd1-merge-1', 'mongo-1']);
+        });
+
+        it('paginates across merged sources with a cursor', async () => {
+            vi.mocked(getMongoClient).mockRejectedValue(new Error('Mongo down'));
+            await seedD1JournalEntry('d1-3', 'third', '2026-07-21T10:00:00.000Z', workspaceId, instanceId, widgetId);
+            await seedD1JournalEntry('d1-2', 'second', '2026-07-21T09:00:00.000Z', workspaceId, instanceId, widgetId);
+            await seedD1JournalEntry('d1-1', 'first', '2026-07-21T08:00:00.000Z', workspaceId, instanceId, widgetId);
+
+            const app = getAuthedApp(userId);
+
+            const page1 = await app.fetch(
+                new Request(`http://localhost/api/instances/${instanceId}/journal_log/${widgetId}?limit=2`),
+                env
+            );
+            const body1 = await page1.json() as any;
+            expect(body1.entries.map((e: any) => e.entry_id)).toEqual(['d1-3', 'd1-2']);
+            expect(body1.next_cursor).toBeTruthy();
+
+            const page2 = await app.fetch(
+                new Request(`http://localhost/api/instances/${instanceId}/journal_log/${widgetId}?limit=2&cursor=${encodeURIComponent(body1.next_cursor)}`),
+                env
+            );
+            const body2 = await page2.json() as any;
+            expect(body2.entries.map((e: any) => e.entry_id)).toEqual(['d1-1']);
+            expect(body2.next_cursor).toBeNull();
         });
     });
 });

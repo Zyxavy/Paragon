@@ -34,6 +34,8 @@ Per D1 Schema S3.3.1, a `widget_entries` row with `entry_type = 'log_meta'` does
 
 `mongo_id` is the string form of the `journal_entries` document's `_id` (a Mongo `ObjectId`). This is the entire seam: D1 knows *that* a journal entry exists and which instance it belongs to; Mongo knows what the entry actually says. Nothing else crosses this boundary.
 
+**Fallback exception (migration `0018`):** when Mongo is unreachable at write time, the entry is stored as a `widget_entries` row with `entry_type = 'journal_entry'` and `data = { "text": "..." }` -- the full text lives in D1 until Mongo recovers. The `GET` read path merges both row types, so fallback entries never disappear from the UI (see S6).
+
 **Why the pointer isn't reversed** (i.e. why Mongo doesn't hold a `d1_widget_entry_id` instead): the `widget_entries` row is what the Dashboard's `workspace_snapshot` read cache resolves against (D1 Schema S3.3.1) -- D1 needs to know Mongo exists, but Mongo never needs to look anything up in D1. Denormalizing D1's `system_id`/`instance_id`/`widget_id`/`user_id` directly onto the Mongo document (S3.2 below) is what makes this one-directional -- a Mongo-native query never needs to round-trip to D1 first.
 
 ---
@@ -114,12 +116,15 @@ Every document carries `schema_version: 1` (an integer, not a string, matching D
 
 ## 6. Write Path (reference only)
 
-The write path, retry strategy, and failure handling are fully specified in ADR 001 S5.5 and are not repeated here. Summary for context only:
+The write path, retry strategy, and failure handling are fully specified in ADR 001 S5.5 and are not repeated here. **Summary amended by the D1 fallback layer (migration `0018_widget_entries_journal_entry.sql`):**
 
 1. Hono Worker attempts a direct MongoDB write on journal entry save.
-2. Success -> `200`, done.
-3. Failure -> entry payload enqueued to `paragon-journal-retry` (Cloudflare Queue), Worker returns `202 Accepted`, entry shows optimistically in the UI.
-4. A Queue consumer retries the write with exponential backoff; persistent failure goes to the dead-letter queue for manual inspection.
+2. Success -> `201`, plus a D1 `widget_entries` pointer row (`entry_type = 'log_meta'`, S3.3.1), done.
+3. Mongo failure -> the entry is written to D1 as a **full fallback row** (`entry_type = 'journal_entry'`, `data = { "text": "..." }`) so the entry is never lost while Mongo is down. Worker still returns `201` (the entry is durably persisted, just not in Mongo).
+4. Only if the D1 fallback write also fails -> entry payload enqueued to `paragon-journal-retry` (Cloudflare Queue), Worker returns `202 Accepted`.
+5. A Queue consumer retries the write with exponential backoff; persistent failure goes to the dead-letter queue for manual inspection.
+
+**Read path:** `GET` journal entries queries Mongo and D1 in parallel and merges the results (dedupe by entry id, newest-first, cursor pagination). Fallback `journal_entry` rows therefore surface in the UI immediately and remain visible after Mongo returns, side by side with Mongo-backed entries.
 
 **One document-shape implication worth noting here:** the queued retry payload must be the *complete* document (including `schema_version`, denormalized IDs, and timestamps) as originally constructed, not just a partial diff -- because the consumer performs the same insert the direct path would have, with no D1 round-trip available to reconstruct missing fields at retry time.
 

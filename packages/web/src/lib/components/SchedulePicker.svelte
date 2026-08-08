@@ -2,6 +2,7 @@
     import { getSchedules, createSchedule, patchSchedule, deleteSchedule } from '$lib/api/schedules';
     import { ApiError } from '$lib/api/client';
     import type { Schedule } from '$lib/api/schedules';
+    import TimePicker from './TimePicker.svelte';
 
     let { systemId }: { systemId: string | null } = $props();
 
@@ -173,17 +174,21 @@
                     {/each}
                 </div>
                 <div class="flex gap-3 items-center">
-                    <input
-                        type="time"
-                        bind:value={startTime}
-                        class="block rounded-md border-border bg-surface text-on-surface px-3 py-2 text-sm font-body focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
+                    <div class="w-28">
+                        <TimePicker
+                            value={startTime}
+                            label="Start time"
+                            onchange={(v) => (startTime = v)}
+                        />
+                    </div>
                     <span class="text-on-surface-muted text-sm font-body">to</span>
-                    <input
-                        type="time"
-                        bind:value={endTime}
-                        class="block rounded-md border-border bg-surface text-on-surface px-3 py-2 text-sm font-body focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
+                    <div class="w-28">
+                        <TimePicker
+                            value={endTime}
+                            label="End time"
+                            onchange={(v) => (endTime = v)}
+                        />
+                    </div>
                 </div>
                 {#if formError}
                     <p class="mt-1 text-xs text-destructive font-body">{formError}</p>
