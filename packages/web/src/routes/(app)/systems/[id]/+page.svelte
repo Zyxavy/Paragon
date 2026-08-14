@@ -156,7 +156,9 @@
 
   <section class="bg-surface-container-low rounded-xl p-6">
     <h2 class="font-body text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">Schedule</h2>
-    <ScheduleBlock systemId={system.id} />
+    {#key system.id}
+      <ScheduleBlock systemId={system.id} />
+    {/key}
   </section>
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

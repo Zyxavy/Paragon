@@ -6,6 +6,7 @@
 
   let schedules = $state<Schedule[]>([]);
   let loaded = $state(false);
+  let caught = $state(false);
 
   const DAY_LABELS = ['M', 'T', 'W', 'Th', 'F', 'Sa', 'Su'];
 
@@ -18,6 +19,7 @@
       })
       .catch(() => {
         loaded = true;
+        caught = true;
       });
   });
 </script>
@@ -42,6 +44,6 @@
       </div>
     {/each}
   </div>
-{:else if loaded}
+{:else if loaded && !caught}
   <p class="font-body text-sm text-muted-foreground">No schedule configured.</p>
 {/if}
