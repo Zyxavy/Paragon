@@ -3,6 +3,7 @@ import { applyD1Migrations } from 'cloudflare:test';
 import { describe, it, expect, beforeAll, inject } from 'vitest';
 import { Hono } from 'hono';
 import systemsRoutes from '../routes/systems';
+import visualAidRoutes from '../routes/visual-aid';
 
 const migrations = inject('migrations');
 
@@ -22,6 +23,7 @@ function getAuthedApp(userId: string) {
     await next();
   });
   app.route('/api/systems', systemsRoutes);
+  app.route('/api/systems', visualAidRoutes);
   return app;
 }
 
@@ -103,5 +105,122 @@ describe('systems content columns', () => {
     expect(found.reference_table).toBe('| A | B |');
     expect(found.success_metric).toBe('two reps');
     expect(found.visual_aid).toBeNull();
+  });
+});
+
+function createMockFile(content: Buffer, filename: string, contentType: string): File {
+  return new File([content], filename, { type: contentType });
+}
+
+async function createSystem(app: ReturnType<typeof getAuthedApp>): Promise<string> {
+  const res = await app.fetch(new Request('http://localhost/api/systems', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: 'Visual Aid System' }),
+  }), env);
+  const body = await res.json() as any;
+  return body.id;
+}
+
+async function uploadVisualAid(app: ReturnType<typeof getAuthedApp>, systemId: string, file: File) {
+  const formData = new FormData();
+  formData.append('file', file);
+  return app.fetch(new Request(`http://localhost/api/systems/${systemId}/visual-aid`, {
+    method: 'POST',
+    body: formData,
+  }), env);
+}
+
+describe('visual aid routes', () => {
+  let userId: string;
+  let systemId: string;
+  let app: ReturnType<typeof getAuthedApp>;
+
+  beforeAll(async () => {
+    await applyD1Migrations(env.DB, migrations);
+    userId = crypto.randomUUID();
+    await seedUser(env.DB, userId);
+    app = getAuthedApp(userId);
+    systemId = await createSystem(app);
+  });
+
+  it('uploads a PNG, stores R2 key on the system, and serves it back', async () => {
+    const file = createMockFile(Buffer.from('fake-png-bytes'), 'aid.png', 'image/png');
+    const res = await uploadVisualAid(app, systemId, file);
+    expect(res.status).toBe(201);
+    const body = await res.json() as any;
+    expect(body.r2_key).toContain('visual-aids/');
+
+    const row = await env.DB.prepare('SELECT visual_aid FROM systems WHERE id = ?').bind(systemId).first<any>();
+    expect(row!.visual_aid).toBe(body.r2_key);
+
+    const r2Object = await env.ATTACHMENTS.get(body.r2_key);
+    expect(r2Object).toBeDefined();
+    expect(await r2Object!.text()).toBe('fake-png-bytes');
+
+    const getRes = await app.fetch(new Request(`http://localhost/api/systems/${systemId}/visual-aid`), env);
+    expect(getRes.status).toBe(200);
+    expect(getRes.headers.get('Content-Type')).toBe('image/png');
+    expect(await getRes.text()).toBe('fake-png-bytes');
+  });
+
+  it('replaces an existing visual aid and deletes the old R2 object', async () => {
+    const file1 = createMockFile(Buffer.from('first'), 'a.png', 'image/png');
+    const res1 = await uploadVisualAid(app, systemId, file1);
+    const oldKey = (await res1.json() as any).r2_key;
+
+    const file2 = createMockFile(Buffer.from('second'), 'b.png', 'image/png');
+    const res2 = await uploadVisualAid(app, systemId, file2);
+    expect(res2.status).toBe(201);
+    const newKey = (await res2.json() as any).r2_key;
+    expect(newKey).not.toBe(oldKey);
+
+    expect(await env.ATTACHMENTS.get(oldKey)).toBeNull();
+    const row = await env.DB.prepare('SELECT visual_aid FROM systems WHERE id = ?').bind(systemId).first<any>();
+    expect(row!.visual_aid).toBe(newKey);
+  });
+
+  it('rejects non-image MIME types with 400', async () => {
+    const file = createMockFile(Buffer.from('x'), 'evil.exe', 'application/x-msdownload');
+    const res = await uploadVisualAid(app, systemId, file);
+    expect(res.status).toBe(400);
+    expect((await res.json() as any).error).toBe('unsupported_file_type');
+  });
+
+  it('rejects files over 10 MB with 413', async () => {
+    const file = createMockFile(Buffer.alloc(10 * 1024 * 1024 + 1), 'big.png', 'image/png');
+    const res = await uploadVisualAid(app, systemId, file);
+    expect(res.status).toBe(413);
+    expect((await res.json() as any).error).toBe('file_too_large');
+  });
+
+  it('rejects uploads for systems the user does not own with 404', async () => {
+    const otherUserId = crypto.randomUUID();
+    await seedUser(env.DB, otherUserId);
+    const otherApp = getAuthedApp(otherUserId);
+    const otherSystemId = await createSystem(otherApp);
+    const file = createMockFile(Buffer.from('x'), 'a.png', 'image/png');
+    const res = await uploadVisualAid(app, otherSystemId, file);
+    expect(res.status).toBe(404);
+  });
+
+  it('DELETE removes the R2 object and clears the column', async () => {
+    const file = createMockFile(Buffer.from('to-delete'), 'a.png', 'image/png');
+    const key = (await (await uploadVisualAid(app, systemId, file)).json() as any).r2_key;
+
+    const res = await app.fetch(new Request(`http://localhost/api/systems/${systemId}/visual-aid`, {
+      method: 'DELETE',
+    }), env);
+    expect(res.status).toBe(200);
+
+    const row = await env.DB.prepare('SELECT visual_aid FROM systems WHERE id = ?').bind(systemId).first<any>();
+    expect(row!.visual_aid).toBeNull();
+    expect(await env.ATTACHMENTS.get(key)).toBeNull();
+  });
+
+  it('GET returns 404 when no visual aid is uploaded', async () => {
+    const freshSystemId = await createSystem(app);
+    const res = await app.fetch(new Request(`http://localhost/api/systems/${freshSystemId}/visual-aid`), env);
+    expect(res.status).toBe(404);
   });
 });

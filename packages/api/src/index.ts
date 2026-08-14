@@ -24,6 +24,7 @@ import type { JournalRetryMessage } from './routes/journal-log';
 import linkListRoutes from './routes/link-list';
 import notesRoutes from './routes/notes';
 import attachmentsRoutes from './routes/attachments';
+import visualAidRoutes from './routes/visual-aid';
 import exportRoutes from './routes/export';
 import metricsRoutes from './routes/metrics';
 
@@ -67,6 +68,9 @@ app.use('/api/*', async (c, next) => {
 
 // Systems route
 app.route('/api/systems', systemsRoutes);
+
+// Visual aid (upload/serve/delete)
+app.route('/api/systems', visualAidRoutes);
 
 // System metrics
 app.route('/api/systems/:system_id/metrics', metricsRoutes);
