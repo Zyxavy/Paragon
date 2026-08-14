@@ -198,9 +198,9 @@ describe('PATCH /api/instances/:id', () => {
     });
 });
 
-// Suite 3: Window-gated filter
+// Suite 3: Today-filtered list
 
-describe('GET /api/dashboard window gate', () => {
+describe('GET /api/dashboard today filter', () => {
     beforeEach(async () => {
         await applyD1Migrations(env.DB, migrations);
         currentUserId = crypto.randomUUID();
@@ -210,7 +210,7 @@ describe('GET /api/dashboard window gate', () => {
     });
     afterEach(() => { vi.useRealTimers(); });
 
-    it('excludes systems whose time window has not opened yet', async () => {
+    it('includes all systems scheduled for today regardless of window start time', async () => {
         await seedActiveSystem(env.DB, currentUserId, { time_window_start: '06:00' });
         await seedActiveSystem(env.DB, currentUserId, { time_window_start: '23:59' });
 
@@ -218,7 +218,7 @@ describe('GET /api/dashboard window gate', () => {
         const res = await app.fetch(new Request('http://localhost/api/dashboard'), env);
         expect(res.status).toBe(200);
         const body = await res.json() as any;
-        expect(body.instances).toHaveLength(1);
+        expect(body.instances).toHaveLength(2);
 
         const total = await countUserInstances(env.DB, currentUserId);
         expect(total).toBe(2);

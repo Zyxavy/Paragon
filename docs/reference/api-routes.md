@@ -293,14 +293,13 @@ Step 2 (D1 batch -- one round trip, no per-row overhead):
   await db.batch(batch);                  -- D1 batch: all inserts in one I/O call (pass array, not spread)
 
 Step 3 (SQL -- final filtered SELECT, single query):
-  SELECT instances.*, systems.name, systems.domain, systems.floor_action
+  SELECT DISTINCT instances.*, systems.name, systems.domain, systems.floor_action
   FROM instances
   JOIN systems ON systems.id = instances.system_id
   JOIN schedules ON schedules.system_id = instances.system_id
   WHERE instances.date = ?
     AND systems.user_id = ?
     AND (schedules.days_of_week & ?) != 0 -- same bitmask match
-    AND schedules.time_window_start <= ?  -- window-gated filter (param is formatted Manila time string)
   ORDER BY instances.created_at DESC      -- no pagination; Dashboard returns today's only, bounded by active system count
 ```
 
@@ -312,7 +311,7 @@ Key CPU-saving decisions:
 
 The total JS CPU time for generation is: compute `1 << today`, construct bind params, call `batch()`. At a few dozen active systems with 1-3 schedules each, this is well under 1ms CPU -- no part of this path touches the 10ms ceiling.
 
-**Window-gated matching (confirmed):** Instance generation is date-only (the row is created regardless of window), but the Dashboard response filters out Instances whose scheduled time window hasn't opened yet. A "Morning Workout" with a 6 AM window won't appear on the Dashboard at 3 AM, but it will appear as soon as 6 AM hits -- no page reload required if the frontend re-fetches periodically or on focus. The nightly Cron job pre-generates the row (date-only, same as the lazy path); the window gate is applied at query time, so pre-generation never accidentally reveals tomorrow's early-morning Instances tonight.
+**Date-only matching (confirmed):** Instance generation is date-only, and the Dashboard response is date-only too -- any system scheduled for today appears regardless of its time window. An "Evening Reading" system with a 9 PM window is visible on the Dashboard all day (as `pending`) so the user always knows what's coming that day. The nightly Cron job pre-generates the row (date-only, same as the lazy path), so there is no distinction between pre-generated and lazily generated rows at query time.
 
 ### 4.2 `GET /api/instances/:id`
 

@@ -240,7 +240,7 @@ sequenceDiagram
     D-->>A: done
 
     Note over A: Step 3: Fetch dashboard data
-    A->>D: SELECT instances.*, systems.name, systems.domain, systems.floor_action<br/>FROM instances<br/>JOIN systems ON systems.id = instances.system_id<br/>JOIN schedules ON schedules.system_id = instances.system_id<br/>WHERE instances.date = ?<br/>AND systems.user_id = ?<br/>AND (schedules.days_of_week & ?) != 0<br/>AND schedules.time_window_start <= ?
+    A->>D: SELECT DISTINCT instances.*, systems.name, systems.domain, systems.floor_action<br/>FROM instances<br/>JOIN systems ON systems.id = instances.system_id<br/>JOIN schedules ON schedules.system_id = instances.system_id<br/>WHERE instances.date = ?<br/>AND systems.user_id = ?<br/>AND (schedules.days_of_week & ?) != 0
     D-->>A: dashboard instances []
 
     A-->>B: 200 { instances: [...] }
