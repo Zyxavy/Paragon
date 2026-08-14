@@ -101,7 +101,9 @@ app.delete('/:system_id/visual-aid', async (c) => {
     }
 
     if (system.visual_aid) {
-        await r2.delete(system.visual_aid).catch(() => {});
+        await r2.delete(system.visual_aid).catch((err) => {
+            console.warn(`[visual-aid] failed to delete old R2 object: ${system.visual_aid}`, err);
+        });
         await db.prepare('UPDATE systems SET visual_aid = NULL WHERE id = ?').bind(system.id).run();
     }
 

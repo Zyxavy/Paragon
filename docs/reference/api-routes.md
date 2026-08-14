@@ -8,7 +8,7 @@
 
 **Implementation status:** Implemented (all routes live)
 
-**Last updated:** July 22, 2026
+**Last updated:** August 14, 2026
 
 ---
 
@@ -115,6 +115,9 @@ Response:
 | `POST` | `/api/systems/:id/confirm` | ownership-scoped lookup, then update -- see S2.4 |
 | `POST` | `/api/systems/:id/archive` | ownership-scoped lookup, then update |
 | `POST` | `/api/systems/:id/save-as-template` | ownership-scoped lookup on system, insert into `templates` |
+| `POST` | `/api/systems/:system_id/visual-aid` | ownership-scoped lookup, then R2 put + D1 pointer update |
+| `GET` | `/api/systems/:system_id/visual-aid` | ownership-scoped lookup, then R2 stream |
+| `DELETE` | `/api/systems/:system_id/visual-aid` | ownership-scoped lookup, then R2 delete + column clear |
 
 ### 2.1 `GET /api/systems`
 
@@ -131,6 +134,9 @@ Response 200:
       "floor_action": "...", "trigger": "...",
       "barrier_list": ["...", "..."],
       "environment_cue": "Book on the nightstand, phone in the kitchen",
+      "reference_table": "",          // Markdown source, rendered on the detail page
+      "success_metric": "",           // Short plain text, shown next to the floor action
+      "visual_aid": null              // R2 key of the uploaded image (managed via /visual-aid endpoints)
       "template_origin": "tpl_reading_system",
       "status": "active",
       "created_at": "...", "updated_at": "..."
@@ -157,6 +163,9 @@ Request body:
   "trigger": "",                      // optional, default ''
   "barrier_list": [],                 // optional, default []
   "environment_cue": "",              // optional, default ''
+  "reference_table": "",              // optional, default ''; Markdown source, rendered on the detail page
+  "success_metric": "",               // optional, default ''; short plain text, shown next to the floor action
+  "visual_aid": null                  // R2 key of the uploaded image -- managed via /visual-aid endpoints (S2.7), not accepted in this body
   "template_origin": "tpl_reading_system"  // optional, null if from scratch or AI
 }
 
@@ -177,6 +186,8 @@ Response 404: not found / not owned
 ```
 
 No field in this body is ever required to be present -- `PATCH` semantics mean partial. This is where the tension with `floor_action` in D1 Schema S5 lives: a `PATCH` with `floor_action: ""` is accepted without complaint, because it's still a draft.
+
+One exception to "any subset of the POST body's fields": `visual_aid` is never accepted in a `PATCH` (or `POST`) body -- it's managed exclusively by the visual-aid endpoints (S2.7), so a stale client can never clobber an uploaded image with a plain string.
 
 ### 2.4 `POST /api/systems/:id/confirm`
 
@@ -212,6 +223,16 @@ Implements PRD S5.6 ("any System the user has built can be saved back as a perso
 Request body: { "name": "My Studying Shape" }   // template display name, defaults to the System's name if omitted
 Response 201: the created Template (see S7 for shape)
 ```
+
+### 2.7 Visual aid (`/api/systems/:system_id/visual-aid`)
+
+Manages the single uploaded image shown on the System detail page. Backed by the shared R2 `ATTACHMENTS` bucket; `systems.visual_aid` holds only the R2 key, written after R2 confirms the `put()` succeeds (ADR 001 S5.7 ordering -- the same order as the Attachments routes in S9).
+
+- `POST` (multipart, field `file`): upload or replace the system's visual aid image.
+  - Allowed MIME types: `image/png`, `image/jpeg`, `image/webp`, `image/gif`, `image/avif` (SVG excluded).
+  - Size limit: 10 MB. Responses: `201 { r2_key, content_type, size_bytes }`, `400 unsupported_file_type`, `413 file_too_large`, `404` (not owned).
+- `GET`: streams the stored image (`Content-Type` from the object, `Cache-Control: public, max-age=31536000`). `404` when none uploaded.
+- `DELETE`: removes the R2 object and clears the column. `200 { ok: true }`.
 
 ---
 
@@ -647,6 +668,9 @@ Fully specified in the [AI Workers reference](ai-workers.md). The single route (
 | `POST` | `/api/systems/:id/confirm` | ownership-scoped | enforces `floor_action` |
 | `POST` | `/api/systems/:id/archive` | ownership-scoped | |
 | `POST` | `/api/systems/:id/save-as-template` | ownership-scoped | |
+| `POST` | `/api/systems/:system_id/visual-aid` | `user_id` | R2 put + D1 pointer update |
+| `GET` | `/api/systems/:system_id/visual-aid` | `user_id` | R2 stream |
+| `DELETE` | `/api/systems/:system_id/visual-aid` | `user_id` | R2 delete + column clear |
 | `GET` | `/api/systems/:system_id/schedules` | ownership-scoped | |
 | `POST` | `/api/systems/:system_id/schedules` | ownership-scoped | |
 | `PATCH` | `/api/schedules/:id` | ownership-scoped | |

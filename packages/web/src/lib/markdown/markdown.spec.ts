@@ -18,6 +18,10 @@ describe('renderMarkdown', () => {
     expect(renderMarkdown('<p onclick="x()">hi</p>')).not.toContain('onclick');
   });
 
+  it('strips javascript: URLs from links', () => {
+    expect(renderMarkdown('[x](javascript:alert(1))')).not.toContain('javascript:');
+  });
+
   it('returns empty string for empty input', () => {
     expect(renderMarkdown('')).toBe('');
   });

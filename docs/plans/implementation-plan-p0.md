@@ -313,7 +313,7 @@ This is the highest-value P0 slice — the daily-use loop.
 
 1. `packages/api/src/services/instances.ts` — `generateTodayInstances` per `testing-strategy.md` S7.3's example, using the exact 3-step SQL pattern from `api-routes.md` S4.1 (bitmask match in SQL, `D1.batch()` for inserts, no JS loop over rows). Uses `dayMatchesBitmask`... actually note: the SQL does the bitmask match directly (`sch.days_of_week & ? != 0`), so you don't call the JS helper here — that helper is for the Cron job's date math and any place that can't push it into SQL. Don't reintroduce a JS loop by mistake.
 2. `toManilaDate(utcDate)` / a "today in Manila" helper in `packages/api/src/lib/calendar.ts` — unit-tested independently per `testing-strategy.md` S3.1.
-3. `GET /api/dashboard` route: run lazy generation, then the filtered SELECT (window-gated) per S4.1. Catch `UNIQUE constraint failed` from a duplicate insert attempt and treat as no-op, not a 500 (per D1 Schema S3.3's note).
+3. `GET /api/dashboard` route: run lazy generation, then the filtered SELECT (date-only) per S4.1. Catch `UNIQUE constraint failed` from a duplicate insert attempt and treat as no-op, not a 500 (per D1 Schema S3.3's note).
 4. `GET /api/instances/:id`, `PATCH /api/instances/:id` (state transitions, `pending` never a valid target value) per S4.2–4.3.
 5. `GET /api/systems/:system_id/instances` (paginated) per S4.4 — needed for the System Detail streak view and later for Reviews.
 

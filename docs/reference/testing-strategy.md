@@ -383,7 +383,7 @@ packages/api/src/
 ├── index.ts                    # fetch + scheduled + queue exports
 ├── routes/
 │   ├── systems.ts              # CRUD passthroughs inline; POST /confirm calls services/confirm
-│   ├── dashboard.ts
+│   ├── dashboard.ts             # lazy generation via services/instances, date-only filter (API Route Design S4.1)
 │   ├── instances.ts
 │   ├── counter-logs.ts         # simple CRUD inline
 │   ├── timer-sessions.ts       # simple CRUD inline
@@ -396,8 +396,7 @@ packages/api/src/
 │   └── ai.ts
 ├── services/
 │   ├── instances.ts            # Instance generation, date-matching logic
-│   ├── reviews.ts              # cross-table write-back, change_applied derivation
-│   └── dashboard.ts            # lazy generation + window-gated filter
+│   └── reviews.ts              # cross-table write-back, change_applied derivation
 ├── lib/
 │   ├── auth-middleware.ts
 │   ├── ownership.ts            # getOwnedInstance, getOwnedSystem, etc.

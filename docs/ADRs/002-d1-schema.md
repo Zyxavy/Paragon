@@ -8,7 +8,7 @@
 
 **Implementation status:** Current (all P0 and P1 tables migrated)
 
-**Last updated:** July 2, 2026
+**Last updated:** August 14, 2026
 
 ---
 
@@ -84,6 +84,9 @@ CREATE TABLE systems (
   trigger         TEXT NOT NULL DEFAULT '',
   barrier_list    TEXT NOT NULL DEFAULT '[]',      -- JSON array of strings
   environment_cue TEXT NOT NULL DEFAULT '',        -- "What triggers this system?" per insights.md
+  reference_table TEXT NOT NULL DEFAULT '',    -- Markdown source; rendered as a table or prose on the detail page
+  success_metric   TEXT NOT NULL DEFAULT '',   -- Short plain text; what 'full' looks like, shown next to the floor action
+  visual_aid       TEXT,                         -- R2 key in the ATTACHMENTS bucket under visual-aids/<system_id>/<uuid>.<ext>; managed by the /visual-aid routes, not PATCH
   template_origin TEXT REFERENCES templates(id) ON DELETE SET NULL,
   status          TEXT NOT NULL DEFAULT 'active'
                     CHECK (status IN ('active', 'paused', 'archived')),
@@ -369,11 +372,14 @@ Per ADR 001 S5.10, migrations live in `packages/api/migrations/`, managed via `w
 0014_widget_entries_link_notes.sql
 0015_widget_entries_rename.sql
 0016_seed_builtin_templates.sql
+0017_attachments.sql
+0018_widget_entries_journal_entry.sql
+0019_system_content.sql
 ```
 
 Split by table rather than one monolithic migration so future schema changes (e.g. a `system_version` column per PRD S5.7's contingency note) are isolated, reviewable diffs against a specific table's history -- consistent with the "log migrations in `LAYOUT_MIGRATIONS.md`" convention described in ADR 001 S5.10 (not yet created -- to be written during scaffolding).
 
-> **Migration numbering note:** The originally planned `0011_attachments.sql` and `0012_seed_builtin_templates.sql` were skipped in P0 (deferred to P1). By the time P1 started, `0013`–`0015` were already applied in production, so the seed migration was created as `0016_seed_builtin_templates.sql` to avoid filename collision. Attachments remain deferred.
+> **Migration numbering note:** The originally planned `0011_attachments.sql` and `0012_seed_builtin_templates.sql` were skipped in P0 (deferred to P1). By the time P1 started, `0013`–`0015` were already applied in production, so the seed migration was created as `0016_seed_builtin_templates.sql` to avoid filename collision. Attachments eventually landed as `0017_attachments.sql`, and the journal-log pointer work as `0018_widget_entries_journal_entry.sql`. The System Content Enrichment columns (`reference_table`, `success_metric`, `visual_aid`, S3.1) were added by `0019_system_content.sql`.
 
 ### 6.3 Seed data -- the three built-in templates
 

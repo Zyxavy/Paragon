@@ -43,7 +43,7 @@ export function parseSystemMarkdown(text: string): ImportResult {
     const h2 = line.match(/^##\s+(.+)$/);
     if (h2) {
       const normalized = normalizeHeading(h2[1]);
-      if (normalized in SECTION_MAP) {
+      if (Object.hasOwn(SECTION_MAP, normalized)) {
         current = { key: SECTION_MAP[normalized], lines: [] };
         sections.push(current);
       } else {
