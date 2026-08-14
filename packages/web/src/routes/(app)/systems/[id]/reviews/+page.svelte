@@ -74,7 +74,7 @@
                     transition-shadow duration-200 hover:shadow-ambient-md">
           <div class="flex items-center justify-between mb-3">
             <span class="font-body text-sm font-semibold text-on-surface">
-              {review.period_start} — {review.period_end}
+              {review.period_start}, {review.period_end}
             </span>
             <span class="font-body text-xs text-muted-foreground">
               {new Date(review.created_at).toLocaleDateString()}

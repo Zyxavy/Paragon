@@ -178,7 +178,7 @@
       <h3 class="font-body text-sm font-semibold text-on-surface">System actions</h3>
       <p class="font-body text-xs text-muted-foreground mt-0.5">
         {system.status === 'active' ? 'Pause to temporarily hide from dashboard' :
-         system.status === 'paused' ? 'Paused — not currently active' :
+         system.status === 'paused' ? 'Paused, not currently active' :
          'Archived'}
       </p>
     </div>

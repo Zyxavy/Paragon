@@ -12,7 +12,7 @@
       {#if due.length > 0}
         {due.length} system{due.length !== 1 ? 's' : ''} due for review
       {:else}
-        All caught up — no systems due for review
+        All caught up: no systems due for review
       {/if}
     </p>
   </div>

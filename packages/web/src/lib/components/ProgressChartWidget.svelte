@@ -55,7 +55,7 @@
 {:else if error}
     <p class="text-sm text-muted-foreground text-center py-4">Could not load chart data</p>
 {:else if bars.every(b => b.total === 0)}
-    <p class="text-sm text-muted-foreground text-center py-4">No data yet — start logging</p>
+    <p class="text-sm text-muted-foreground text-center py-4">No data yet: start logging</p>
 {:else}
     <div class="flex items-end gap-1 justify-center h-[100px]">
         {#each bars as bar}

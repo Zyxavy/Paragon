@@ -84,7 +84,7 @@
 
 <div class="mb-8">
   <p class="font-body text-sm text-muted-foreground">
-    {periodStart} — {periodEnd}
+    {periodStart}, {periodEnd}
   </p>
 </div>
 

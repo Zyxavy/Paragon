@@ -213,7 +213,7 @@
     </div>
     <div class="bg-surface-container-lowest rounded-xl p-6 shadow-ambient-sm space-y-4">
       <p class="font-body text-xs text-muted-foreground">
-        The minimum viable action that counts as a win — must be doable on your worst day.
+        The minimum viable action that counts as a win: must be doable on your worst day.
       </p>
 
       <div class="field-group">
