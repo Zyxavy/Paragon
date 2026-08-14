@@ -96,8 +96,8 @@ app.post('/', async (c) => {
     const now = new Date().toISOString();
 
     await db.prepare(`
-        INSERT INTO systems (id, user_id, name, domain, purpose, philosophy, protocol, floor_action, trigger, barrier_list, environment_cue, template_origin, status, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?)
+        INSERT INTO systems (id, user_id, name, domain, purpose, philosophy, protocol, floor_action, trigger, barrier_list, environment_cue, template_origin, reference_table, success_metric, status, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?)
     `).bind(
         id,
         userId,
@@ -111,6 +111,8 @@ app.post('/', async (c) => {
         body.barrier_list ? JSON.stringify(body.barrier_list) : '[]',
         toStr(body.environment_cue),
         body.template_origin ?? null,
+        toStr(body.reference_table),
+        toStr(body.success_metric),
         now,
         now,
     ).run();
@@ -150,7 +152,7 @@ app.patch('/:id', async(c) => {
     const sets: string[] = [];
     const params: any[] = [];
 
-    const updatableFields = ['name', 'domain', 'purpose', 'philosophy', 'protocol', 'floor_action', 'trigger', 'environment_cue', 'template_origin', 'status'];
+    const updatableFields = ['name', 'domain', 'purpose', 'philosophy', 'protocol', 'floor_action', 'trigger', 'environment_cue', 'template_origin', 'reference_table', 'success_metric', 'status'];
 
     for (const field of updatableFields) {
         if (body[field] !== undefined) {
