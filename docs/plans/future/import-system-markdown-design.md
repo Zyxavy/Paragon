@@ -89,14 +89,11 @@ Nightstand lamp timer
 |---|---|
 | Alarm | Stand up |
 
-## Visual Aid
-https://example.com/photo.png
-
 ## Success Metric
 2 hours of deep reading
 ```
 
-Parsing rules (pure function, `parseSystemMarkdown(text): SystemDraft & { reference_table: string; success_metric: string; visual_aid: string[] }`):
+Parsing rules (pure function, `parseSystemMarkdown(text): SystemDraft & { reference_table: string; success_metric: string }`):
 
 | Source | Target field |
 |---|---|
@@ -109,8 +106,9 @@ Parsing rules (pure function, `parseSystemMarkdown(text): SystemDraft & { refere
 | `## Barriers` | `barrier_list` (each `- ` bullet → array item; non-bullet lines ignored) |
 | `## Environment Cue` | `environment_cue` |
 | `## Reference Table` | `reference_table` (markdown source preserved verbatim) |
-| `## Visual Aid` | `visual_aid` (one URL per line, whitespace trimmed, lines validated as `http(s)://`) |
 | `## Success Metric` | `success_metric` |
+
+The `## Visual Aid` field is **not** importable — visual aids are file uploads (R2 keys), which a markdown file cannot carry. The user uploads the image after import. Unknown `## Visual Aid` sections are ignored.
 
 - Section headings match case-insensitively, spaces/dashes normalized (`Floor Action`, `floor-action`).
 - Section delimiters are `##` (level-2) only. Content runs until the next `##` heading; `###`/`####` headings and deeper nesting inside a section are preserved as content — this is how users write subheadings inside `Purpose` or `Protocol`.
@@ -118,7 +116,7 @@ Parsing rules (pure function, `parseSystemMarkdown(text): SystemDraft & { refere
 - Unknown `##` sections are ignored.
 - No `#` heading → parse error (shown inline, form untouched).
 - Section content is trimmed; blank sections → empty string.
-- Imported `visual_aid` URLs are validated; invalid/empty → `visual_aid` stays empty (and a non-fatal note is shown).
+- The `SystemDraft`-shaped import result carries `reference_table` and `success_metric`; `visual_aid` is not part of the import shape.
 
 ## Implementation files
 
