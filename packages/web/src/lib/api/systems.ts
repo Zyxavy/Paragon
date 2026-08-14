@@ -12,6 +12,9 @@ export interface System {
     trigger: string;
     barrier_list: string[];
     environment_cue: string;
+    reference_table: string;
+    success_metric: string;
+    visual_aid: string | null;
     template_origin: string | null;
     status: 'active' | 'paused' | 'archived';
     created_at: string;
@@ -33,6 +36,8 @@ export interface CreateSystemPayload {
     trigger?: string;
     barrier_list?: string[];
     environment_cue?: string;
+    reference_table?: string;
+    success_metric?: string;
     template_origin?: string | null;
 }
 

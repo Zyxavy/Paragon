@@ -5,6 +5,8 @@
   import { AUTOSAVE_DEBOUNCE_MS } from './system-form.config';
   import SchedulePicker from './SchedulePicker.svelte';
   import { Check } from '@lucide/svelte';
+  import MarkdownField from './MarkdownField.svelte';
+  import VisualAidUpload from './VisualAidUpload.svelte';
 
   let { system: initial, defaults: defaultsProp, edit = false }: {
     system?: System | null;
@@ -17,6 +19,8 @@
       trigger?: string;
       barrier_list?: string[];
       environment_cue?: string;
+      reference_table?: string;
+      success_metric?: string;
     };
     edit?: boolean;
   } = $props();
@@ -34,6 +38,9 @@
   let barrier_list = $state<string[]>(snap?.barrier_list ?? []);
   let barrierInput = $state('');
   let environment_cue = $state(snap?.environment_cue ?? '');
+  let reference_table = $state(snap?.reference_table ?? '');
+  let success_metric = $state(snap?.success_metric ?? '');
+  let visual_aid = $state<string | null>(snap?.visual_aid ?? null);
 
   $effect(() => {
     if (defaultsProp) {
@@ -49,6 +56,8 @@
         trigger = defaultsProp.trigger ?? '';
         barrier_list = defaultsProp.barrier_list ?? [];
         environment_cue = defaultsProp.environment_cue ?? '';
+        reference_table = defaultsProp.reference_table ?? '';
+        success_metric = defaultsProp.success_metric ?? '';
       }
     }
   });
@@ -68,7 +77,9 @@
         || floor_action !== (snap?.floor_action ?? '')
         || trigger !== (snap?.trigger ?? '')
         || JSON.stringify(barrier_list) !== JSON.stringify(snap?.barrier_list ?? [])
-        || environment_cue !== (snap?.environment_cue ?? '');
+        || environment_cue !== (snap?.environment_cue ?? '')
+        || reference_table !== (snap?.reference_table ?? '')
+        || success_metric !== (snap?.success_metric ?? '');
     }
     return name.trim().length > 0;
   });
@@ -92,6 +103,8 @@
       if (trigger !== (snap?.trigger ?? '')) payload.trigger = trigger;
       if (JSON.stringify(barrier_list) !== JSON.stringify(snap?.barrier_list ?? [])) payload.barrier_list = barrier_list;
       if (environment_cue !== (snap?.environment_cue ?? '')) payload.environment_cue = environment_cue;
+      if (reference_table !== (snap?.reference_table ?? '')) payload.reference_table = reference_table;
+      if (success_metric !== (snap?.success_metric ?? '')) payload.success_metric = success_metric;
 
       if (!systemId) {
         const created = await createSystem(payload);
@@ -169,21 +182,25 @@
       </div>
 
       <div class="field-group">
-        <label for="purpose" class="font-body text-sm font-medium text-on-surface">Purpose</label>
-        <textarea id="purpose" bind:value={purpose} oninput={scheduleAutosave}
-                  class="mt-1 block w-full rounded-xl border-border bg-surface text-on-surface px-4 py-3 text-sm font-body
-                         focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
-                         placeholder:text-muted-foreground transition-all duration-200"
-                  rows="2" placeholder="Why does this system exist?"></textarea>
+        <MarkdownField
+          id="purpose"
+          label="Purpose"
+          value={purpose}
+          onchange={(v) => { purpose = v; scheduleAutosave(); }}
+          rows={3}
+          placeholder="Why does this system exist?"
+        />
       </div>
 
       <div class="field-group">
-        <label for="philosophy" class="font-body text-sm font-medium text-on-surface">Philosophy</label>
-        <textarea id="philosophy" bind:value={philosophy} oninput={scheduleAutosave}
-                  class="mt-1 block w-full rounded-xl border-border bg-surface text-on-surface px-4 py-3 text-sm font-body
-                         focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
-                         placeholder:text-muted-foreground transition-all duration-200"
-                  rows="2" placeholder="What principles guide this system?"></textarea>
+        <MarkdownField
+          id="philosophy"
+          label="Philosophy"
+          value={philosophy}
+          onchange={(v) => { philosophy = v; scheduleAutosave(); }}
+          rows={3}
+          placeholder="What principles guide this system?"
+        />
       </div>
     </div>
   </section>
@@ -200,12 +217,14 @@
       </p>
 
       <div class="field-group">
-        <label for="floor_action" class="font-body text-sm font-medium text-on-surface">What's the smallest version?</label>
-        <textarea id="floor_action" bind:value={floor_action} oninput={scheduleAutosave}
-                  class="mt-1 block w-full rounded-xl border-border bg-surface text-on-surface px-4 py-3 text-sm font-body
-                         focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
-                         placeholder:text-muted-foreground transition-all duration-200"
-                  rows="2" placeholder="e.g. Read one page"></textarea>
+        <MarkdownField
+          id="floor_action"
+          label="What's the smallest version?"
+          value={floor_action}
+          onchange={(v) => { floor_action = v; scheduleAutosave(); }}
+          rows={2}
+          placeholder="e.g. Read one page"
+        />
         <p class="mt-1 font-body text-xs text-muted-foreground">What would count as a win on your worst day?</p>
         {#if confirmError}
           <p class="mt-1 text-sm text-destructive font-body">{confirmError}</p>
@@ -223,12 +242,14 @@
       </div>
 
       <div class="field-group">
-        <label for="protocol" class="font-body text-sm font-medium text-on-surface">Protocol</label>
-        <textarea id="protocol" bind:value={protocol} oninput={scheduleAutosave}
-                  class="mt-1 block w-full rounded-xl border-border bg-surface text-on-surface px-4 py-3 text-sm font-body
-                         focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
-                         placeholder:text-muted-foreground transition-all duration-200"
-                  rows="2" placeholder="What are the steps or rules?"></textarea>
+        <MarkdownField
+          id="protocol"
+          label="Protocol"
+          value={protocol}
+          onchange={(v) => { protocol = v; scheduleAutosave(); }}
+          rows={4}
+          placeholder="What are the steps or rules?"
+        />
       </div>
       </div>
     </div>
@@ -277,10 +298,50 @@
     </div>
   </section>
 
-  <!-- Section 4: Schedule -->
+  <!-- Section 4: Reference & Visual Aid -->
   <section>
     <div class="flex items-center gap-3 mb-4">
       <span class="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-display text-xs font-semibold">4</span>
+      <h2 class="font-body text-base font-semibold text-on-surface">Reference & Visual Aid</h2>
+    </div>
+    <div class="bg-surface-container-lowest rounded-xl p-6 shadow-ambient-sm space-y-4">
+      <div class="field-group">
+        <MarkdownField
+          id="reference_table"
+          label="Reference Table"
+          value={reference_table}
+          onchange={(v) => { reference_table = v; scheduleAutosave(); }}
+          rows={4}
+          placeholder={'| Trigger | Action |\n|---|---|\n| Alarm | Stand up |'}
+          hint="A Markdown table is rendered as a table on the detail page; other content renders as prose."
+        />
+      </div>
+
+      <div class="field-group">
+        <label for="success_metric" class="font-body text-sm font-medium text-on-surface">Success Metric</label>
+        <input id="success_metric" type="text" bind:value={success_metric} oninput={scheduleAutosave}
+               class="mt-1 block w-full rounded-xl border-border bg-surface text-on-surface px-4 py-3 text-sm font-body
+                      focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
+                      placeholder:text-muted-foreground transition-all duration-200"
+               placeholder="e.g. 2 hours of deep reading" />
+        <p class="mt-1 font-body text-xs text-muted-foreground">What does 'full' look like? Shown next to the floor action.</p>
+      </div>
+
+      <div class="field-group">
+        <p class="font-body text-sm font-medium text-on-surface">Visual Aid</p>
+        {#if !systemId}
+          <p class="mt-1 text-sm font-body text-on-surface-muted">Save the system first to upload a visual aid.</p>
+        {:else}
+          <VisualAidUpload systemId={systemId} value={visual_aid} onchange={(key) => (visual_aid = key)} />
+        {/if}
+      </div>
+    </div>
+  </section>
+
+  <!-- Section 5: Schedule -->
+  <section>
+    <div class="flex items-center gap-3 mb-4">
+      <span class="w-7 h-7 rounded-lg bg-primary/10 text-primary flex items-center justify-center font-display text-xs font-semibold">5</span>
       <h2 class="font-body text-base font-semibold text-on-surface">Schedule</h2>
     </div>
     <div class="bg-surface-container-lowest rounded-xl p-6 shadow-ambient-sm">
