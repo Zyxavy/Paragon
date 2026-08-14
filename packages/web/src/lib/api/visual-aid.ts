@@ -28,7 +28,8 @@ export function deleteVisualAid(systemId: string): Promise<{ ok: boolean }> {
   return apiFetch(`/api/systems/${systemId}/visual-aid`, { method: 'DELETE' });
 }
 
-export function visualAidSrc(systemId: string): string {
+export function visualAidSrc(systemId: string, ver?: string | null): string {
   const BASE = import.meta.env.VITE_API_BASE_URL || '';
-  return `${BASE}/api/systems/${systemId}/visual-aid`;
+  const base = `${BASE}/api/systems/${systemId}/visual-aid`;
+  return ver ? `${base}?v=${encodeURIComponent(ver)}` : base;
 }

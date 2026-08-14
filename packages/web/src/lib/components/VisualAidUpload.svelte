@@ -42,7 +42,7 @@
 <div>
   {#if value}
     <div class="mt-2 rounded-xl border border-border overflow-hidden inline-block">
-      <img src={visualAidSrc(systemId)} crossorigin="use-credentials" alt="Visual aid"
+      <img src={visualAidSrc(systemId, value)} crossorigin="use-credentials" alt="Visual aid"
            class="max-h-64 w-auto object-contain bg-surface" />
     </div>
     <div class="mt-2 flex items-center gap-2">

@@ -5,6 +5,9 @@
     import { pauseSystem, unarchiveSystem, deleteSystem } from '$lib/api/systems';
     import { addToast } from '$lib/stores/toast.svelte';
     import Modal from '$lib/components/Modal.svelte';
+    import MarkdownText from '$lib/components/MarkdownText.svelte';
+    import ScheduleBlock from '$lib/components/ScheduleBlock.svelte';
+    import { visualAidSrc } from '$lib/api/visual-aid';
 
     let { data } = $props();
     let system = $state(data.system);
@@ -110,11 +113,35 @@
       {#each fields as field}
         <div>
           <dt class="font-body text-xs font-medium text-muted-foreground mb-1">{field.label}</dt>
-          <dd class="font-body text-sm text-on-surface leading-relaxed">{field.value}</dd>
+          <dd class="font-body text-sm text-on-surface leading-relaxed">
+            <MarkdownText content={field.value} />
+          </dd>
         </div>
       {/each}
     </dl>
   </section>
+
+  {#if system.success_metric}
+    <section class="bg-primary/10 rounded-xl p-5">
+      <h2 class="font-body text-xs font-semibold text-primary uppercase tracking-wide mb-2">Success Metric</h2>
+      <p class="font-body text-sm text-on-surface font-medium">{system.success_metric}</p>
+    </section>
+  {/if}
+
+  {#if system.reference_table}
+    <section class="bg-surface-container-low rounded-xl p-6">
+      <h2 class="font-body text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">Reference</h2>
+      <MarkdownText content={system.reference_table} />
+    </section>
+  {/if}
+
+  {#if system.visual_aid}
+    <section class="bg-surface-container-low rounded-xl p-6">
+      <h2 class="font-body text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">Visual Aid</h2>
+      <img src={visualAidSrc(system.id, system.visual_aid)} crossorigin="use-credentials" alt="Visual aid"
+           class="max-h-96 w-auto rounded-xl object-contain" />
+    </section>
+  {/if}
 
   {#if system.barrier_list.length > 0}
     <section class="bg-surface-container-low rounded-xl p-6">
@@ -126,6 +153,11 @@
       </div>
     </section>
   {/if}
+
+  <section class="bg-surface-container-low rounded-xl p-6">
+    <h2 class="font-body text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">Schedule</h2>
+    <ScheduleBlock systemId={system.id} />
+  </section>
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <div class="bg-surface-container-lowest rounded-xl p-5 shadow-ambient-sm">
