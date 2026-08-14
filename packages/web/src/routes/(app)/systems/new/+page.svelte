@@ -2,6 +2,7 @@
   import SystemForm from '$lib/components/SystemForm.svelte';
   import TemplatePicker from '$lib/components/TemplatePicker.svelte';
   import AIDraftPanel from '$lib/components/AIDraftPanel.svelte';
+  import ImportPanel from '$lib/components/ImportPanel.svelte';
   import type { Template } from '$lib/api/templates';
   import type { SystemDraft } from '$lib/api/ai';
 
@@ -23,6 +24,10 @@
   function onAIDraft(draft: SystemDraft) {
     formDefaults = { ...draft };
   }
+
+  function onImport(draft: SystemDraft & { reference_table: string; success_metric: string }) {
+    formDefaults = { ...draft };
+  }
 </script>
 
 <div class="max-w-3xl mx-auto px-6 py-8">
@@ -35,5 +40,6 @@
 
   <TemplatePicker ontemplateSelect={onTemplateSelect} />
   <AIDraftPanel ondraft={onAIDraft} />
+  <ImportPanel onimport={onImport} />
   <SystemForm defaults={formDefaults} />
 </div>
