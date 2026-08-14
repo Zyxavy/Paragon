@@ -14,16 +14,6 @@ async function seedUser(db: D1Database, userId: string) {
   ).bind(userId, 'Test User', `${userId}@test.com`, now, now).run();
 }
 
-async function seedSystem(db: D1Database, userId: string): Promise<string> {
-  const systemId = crypto.randomUUID();
-  const now = new Date().toISOString();
-  await db.prepare(
-    `INSERT INTO systems (id, user_id, name, domain, status, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`
-  ).bind(systemId, userId, 'Content Test', 'health', 'active', now, now).run();
-  return systemId;
-}
-
 function getAuthedApp(userId: string) {
   const app = new Hono<{ Bindings: CloudflareBindings; Variables: { user: any; session: any } }>();
   app.use('/api/*', async (c, next) => {
@@ -99,12 +89,19 @@ describe('systems content columns', () => {
   });
 
   it('GET /api/systems returns the new columns', async () => {
+    const created = await (await app.fetch(new Request('http://localhost/api/systems', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'List Check', reference_table: '| A | B |', success_metric: 'two reps' }),
+    }), env)).json() as any;
+
     const res = await app.fetch(new Request('http://localhost/api/systems'), env);
     expect(res.status).toBe(200);
     const body = await res.json() as any;
-    expect(Array.isArray(body.systems)).toBe(true);
-    expect(body.systems[0]).toHaveProperty('reference_table');
-    expect(body.systems[0]).toHaveProperty('success_metric');
-    expect(body.systems[0]).toHaveProperty('visual_aid');
+    const found = body.systems.find((s: any) => s.id === created.id);
+    expect(found).toBeDefined();
+    expect(found.reference_table).toBe('| A | B |');
+    expect(found.success_metric).toBe('two reps');
+    expect(found.visual_aid).toBeNull();
   });
 });

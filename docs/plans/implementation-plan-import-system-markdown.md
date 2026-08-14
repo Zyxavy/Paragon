@@ -80,16 +80,6 @@ async function seedUser(db: D1Database, userId: string) {
   ).bind(userId, 'Test User', `${userId}@test.com`, now, now).run();
 }
 
-async function seedSystem(db: D1Database, userId: string): Promise<string> {
-  const systemId = crypto.randomUUID();
-  const now = new Date().toISOString();
-  await db.prepare(
-    `INSERT INTO systems (id, user_id, name, domain, status, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?)`
-  ).bind(systemId, userId, 'Content Test', 'health', 'active', now, now).run();
-  return systemId;
-}
-
 function getAuthedApp(userId: string) {
   const app = new Hono<{ Bindings: CloudflareBindings; Variables: { user: any; session: any } }>();
   app.use('/api/*', async (c, next) => {
@@ -165,13 +155,20 @@ describe('systems content columns', () => {
   });
 
   it('GET /api/systems returns the new columns', async () => {
+    const created = await (await app.fetch(new Request('http://localhost/api/systems', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: 'List Check', reference_table: '| A | B |', success_metric: 'two reps' }),
+    }), env)).json() as any;
+
     const res = await app.fetch(new Request('http://localhost/api/systems'), env);
     expect(res.status).toBe(200);
     const body = await res.json() as any;
-    expect(Array.isArray(body.systems)).toBe(true);
-    expect(body.systems[0]).toHaveProperty('reference_table');
-    expect(body.systems[0]).toHaveProperty('success_metric');
-    expect(body.systems[0]).toHaveProperty('visual_aid');
+    const found = body.systems.find((s: any) => s.id === created.id);
+    expect(found).toBeDefined();
+    expect(found.reference_table).toBe('| A | B |');
+    expect(found.success_metric).toBe('two reps');
+    expect(found.visual_aid).toBeNull();
   });
 });
 ```
@@ -222,7 +219,7 @@ Modify `packages/api/src/routes/systems.ts`:
 - [ ] **Step 5: Run the tests to verify they pass**
 
 Run: `pnpm exec vitest run src/__tests__/system-content.spec.ts` (workdir `packages/api`)
-Expected: 5 passed.
+Expected: 4 passed.
 
 - [ ] **Step 6: Commit**
 
@@ -263,6 +260,16 @@ function createMockFile(content: Buffer, filename: string, contentType: string):
   return new File([content], filename, { type: contentType });
 }
 
+async function createSystem(app: ReturnType<typeof getAuthedApp>): Promise<string> {
+  const res = await app.fetch(new Request('http://localhost/api/systems', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: 'Visual Aid System' }),
+  }), env);
+  const body = await res.json() as any;
+  return body.id;
+}
+
 async function uploadVisualAid(app: ReturnType<typeof getAuthedApp>, systemId: string, file: File) {
   const formData = new FormData();
   formData.append('file', file);
@@ -281,8 +288,8 @@ describe('visual aid routes', () => {
     await applyD1Migrations(env.DB, migrations);
     userId = crypto.randomUUID();
     await seedUser(env.DB, userId);
-    systemId = await seedSystem(env.DB, userId);
     app = getAuthedApp(userId);
+    systemId = await createSystem(app);
   });
 
   it('uploads a PNG, stores R2 key on the system, and serves it back', async () => {
@@ -338,7 +345,8 @@ describe('visual aid routes', () => {
   it('rejects uploads for systems the user does not own with 404', async () => {
     const otherUserId = crypto.randomUUID();
     await seedUser(env.DB, otherUserId);
-    const otherSystemId = await seedSystem(env.DB, otherUserId);
+    const otherApp = getAuthedApp(otherUserId);
+    const otherSystemId = await createSystem(otherApp);
     const file = createMockFile(Buffer.from('x'), 'a.png', 'image/png');
     const res = await uploadVisualAid(app, otherSystemId, file);
     expect(res.status).toBe(404);
@@ -359,7 +367,7 @@ describe('visual aid routes', () => {
   });
 
   it('GET returns 404 when no visual aid is uploaded', async () => {
-    const freshSystemId = await seedSystem(env.DB, userId);
+    const freshSystemId = await createSystem(app);
     const res = await app.fetch(new Request(`http://localhost/api/systems/${freshSystemId}/visual-aid`), env);
     expect(res.status).toBe(404);
   });
@@ -522,7 +530,7 @@ app.route('/api/systems', visualAidRoutes);
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `pnpm exec vitest run src/__tests__/system-content.spec.ts` (workdir `packages/api`)
-Expected: all 12 tests pass (5 systems columns + 7 visual aid).
+Expected: all 11 tests pass (4 systems columns + 7 visual aid).
 
 - [ ] **Step 5: Run the full API suite + lint**
 
