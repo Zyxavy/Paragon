@@ -1,5 +1,8 @@
 <script lang="ts">
 	import './layout.css';
+	import { themeStore } from '$lib/stores/theme.svelte';
+
+	themeStore.init();
 
 	let { children } = $props();
 </script>
