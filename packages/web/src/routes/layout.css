@@ -7,18 +7,18 @@
 @variant motion-reduce (&:where([data-reduced-motion="true"], [data-reduced-motion="true"] *));
 
 @theme {
-  --color-surface: #ece2d0;
-  --color-surface-container-low: #503b31;
-  --color-surface-container-lowest: #705d56;
-  --color-on-surface: #020202;
+  --color-surface: #e9dfcb;
+  --color-surface-container-low: #d8c5a8;
+  --color-surface-container-lowest: #f0e7d5;
+  --color-on-surface: #33261c;
   --color-primary: #503b31;
   --color-on-primary: #ece2d0;
-  --color-primary-container: #503b31;
-  --color-secondary: #705d56;
-  --color-blush: #705d56;
-  --color-muted: rgba(236, 226, 208, 0.04);
-  --color-muted-foreground: #705d56;
-  --color-border: rgba(2, 2, 2, 0.12);
+  --color-primary-container: #c9b393;
+  --color-secondary: #8a6f5c;
+  --color-blush: #cebebe;
+  --color-muted: rgba(51, 38, 28, 0.05);
+  --color-muted-foreground: #826b55;
+  --color-border: rgba(51, 38, 28, 0.12);
   --color-outline-variant: #cebebe;
   --color-destructive: #C24545;
   --color-ring: #503b31;
