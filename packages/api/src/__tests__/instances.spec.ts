@@ -284,8 +284,8 @@ describe('scheduled handler (nightly cron)', () => {
     it('creates tomorrow instances via scheduled handler', async () => {
         await seedActiveSystem(env.DB, currentUserId, { days_of_week: 127 });
 
-        // Import the scheduled export directly
-        const { scheduled } = await import('../index');
+        // Import the scheduled handler from the default export
+        const { scheduled } = (await import('../index')).default;
         const mockEvent = {} as ScheduledEvent;
         const mockCtx = { waitUntil: vi.fn() } as unknown as ExecutionContext;
         await scheduled(mockEvent, env, mockCtx);
@@ -306,7 +306,8 @@ describe('scheduled handler (nightly cron)', () => {
     it('is idempotent when scheduled runs twice for same date', async () => {
         await seedActiveSystem(env.DB, currentUserId, { days_of_week: 127 });
 
-        const { scheduled } = await import('../index');
+        // Import the scheduled handler from the default export
+        const { scheduled } = (await import('../index')).default;
         const mockEvent = {} as ScheduledEvent;
         const mockCtx = { waitUntil: vi.fn() } as unknown as ExecutionContext;
 

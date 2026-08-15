@@ -168,16 +168,14 @@ app.route('/api', reviewDayRoutes);
 // Placeholder
 app.get('/', (c) => c.text('Hello Hono!'));
 
-export default app;
-
-export async function scheduled(event: ScheduledEvent, env: CloudflareBindings, _ctx: ExecutionContext) {
+async function scheduled(event: ScheduledEvent, env: CloudflareBindings, _ctx: ExecutionContext) {
   const tomorrow = tomorrowManilaDate();
   console.log(`[cron] pre-generate instances date=${tomorrow}`);
   await generateInstancesForAllUsers(env.DB, tomorrow);
   console.log(`[cron] pre-generate complete date=${tomorrow}`);
 }
 
-export async function queue(
+async function queue(
     batch: MessageBatch<JournalRetryMessage>,
     env: CloudflareBindings,
     _ctx: ExecutionContext
@@ -223,3 +221,9 @@ export async function queue(
         }
     }
 }
+
+export default {
+    fetch: (request: Request, env: CloudflareBindings, ctx: ExecutionContext) => app.fetch(request, env, ctx),
+    scheduled,
+    queue,
+};
