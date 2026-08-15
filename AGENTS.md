@@ -124,6 +124,7 @@ Shared application state lives in `packages/web/src/lib/stores/` as Svelte 5 run
 | `dashboard.svelte.ts` | Dashboard systems list, period info |
 | `workspace-editor.svelte.ts` | Active workspace layout, dirty state |
 | `toast.svelte.ts` | Toast notification queue |
+| `theme.svelte.ts` | Active theme (`light`/`dark`), persisted to localStorage with system fallback |
 
 ### Auth
 
