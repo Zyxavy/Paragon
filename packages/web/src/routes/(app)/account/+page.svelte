@@ -67,7 +67,7 @@
   <section class="bg-surface-container-lowest rounded-xl p-6 shadow-ambient-sm">
     <h2 class="font-body text-base font-semibold text-on-surface mb-4">Appearance</h2>
     <button
-      onclick={themeStore.toggle}
+      onclick={() => themeStore.toggle()}
       class="flex items-center gap-2 px-4 py-2 rounded-2xl bg-surface-container-low text-on-surface
              text-sm font-medium transition-all duration-200 hover:bg-muted cursor-pointer"
       aria-label={themeStore.theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
@@ -95,7 +95,7 @@
       <p class="text-sm text-muted-foreground mb-4">No recovery codes available. Generate some below.</p>
     {:else}
       <p class="font-body text-xs text-muted-foreground mb-4">
-        Recovery codes are only shown in full once — at sign-up or when you regenerate them. They are masked here for your safety.
+        Recovery codes are only shown in full once, at sign-up or when you regenerate them. They are masked here for your safety.
       </p>
       <div class="space-y-3 mb-6">
         {#each codes as rc (rc.id)}
