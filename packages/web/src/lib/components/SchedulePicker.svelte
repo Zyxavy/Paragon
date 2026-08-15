@@ -133,7 +133,7 @@
                     {#each DAY_LABELS as label, i}
                         <span
                             class="w-7 h-7 flex items-center justify-center rounded-full text-xs font-body
-                            {schedule.days_of_week & (1 << i) ? 'bg-primary text-white' : 'bg-surface text-on-surface-muted'}"
+                            {schedule.days_of_week & (1 << i) ? 'bg-primary text-on-primary' : 'bg-surface text-on-surface-muted'}"
                         >
                             {label}
                         </span>
@@ -167,7 +167,7 @@
                             type="button"
                             onclick={() => toggleDay(i)}
                             class="w-8 h-8 rounded-full text-xs font-body
-                            {selectedDays.includes(i) ? 'bg-primary text-white' : 'bg-surface text-on-surface border border-border'}"
+                            {selectedDays.includes(i) ? 'bg-primary text-on-primary' : 'bg-surface text-on-surface border border-border'}"
                         >
                             {label}
                         </button>
@@ -198,7 +198,7 @@
                         type="button"
                         onclick={handleSave}
                         disabled={saving}
-                        class="rounded-md bg-primary px-3 py-1 text-xs font-body text-white disabled:opacity-50"
+                        class="rounded-md bg-primary px-3 py-1 text-xs font-body text-on-primary disabled:opacity-50"
                     >
                         {saving ? 'Saving...' : editingId ? 'Update' : 'Add'}
                     </button>

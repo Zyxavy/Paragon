@@ -41,6 +41,12 @@
   50% { opacity: 0.5; }
 }
 
+body {
+  background-color: var(--color-surface);
+  color: var(--color-on-surface);
+  color-scheme: light;
+}
+
 .skeleton {
   background: var(--color-muted);
   border-radius: 1rem;
@@ -48,6 +54,7 @@
 }
 
 [data-theme="dark"] {
+  color-scheme: dark;
   --color-surface: #020202;
   --color-surface-container-low: #503b31;
   --color-surface-container-lowest: #705d56;

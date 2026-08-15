@@ -26,7 +26,7 @@
         type="button"
         onclick={() => toggleMode('write')}
         class="px-2.5 py-1 cursor-pointer transition-colors duration-150
-               {mode === 'write' ? 'bg-primary text-white' : 'bg-surface text-on-surface-muted hover:text-on-surface'}"
+               {mode === 'write' ? 'bg-primary text-on-primary' : 'bg-surface text-on-surface-muted hover:text-on-surface'}"
       >
         Write
       </button>
@@ -34,7 +34,7 @@
         type="button"
         onclick={() => toggleMode('preview')}
         class="px-2.5 py-1 cursor-pointer transition-colors duration-150
-               {mode === 'preview' ? 'bg-primary text-white' : 'bg-surface text-on-surface-muted hover:text-on-surface'}"
+               {mode === 'preview' ? 'bg-primary text-on-primary' : 'bg-surface text-on-surface-muted hover:text-on-surface'}"
       >
         Preview
       </button>
