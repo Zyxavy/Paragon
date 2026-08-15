@@ -4,7 +4,7 @@ import { describe, it, expect, beforeEach, afterEach, vi, inject } from 'vitest'
 import { Hono } from 'hono';
 import { generateTodayInstances } from '../services/instances';
 import dashboardRoutes from '../routes/dashboard';
-import { instanceRoutes } from '../routes/instances';
+import { instanceRoutes, systemInstanceRoutes } from '../routes/instances';
 
 const migrations = inject('migrations');
 let currentUserId: string;
@@ -27,6 +27,7 @@ function getAuthedApp(userId?: string) {
     });
     app.route('/api/dashboard', dashboardRoutes);
     app.route('/api/instances', instanceRoutes);
+    app.route('/api/systems', systemInstanceRoutes);
     return app;
 }
 
@@ -222,6 +223,50 @@ describe('GET /api/dashboard today filter', () => {
 
         const total = await countUserInstances(env.DB, currentUserId);
         expect(total).toBe(2);
+    });
+});
+
+describe('GET /api/systems/:system_id/instances pagination', () => {
+    beforeEach(async () => {
+        await applyD1Migrations(env.DB, migrations);
+        currentUserId = crypto.randomUUID();
+        await seedUser(env.DB, currentUserId);
+    });
+
+    it('walks pages in DESC order without duplicating rows', async () => {
+        const systemId = await seedActiveSystem(env.DB, currentUserId);
+        const app = getAuthedApp();
+
+        for (const [date, state] of [
+            ['2026-07-13', 'full'],
+            ['2026-07-14', 'floor'],
+            ['2026-07-15', 'missed'],
+        ] as const) {
+            await env.DB.prepare(
+                `INSERT INTO instances (id, system_id, date, state, created_at, updated_at)
+                 VALUES (?, ?, ?, ?, ?, ?)`
+            ).bind(crypto.randomUUID(), systemId, date, state, date, date).run();
+        }
+
+        const page1 = await app.fetch(new Request(`http://localhost/api/systems/${systemId}/instances?limit=2`), env);
+        expect(page1.status).toBe(200);
+        const body1 = await page1.json() as any;
+        expect(body1.instances).toHaveLength(2);
+        expect(body1.instances.map((i: any) => i.date)).toEqual(['2026-07-15', '2026-07-14']);
+        expect(body1.next_cursor).toBeTruthy();
+
+        const page2 = await app.fetch(
+            new Request(`http://localhost/api/systems/${systemId}/instances?limit=2&cursor=${body1.next_cursor}`),
+            env
+        );
+        expect(page2.status).toBe(200);
+        const body2 = await page2.json() as any;
+        expect(body2.instances).toHaveLength(1);
+        expect(body2.instances[0].date).toBe('2026-07-13');
+        expect(body2.next_cursor).toBeNull();
+
+        const ids = [...body1.instances, ...body2.instances].map((i: any) => i.id);
+        expect(new Set(ids).size).toBe(3);
     });
 });
 

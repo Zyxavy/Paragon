@@ -227,7 +227,7 @@ describe('journal log routes', () => {
                     if (prop === 'prepare') {
                         return (sql: string, ...args: unknown[]) => {
                             if (sql.includes('INSERT INTO widget_entries')) throw new Error('D1 down');
-                            return t.prepare(sql, ...args);
+                            return (t.prepare as any)(sql, ...args);
                         };
                     }
                     return Reflect.get(t, prop, r);
