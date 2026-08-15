@@ -39,6 +39,10 @@ jobs:
       - name: Lint (${{ matrix.package }})
         run: pnpm --filter ${{ matrix.package }} lint
 
+      - name: Typecheck
+        if: matrix.package == 'api'
+        run: pnpm --filter ${{ matrix.package }} typecheck
+
       - name: Unit tests (${{ matrix.package }})
         run: pnpm --filter ${{ matrix.package }} test:unit
 
@@ -70,12 +74,15 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-pw-${{ hashFiles('pnpm-lock.yaml') }}
+
       - name: Install Playwright browsers
         run: pnpm --filter web run playwright:install
 
-      - run: pnpm -r build
-        env:
-          VITE_API_BASE_URL: "http://localhost:8787"
       - run: pnpm --filter web test:e2e
 
   deploy:

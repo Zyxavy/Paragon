@@ -25,6 +25,26 @@ Build systems that survive your worst days. Log daily. Review weekly.
 | Secondary database | MongoDB Atlas (journal/reflections only) | Active (journal writes + queue fallback) |
 | Monorepo | pnpm workspaces | Active |
 
+## Getting Started
+
+```bash
+pnpm install
+
+# Terminal 1 -- API Worker (applies D1 migrations, then runs on :8787)
+pnpm --filter api dev:e2e
+
+# Terminal 2 -- web SPA on :5173 (proxies /api to :8787)
+pnpm --filter web dev
+
+# E2E suite (starts its own API + preview server)
+pnpm --filter web test:e2e
+```
+
+> The API fails closed without a signing secret: for plain `pnpm --filter api dev`
+> (wrangler.jsonc), create `packages/api/.dev.vars` with
+> `BETTER_AUTH_SECRET=<random 32+ char string>`. `dev:e2e` and the test suite
+> carry their own dev-only secrets in `wrangler.e2e.jsonc` / `vitest.config.ts`.
+
 ## Documentation
 
 ### Current

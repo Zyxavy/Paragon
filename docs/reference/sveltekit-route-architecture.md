@@ -46,24 +46,26 @@ Keep this script dependency-free and synchronous. It exists only to prevent them
 ```
 src/routes/
 ├── +layout.ts                    # ssr=false, prerender=false (root, S1)
-├── +layout.svelte                # renders <slot/> with no chrome -- session resolved here
-│
-├── (marketing)/
-│   └── +page.svelte              # /  -- Landing page (pre-auth only), PRD 6.0 step 1
+├── +layout.svelte                # renders {@render children()} with no chrome -- session resolved here
+├── +page.svelte                  # /  -- Landing page (pre-auth only), PRD 6.0 step 1 (no (marketing) group; the landing page is the root route itself)
 │
 ├── (auth)/                       # Pre-auth route group -- no nav shell, centered form layout
-│   ├── +layout.svelte            # Redirects signed-in users to /guides
+│   ├── +layout.svelte            # getSession() on mount; signed-in users are goto()'d to /guides
 │   ├── sign-up/
 │   │   └── +page.svelte          # Sign Up form, Auth Integration 4.2
 │   └── sign-in/
 │       └── +page.svelte          # Sign In form, Auth Integration 4.2
 │
 └── (app)/                        # Post-auth route group -- nav shell, auth guard
-    ├── +layout.ts                # Auth guard load function (S3)
+    ├── +layout.ts                # Auth guard load function: getCachedSession(), redirect 302 → /sign-in (S3.3)
     ├── +layout.svelte            # Nav sidebar shell (S4)
     │
     ├── guides/
     │   └── +page.svelte          # Guides & Tutorials tab, PRD 6.0 step 3
+    │
+    ├── account/
+    │   ├── +page.ts              # loads recovery codes for display
+    │   └── +page.svelte          # Account settings: recovery codes (masked, hide/show) + regenerate
     │
     ├── dashboard/
     │   ├── +page.ts              # loads GET /api/dashboard
@@ -76,13 +78,16 @@ src/routes/
     │   │   └── +page.svelte      # System Creator, PRD 6.1
     │   └── [id]/
     │       ├── +layout.ts        # loads GET /api/systems/:id once, shared by all tabs below
-    │       ├── +layout.svelte    # System detail shell: tabs for Overview / Workspace / Reviews
+    │       ├── +layout.svelte    # System detail shell: tabs for Overview / Workspace / Metrics / Reviews
     │       ├── +page.svelte      # Overview tab: blueprint fields, streak/calendar, PRD 6.5
     │       ├── edit/
     │       │   └── +page.svelte  # Edit System (reuses System Creator form)
     │       ├── workspace/
     │       │   ├── +page.ts      # loads GET /api/systems/:id/workspace
     │       │   └── +page.svelte  # Workspace Builder, PRD 6.2
+    │       ├── metrics/
+    │       │   ├── +page.ts      # loads GET /api/systems/:id/metrics
+    │       │   └── +page.svelte  # Metrics dashboard (floor hold rate, review completion, streaks)
     │       └── reviews/
     │           ├── +page.ts      # loads GET /api/systems/:id/reviews
     │           ├── +page.svelte  # Per-system review history + "start a review" entry point
@@ -98,25 +103,26 @@ src/routes/
 
 Route groups (parenthesized directories) apply different layouts without changing the URL:
 
-- **`(marketing)`** -- the landing page has no chrome at all. Separate group so it never inherits the auth form shell.
+- The landing page is the **root route** (`+page.svelte` at `/`) -- no marketing group was needed; the root layout is already chromeless.
 - **`(auth)`** -- sign-up/login share a centered minimal form layout. Redirects signed-in users away.
 - **`(app)`** -- every authenticated page has the nav sidebar and requires a valid session.
 
-If a future pass wants a shared "unauthenticated" layout across both marketing and auth pages (e.g. a site-wide header), that's a one-file addition without restructuring routes.
+If a future pass wants a shared "unauthenticated" layout across both the landing and auth pages (e.g. a site-wide header), that's a one-file addition without restructuring routes.
 
 ### 2.2 Why `[id]` gets its own nested layout
 
-`systems/[id]/+layout.ts` loads the System record once via `GET /api/systems/:id` and exposes it through `PageData` to every child route -- the Overview tab, workspace, reviews, and edit page all share the same fetched record rather than independently re-fetching. This matters because the System detail page is a tabbed interface: navigating between Overview/Workspace/Reviews should feel instant, not re-trigger a full-page loading state. SvelteKit's nested-layout data model gives this for free.
+`systems/[id]/+layout.ts` loads the System record once via `GET /api/systems/:id` and exposes it through `PageData` to every child route -- the Overview tab, workspace, metrics, reviews, and edit page all share the same fetched record rather than independently re-fetching. This matters because the System detail page is a tabbed interface: navigating between Overview/Workspace/Metrics/Reviews should feel instant, not re-trigger a full-page loading state. SvelteKit's nested-layout data model gives this for free.
 
 ### 2.3 What is NOT a route in v1
 
 | Possible route | Reason omitted |
 |---|---|
-| `/account` | Recovery codes display + regenerate; no other account settings in v1 |
 | `/terms`, `/privacy` | Personal app, no legal surface in v1 |
 | `/auth/forgot-password` | Password reset deferred (Auth Integration 5) |
 | `/attachments/:id` | Handled by the API route directly as a streamed URL, not a SvelteKit page |
 | `/templates` | Template browser deferred; templates are selected inline during System creation |
+
+**NavBar items (5):** `Dashboard`, `Systems`, `Review Day`, `Guides`, `Account`. Note `Account` is intentionally kept out of the sidebar proper -- it renders in the footer of the nav shell as a settings/link entry (per the NavBar component's account-excluded-from-sidebar decision), avoiding a 5th full-height sidebar item for a low-traffic page.
 
 ---
 
@@ -159,12 +165,14 @@ The root layout is intentionally thin -- it renders children with no chrome. It 
 // packages/web/src/routes/(app)/+layout.ts
 import { redirect } from '@sveltejs/kit';
 import type { LayoutLoad } from './$types';
-import { authClient } from '$lib/auth-client';
+import { getCachedSession } from '$lib/auth/session.svelte';
 
 export const load: LayoutLoad = async () => {
-  // getSession() is the SDK's non-reactive API -- it returns a promise, works in load context.
+  // getCachedSession() is the SDK's non-reactive API wrapped with caching -- it returns
+  // a promise, works in load context, and reuses the session already fetched by the root
+  // layout rather than issuing a second /get-session round-trip per navigation.
   // This avoids duplicating Better Auth's session-check contract in a hand-rolled fetch.
-  const { data: session } = await authClient.getSession();
+  const { data: session } = await getCachedSession();
 
   if (!session) {
     throw redirect(302, '/sign-in');
@@ -183,33 +191,35 @@ Every route under `(app)/` inherits this guard. No individual page needs its own
 ```svelte
 <!-- packages/web/src/routes/(auth)/+layout.svelte -->
 <script lang="ts">
-  import { redirect } from '@sveltejs/kit';
+  import { goto } from '$app/navigation';
   import { authClient } from '$lib/auth-client';
 
-  let { children, data } = $props();
+  let { children } = $props();
+  let ready = $state(false);
 
-  // Check session on mount -- if already signed in, redirect to guides
-  const { data: session } = authClient.useSession();
+  // Check session once on mount -- if already signed in, redirect to guides.
+  // goto() (not throw redirect) is used here because this runs inside an $effect,
+  // where throw redirect() is undocumented behavior; goto() is the documented
+  // browser-side navigation API and this app is CSR-only anyway.
   $effect(() => {
-    if ($session) {
-      throw redirect(302, '/guides');
-    }
+    authClient.getSession().then(({ data: session }) => {
+      if (session) { goto('/guides'); return; }
+      ready = true;
+    });
   });
 </script>
 
-<div class="auth-shell">
-  {#if !$session}
-    {@render children()}
-  {/if}
-</div>
+{#if ready}
+  {@render children()}
+{/if}
 ```
 
 The `auth-shell` wrapper is centered, minimal styling (logo/title at top, form below). It renders children only when there is no active session -- this prevents the sign-in form from flashing momentarily before redirect.
 
-### 3.5 Marketing layout
+### 3.5 Root layout (landing)
 
 ```svelte
-<!-- packages/web/src/routes/(marketing)/+layout.svelte -->
+<!-- packages/web/src/routes/+layout.svelte -->
 <script lang="ts">
   let { children } = $props();
 </script>
@@ -217,7 +227,7 @@ The `auth-shell` wrapper is centered, minimal styling (logo/title at top, form b
 {@render children()}
 ```
 
-No chrome, no auth check. The landing page is always reachable.
+No chrome, no auth check. The landing page is the root `+page.svelte` (no `(marketing)` route group -- the root layout is already chromeless), and is always reachable.
 
 ---
 
@@ -245,13 +255,15 @@ No chrome, no auth check. The landing page is always reachable.
 The NavBar renders as a floating pill on mobile (`bg-surface/70 backdrop-blur-xl rounded-full` with a bottom offset via `pb-[calc(56px+1.5rem)]` on `<main>`) and expands to a sidebar at `xl:` breakpoint. It renders the following items:
 
 | Tab | Icon | Route | Shown when |
-|---|---|---|---|---|
+|---|---|---|---|---|---|
 | Dashboard | `LayoutDashboard` | `/dashboard` | Always, default active |
-| Guides | `BookOpen` | `/guides` | Always, highlighted on first visit post-signup |
-| Review Day | `ClipboardCheck` | `/review-day` | Always, with a badge if any system is due |
 | Systems | `Cog` | `/systems` | Always |
+| Review Day | `ClipboardCheck` | `/review-day` | Always, with a badge if any system is due |
+| Guides | `BookOpen` | `/guides` | Always, highlighted on first visit post-signup |
 
-The NavBar uses Lucide Svelte icons (imported as `ComponentType` from `@lucide/svelte/icons/*`), shows the user's name/email (from `session.user`), and a sign-out button that calls `authClient.signOut()` and navigates to `/`. At `xl:` the pill expands into a full sidebar with icon+label rows and the sign-out action at the bottom.
+Order above matches the NavBar's item order (Dashboard, Systems, Review Day, Guides). The fifth item, **Account** (`/account`, recovery codes), is deliberately not a sidebar row -- it renders as a link in the nav footer (next to the sign-out action), keeping the sidebar at four items.
+
+The NavBar uses Lucide Svelte icons (imported as `ComponentType` from `@lucide/svelte/icons/*`), shows the user's name/email (from `session.user`), and a sign-out button that calls `authClient.signOut()` and navigates to `/`. At `xl:` the pill expands into a full sidebar with icon+label rows and the footer (account link + sign-out action) at the bottom.
 
 `<ToastContainer>` is mounted here -- the one place in the app where `toastStore.items` is rendered (S5.4). No page below `(app)/` re-declares it.
 
@@ -274,7 +286,7 @@ export const authClient = createAuthClient({
 export const { useSession, signIn, signOut, signUp } = authClient;
 ```
 
-`useSession()` is a runes-compatible reactive store from `better-auth/svelte`. Used in the auth group layout (S3.4) for display and in the NavBar (S4) for showing the user's name. The auth guard (S3.3) uses `authClient.getSession()` instead -- the SDK's non-reactive API that returns a promise and works inside `load` functions.
+`useSession()` is a runes-compatible reactive store from `better-auth/svelte`. Used in the auth group layout (S3.4) for display and in the NavBar (S4) for showing the user's name. The auth guard (S3.3) uses `getCachedSession()` from `$lib/auth/session.svelte` instead -- a thin wrapper over `authClient.getSession()` with caching, returning a promise and working inside `load` functions without a second round-trip.
 
 ### 5.2 Dashboard store
 
@@ -454,20 +466,24 @@ Thin typed helpers per resource group:
 src/lib/api/
 ├── client.ts          # apiFetch, ApiError
 ├── index.ts           # apiFetchWithToast (default toast on client error)
-├── systems.ts         # getSystems, createSystem, patchSystem, confirmSystem, archiveSystem
+├── systems.ts         # getSystems, createSystem, patchSystem, confirmSystem, archiveSystem, getMetrics
 ├── instances.ts       # patchInstance, getInstance
 ├── dashboard.ts       # getDashboard
 ├── schedules.ts       # getSchedules, createSchedule, patchSchedule, deleteSchedule
 ├── workspaces.ts      # getWorkspace, putWorkspace
-├── counter-logs.ts    # createCounterLog, getCounterLogs, deleteCounterLog
-├── timer-sessions.ts  # createTimerSession, getTimerSessions, deleteTimerSession
+├── counter-logs.ts    # createCounterLog, getCounterLogs (cursor-paginated), deleteCounterLog
+├── timer-sessions.ts  # createTimerSession, getTimerSessions (cursor-paginated), deleteTimerSession
 ├── checklist.ts       # putChecklist, getChecklist
 ├── link-list.ts       # getLinkList, putLinkList
 ├── notes.ts           # getNotes, putNotes
-├── reviews.ts         # getReviews, createReview
-├── review-day.ts      # getReviewDay
+├── journal-log.ts     # putJournalEntry (Mongo-first with D1 fallback + queue), getJournalEntries
+├── reviews.ts         # getReviews, createReview, getReviewDay
 ├── templates.ts       # getTemplates, getTemplate
-├── attachments.ts     # uploadAttachment, getAttachmentUrl
+├── attachments.ts     # uploadAttachment, getAttachmentUrl, deleteAttachment
+├── export.ts          # exportSystem (GET /api/systems/:id/export)
+├── visual-aid.ts      # getVisualAid (GET /api/visual-aid)
+├── recovery-codes.ts  # generateRecoveryCodes, getRecoveryCodes
+├── cache.ts           # client-side response cache helpers
 └── ai.ts              # draftSystem
 ```
 

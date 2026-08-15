@@ -68,15 +68,11 @@ Both artifacts are built and tested in parallel via CI's package matrix (S4) bef
     ]
   },
 
-  "vars": {
-    "MONGODB_URI": "mongodb://localhost:27017/paragon"   // dev only; production set via wrangler secret
-  },
-
   "d1_databases": [
     {
       "binding": "DB",
       "database_name": "paragon-db",
-      "database_id": "bd7d9f42-2c4a-442c-9fd0-a53ded81cc6c"
+      "database_id": "fe4d1263-fbfc-4986-afd1-982e0533c200"   // single D1, dev and production are the same database
     }
   ],
 
@@ -84,23 +80,15 @@ Both artifacts are built and tested in parallel via CI's package matrix (S4) bef
     { "bucket_name": "paragon-attachments", "binding": "ATTACHMENTS" }
   ],
 
-  "env": {
-    "production": {
-      "d1_databases": [
-        {
-          "binding": "DB",
-          "database_name": "paragon-db",
-          "database_id": "6072aa3b-6fad-48a4-b2d6-72eaaaef6a3e"
-        }
-      ]
-    }
+  "ai": {
+    "binding": "AI"   // Workers AI binding, prd-llm:small model at runtime
   }
 }
 ```
 
-**Secrets:** `BETTER_AUTH_SECRET` and `MONGODB_URI` (production) are NOT in `wrangler.jsonc` -- they are set via `wrangler secret put` and accessed via `env.BETTER_AUTH_SECRET` / `env.MONGODB_URI` at runtime. This keeps them out of version control.
+**Secrets:** `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, and `MONGODB_URI` (production) are NOT in `wrangler.jsonc` -- they are set via `wrangler secret put` (or the local dev var file) and accessed via `env.*` at runtime. This keeps them out of version control. There is **no `env.production` block**: the config targets a single D1 database (`paragon-db` / `fe4d1263-fbfc-4986-afd1-982e0533c200`) for both dev and production -- this is a personal app without separate staging, and one database keeps migration application unambiguous (no dev/prod D1 split to get wrong).
 
-**Deploy with ``** to use the production D1 database (`paragon-db`). Without the flag, the root config's dev database is used. Example:
+**Deploy:** apply migrations against the same single database, then deploy:
 ```bash
 cd packages/api
 wrangler d1 migrations apply DB --remote
@@ -112,7 +100,7 @@ wrangler deploy
 ```jsonc
 {
   "$schema": "./node_modules/wrangler/config-schema.json",
-  "name": "Paragon",
+  "name": "paragons",
   "compatibility_date": "2026-07-22",
   "assets": {
     "directory": "build",
@@ -121,7 +109,7 @@ wrangler deploy
 }
 ```
 
-Uses Cloudflare Pages for static asset hosting. A Pages Function proxies `/api/*` requests to the API Worker, making the frontend and API same-origin in production. The `not_found_handling: "single-page-application"` option serves `index.html` for any unmatched route, providing SPA fallback automatically.
+Uses Cloudflare Pages for static asset hosting. A Pages Function (`functions/api/[[path]].ts`) proxies `/api/*` requests to the API Worker, making the frontend and API same-origin in production. The `not_found_handling: "single-page-application"` option serves `index.html` for any unmatched route, providing SPA fallback automatically.
 
 **`VITE_API_BASE_URL`** is baked in at build time via `packages/web/.env.production`. It is NOT set at the Worker runtime -- Vite replaces `import.meta.env.VITE_*` during `vite build`, making the value static in the compiled JS bundle. The file is tracked in git (no secrets in it -- just a public URL).
 
@@ -258,7 +246,21 @@ Every matrix leg, `test:int`, and `test:e2e` must succeed before `deploy` runs a
 
 ```yaml
 name: CI
-on: [push, pull_request]
+on:
+  push:
+    paths:
+      - 'package.json'
+      - 'pnpm-workspace.yaml'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/ci.yml'
+      - 'packages/**'
+  pull_request:
+    paths:
+      - 'package.json'
+      - 'pnpm-workspace.yaml'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/ci.yml'
+      - 'packages/**'
 
 jobs:
   test:
@@ -270,14 +272,16 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
-        with:
-          version: 11
       - uses: actions/setup-node@v7
         with:
           node-version: 22
           cache: pnpm       # keyed on the single root pnpm-lock.yaml -- shared across both matrix legs
 
       - run: pnpm install --frozen-lockfile
+
+      - name: Install Playwright browsers
+        if: matrix.package == 'web'
+        run: pnpm --filter web run playwright:install
 
       - name: Lint (${{ matrix.package }})
         run: pnpm --filter ${{ matrix.package }} lint
@@ -294,8 +298,6 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
-        with:
-          version: 11
       - uses: actions/setup-node@v7
         with:
           node-version: 22
@@ -309,8 +311,6 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
-        with:
-          version: 11
       - uses: actions/setup-node@v7
         with:
           node-version: 22
@@ -321,22 +321,20 @@ jobs:
         run: pnpm --filter web run playwright:install
 
       - run: pnpm -r build
-      - run: pnpm --filter web test:e2e
         env:
           VITE_API_BASE_URL: "http://localhost:8787"
+      - run: pnpm --filter web test:e2e
 
   # Note: The CI workflow at .github/workflows/ci.yml is the source of truth.
   # This doc's YAML is kept in sync with the actual file.
 
   deploy:
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/feat/system-hardening'
     needs: [test, integration, e2e]     # any failure anywhere above skips this job entirely
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - uses: pnpm/action-setup@v6
-        with:
-          version: 11
       - uses: actions/setup-node@v7
         with:
           node-version: 22
@@ -355,12 +353,18 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
+      - run: pnpm -r build
+        env:
+          VITE_API_BASE_URL: ""     # same-origin Pages Function proxy in production -- baked at build time
+
       - name: Deploy Web to Cloudflare Pages
         working-directory: packages/web
-        run: pnpm exec wrangler pages deploy
+        run: pnpm exec wrangler pages deploy --branch main
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
 ```
+
+> **Deploy branch condition:** `deploy` runs on `main` **or** the `feat/system-hardening` branch. This is CI's verification path for the hardening workstream (migration `0020` and its route changes) -- it exercises the full migrations → API → web deploy flow against a live branch before merge, so the squash-merge to `main` is as close to a no-op deploy as possible. The condition is expected to be removed again once that branch merges -- the doc reflects the file as it exists, not a wish-list.
 
 **Note on migrations in CI:** The `deploy` job applies D1 migrations as its first step, before deploying either Worker. This is a change from the original doc (which kept migrations manual-only). The reason: gating. With migrations inside CI, a bad migration blocks `wrangler deploy` from running at all -- same job, same failure surface -- rather than being a separate manual step a developer could forget to run before pushing. The append-only migration convention (ADR 002 S6.2) already protects against destructive schema changes, so the only failure mode CI catches immediately that a manual process would miss is "migration fails to apply," which is exactly what you want to catch.
 
@@ -457,14 +461,14 @@ These are stored in Cloudflare's secrets store, not in `.env` files or `wrangler
 ### 9.1 First-time setup (manual, once)
 
 - [x] Cloudflare account created
-- [x] D1 databases created (`wrangler d1 create paragon-db`, `paragon-db`)
+- [x] D1 database created (`wrangler d1 create paragon-db`)
 - [x] R2 bucket created (`wrangler r2 bucket create paragon-attachments`)
 - [x] Queue created (`wrangler queues create paragon-journal-retry`)
 - [x] Secrets set locally (`wrangler secret put BETTER_AUTH_SECRET`, `MONGODB_URI`)
-- [x] Database UUIDs from step 2 written into both `wrangler.jsonc` files
+- [x] Database UUID from step 2 written into `packages/api/wrangler.jsonc`
 - [x] Migration files scaffolded via `wrangler d1 migrations create DB <name>` -- one per table, per ADR 002 S6.2's numbered plan
 - [x] Better Auth tables generated and applied to D1 (migration `0014_better_auth_core.sql`)
-- [x] All 15 migrations applied to remote D1 (`wrangler d1 migrations apply DB --remote`)
+- [x] All 18 migrations applied to remote D1 (`wrangler d1 migrations apply DB --remote`) -- 17 applied files plus the pending `0020_recovery_code_hash.sql` hardening migration (`0011`/`0012` were skipped, ADR 002 S6.2)
 - [ ] `CLOUDFLARE_API_TOKEN` added to GitHub Actions repo secrets -- required for the `deploy` job (S4.2) to authenticate; note this is separate from the `wrangler secret put` values above, which live in Cloudflare's secrets store, not GitHub's
 - [x] `pnpm -r build` succeeds locally
 - [x] `pnpm -r deploy` succeeds locally (first manual deploy completed during Slice 12)

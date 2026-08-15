@@ -31,7 +31,7 @@ docs: update ADR 002 with hybrid service layer
 | Tool | Purpose | Key commands | Notes |
 |---|---|---|---|---|
 | **pnpm** | Package manager (not npm, not yarn) | `pnpm install`, `pnpm -r build`, `pnpm -r deploy` | |
-| **Vitest** | API integration tests (D1 + Workers runtime) | `pnpm --filter api test:integration` | 186 tests: smoke (3), recovery (2), auth (3), systems CRUD (16), calendar (32), schedules (12), instances (9), workspace (24), journal (9), reviews (10), templates (7), attachments (13) |
+| **Vitest** | API integration tests (D1 + Workers runtime) | `pnpm --filter api test:integration` | 227 API tests: smoke (3), recovery (2), auth (3), systems CRUD (26), calendar (32), schedules (12), instances (10), workspace (35), journal (13), reviews (10), templates (7), attachments (16), ai (6), export (6), metrics (6), system-content (11), parse unit (10), ai parse unit (19); plus web unit (55) and E2E (7) suites |
 | **Vitest** | Web unit tests (browser) | `pnpm --filter web test:unit` | Vitest with Playwright browser |
 | **Playwright** | E2E flows | `pnpm --filter web test:e2e` | Starts API (migrations applied) + preview; runs `*.e2e.ts` |
 | **dev:e2e** | Start API server for E2E | `pnpm --filter api dev:e2e` | Applies D1 migrations then starts `wrangler dev --port 8787` |
@@ -122,8 +122,8 @@ Shared application state lives in `packages/web/src/lib/stores/` as Svelte 5 run
 | Store file | Holds |
 |---|---|
 | `dashboard.svelte.ts` | Dashboard systems list, period info |
-| `workspace-editor-store.ts` | Active workspace layout, dirty state |
-| `toast-store.ts` | Toast notification queue |
+| `workspace-editor.svelte.ts` | Active workspace layout, dirty state |
+| `toast.svelte.ts` | Toast notification queue |
 
 ### Auth
 

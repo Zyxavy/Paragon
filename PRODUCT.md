@@ -73,8 +73,8 @@ A nearby product could not truthfully copy the "worst day" framing without also 
 - **Core framework:** `docs/core/systems-framework.md` — the five-step build process that defines the product's mechanism.
 - **Research base:** `docs/core/sources.md` — 8 creators' frameworks that informed the design.
 - **Research insights:** `docs/core/insights.md` — synthesis of research into product-specific guidance.
-- **Full test suite:** 186 API integration tests documented in AGENTS.md.
-- **Working demo:** Deployed at paragon.kelpselp.workers.dev.
+- **Full test suite:** 227 API integration tests plus web unit and E2E suites -- documented in AGENTS.md.
+- **Working demo:** Web app at https://paragons.pages.dev (API Worker: https://paragon-api.kelpselp.workers.dev).
 - **No fabricated testimonials, case studies, or usage claims exist.** Future work must not invent them.
 
 ## Product Principles

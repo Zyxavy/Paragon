@@ -34,7 +34,7 @@ There is no `/api/v1` prefix. This is a single-developer personal app with one f
 
 ### 1.2 Auth requirement -- default is "required"
 
-Every route under `/api/*` requires a valid session **except the password recovery route (`POST /api/auth/recover`)** -- the user is by definition locked out when they need this endpoint. The auth guard middleware (Auth Integration S1.3) already passes `/api/auth/*` through without auth, so `POST /api/auth/recover` is included in Better Auth's route space and reaches its custom handler without middleware changes. The AI draft route (ADR 003 S5) remains auth-required. All other routes -- no exceptions.
+Every route under `/api/*` requires a valid session **except the password recovery route (`POST /api/auth/recover`)** -- the user is by definition locked out when they need this endpoint. The auth guard middleware (Auth Integration S1.3) already passes `/api/auth/*` through without auth, so `POST /api/auth/recover` is included in Better Auth's route space and reaches its custom handler without middleware changes. Because it's the one unauthenticated surface, it carries two protections the rest of the API doesn't need: a rate limit (per-email and per-IP windows -- `429 { "error": "rate_limited" }` when exhausted, see the Security Review S1) and a strict body-parse path that returns `400 { "error": "invalid_json" }` on a malformed body. The AI draft route (ADR 003 S5) remains auth-required. All other routes -- no exceptions.
 
 ### 1.3 Response envelope
 
@@ -98,7 +98,7 @@ Response:
 
 **Cursor format:** opaque string, base64-encoded JSON payload. The payload contains the last item's sort key so the server can generate `WHERE sort_col > ?` without exposing sort-field details to the client. For date-sorted lists (Instances, Reviews), the cursor is `{"d":"2026-07-01T12:00:00.000Z","i":"<last_uuid>"}` (date + tiebreaker ID). For name-sorted lists (Systems, Templates), the cursor is `{"n":"Reading System","i":"<last_uuid>"}`.
 
-**Which list endpoints are paginated:** Systems (`GET /api/systems`), Instances (`GET /api/systems/:system_id/instances`), Reviews (`GET /api/systems/:system_id/reviews`), Templates (`GET /api/templates`), and Review Day (`GET /api/review-day`). Counter Logs (`GET /api/widgets/:widget_id/counter-logs`) and Timer Sessions (`GET /api/widgets/:widget_id/timer-sessions`) are **excluded** -- they are aggregation queries for chart rendering and need the full filtered result set; the `from`/`to` date range already bounds them. The Dashboard endpoint (`GET /api/dashboard`) is also excluded -- it returns only today's Instances for one user, bounded by active system count (PRD S10: a few dozen at most).
+**Which list endpoints are paginated:** Systems (`GET /api/systems`), Instances (`GET /api/systems/:system_id/instances`), Reviews (`GET /api/systems/:system_id/reviews`), Templates (`GET /api/templates`), Counter Logs (`GET /api/widgets/:widget_id/counter-logs`), Timer Sessions (`GET /api/widgets/:widget_id/timer-sessions`), and Journal entries (`GET /api/instances/:instance_id/journal_log/:widget_id`). The Review Day endpoint (`GET /api/review-day`) and the Dashboard endpoint (`GET /api/dashboard`) are **excluded** -- both return bounded result sets (active systems due for review, and today's Instances for one user), so `limit`/`cursor` would add contract surface without bounding anything real. For the widget list endpoints the `from`/`to` date range already bounds the result; `cursor`/`limit` handle deep history (e.g. a Progress chart over a full year).
 
 **Why implement in v1 despite low volume:** The pagination interface (cursor format, response envelope, query params) is a contract between frontend and API. Adding it later means updating every `apiFetch` call site that currently reads a bare list response -- the frontend service modules (SvelteKit Route Architecture S6) all need `next_cursor` awareness, the `<InfiniteScroll>` or "Load More" components need building, and the sort-order contract needs to be consistent from day one. Building the pagination contract in v1 avoids rework on every list endpoint when the first user hits a few thousand rows.
 
@@ -114,10 +114,15 @@ Response:
 | `PATCH` | `/api/systems/:id` | ownership-scoped lookup, then update |
 | `POST` | `/api/systems/:id/confirm` | ownership-scoped lookup, then update -- see S2.4 |
 | `POST` | `/api/systems/:id/archive` | ownership-scoped lookup, then update |
+| `POST` | `/api/systems/:id/pause` | ownership-scoped lookup, then update -- see S2.5.1 |
+| `POST` | `/api/systems/:id/unarchive` | ownership-scoped lookup, then update -- see S2.5.2 |
+| `DELETE` | `/api/systems/:id` | ownership-scoped lookup, then hard delete -- see S2.5.3 |
 | `POST` | `/api/systems/:id/save-as-template` | ownership-scoped lookup on system, insert into `templates` |
 | `POST` | `/api/systems/:system_id/visual-aid` | ownership-scoped lookup, then R2 put + D1 pointer update |
 | `GET` | `/api/systems/:system_id/visual-aid` | ownership-scoped lookup, then R2 stream |
 | `DELETE` | `/api/systems/:system_id/visual-aid` | ownership-scoped lookup, then R2 delete + column clear |
+| `GET` | `/api/systems/:system_id/metrics` | ownership-scoped lookup, SQL aggregation -- see S2.8 |
+| `GET` | `/api/systems/:system_id/export` | ownership-scoped lookup, full data dump -- see S2.9 |
 
 ### 2.1 `GET /api/systems`
 
@@ -215,6 +220,35 @@ Response 409: { "error": "already_archived", "message": "This system is already 
 
 Per D1 Schema S4, this only flips `status` -- it never touches `instances` or `reviews` rows, and the frontend continues to show full history from the System's detail page after archiving.
 
+### 2.5.1 `POST /api/systems/:id/pause`
+
+```
+Request body: {}
+Response 200: the System with status: "paused"
+Response 409: { "error": "already_paused", "message": "This system is already paused." }
+```
+
+Same status-flip mechanics as archive (S2.5). Pausing hides the System from the Dashboard's active query without archiving it -- the System is one `unarchive` call away from active.
+
+### 2.5.2 `POST /api/systems/:id/unarchive`
+
+```
+Request body: {}
+Response 200: the System with status: "active"
+Response 409: { "error": "already_active", "message": "This system is already active." }
+```
+
+Restores an archived System. Per D1 Schema S4 (no auto-delete implemented in v1), archived Systems persist indefinitely, so unarchive is always available for any archived System.
+
+### 2.5.3 `DELETE /api/systems/:id`
+
+```
+Response 204: no content -- the System and everything under it is gone
+Response 404: not found / not owned
+```
+
+The only hard-delete path in the API (D1 Schema S4). The handler, in order: collects the workspace's R2 attachment keys, deletes the R2 objects (best-effort -- rejected deletes are logged as orphans, matching ADR 001 S5.7's accepted-orphan stance), deletes the `attachments` rows, then deletes the `systems` row -- `ON DELETE CASCADE` removes `schedules`, `instances`, `reviews`, `workspaces`, `widget_entries`, `counter_logs`, and `timer_sessions` in the same statement. Irreversible; the frontend must confirm before calling. Note: Mongo `journal_entries` documents are not part of the cascade (they orphan, see ADR 003 S7).
+
 ### 2.6 `POST /api/systems/:id/save-as-template`
 
 Implements PRD S5.6 ("any System the user has built can be saved back as a personal template"). Snapshots the System's current field values into a new `templates` row with `source: 'user'`.
@@ -233,6 +267,47 @@ Manages the single uploaded image shown on the System detail page. Backed by the
   - Size limit: 10 MB. Responses: `201 { r2_key, content_type, size_bytes }`, `400 unsupported_file_type`, `413 file_too_large`, `404` (not owned).
 - `GET`: streams the stored image (`Content-Type` from the object, `Cache-Control: public, max-age=31536000`). `404` when none uploaded.
 - `DELETE`: removes the R2 object and clears the column. `200 { ok: true }`.
+
+### 2.8 `GET /api/systems/:system_id/metrics`
+
+Backs the System detail page's Metrics tab. All numbers are computed server-side with SQL aggregation (no in-memory sum loops -- 10ms budget, S1.0), except the streak which is a small JS scan over already-bounded rows.
+
+```
+Response 200:
+{
+  "system_id": "sys_...",
+  "floor_hold_rate": { "full": 5, "floor": 2, "missed": 1, "percentage": 88 },  // last 28 days, % = (full+floor)/total
+  "review_completion": { "completed": 3, "total_due": 8, "with_changes": 2 },   // last 4 reviews; total_due = survival weeks
+  "current_streak": { "current": 4, "longest": 12 },
+  "total_instances": 61,        // non-pending instances ever
+  "survival_weeks": 8           // weeks since system.created_at
+}
+Response 404: not found / not owned
+```
+
+`floor_hold_rate` counts `instances` where `date >= date('now', '-28 days')` and `state != 'pending'`. `review_completion` aggregates the most recent 4 reviews (completed count, and how many had a non-empty `change_applied`); `total_due` is derived from survival weeks. The streak computation treats `pending` as undecided: it's skipped from the tail when walking down from the most recent date, and breaks a run in the middle (see `calculateServerStreak` in `packages/api/src/routes/metrics.ts`).
+
+### 2.9 `GET /api/systems/:system_id/export`
+
+Full data dump for one System -- the backup/portability endpoint. Collects the System, all schedules, instances, reviews, workspace layout, attachment filenames, and (best-effort) the System's Mongo journal entries.
+
+```
+Response 200:
+{
+  "exported_at": "2026-07-01T09:15:00.000Z",
+  "schema_version": 1,
+  "system": { ...full System record... },
+  "schedules": [ ... ],
+  "instances": [ ... ],              // ordered date ASC
+  "reviews": [ ... ],                // ordered period_start DESC
+  "workspace": { ... } | null,       // layout parsed; null if no workspace exists
+  "journal_entries": [ { "entry_id": "...", "instance_id": "...", "widget_id": "...", "text": "...", "created_at": "..." } ],
+  "attachment_filenames": [ "notes.pdf" ]
+}
+Response 404: not found / not owned
+```
+
+Mongo is best-effort: a connection failure logs a warning and returns the D1 portions with `journal_entries: []` rather than failing the whole export.
 
 ---
 
@@ -416,8 +491,8 @@ POST /api/instances/:instance_id/counter-logs
 Request body: { "widget_id": "w_counter1", "value": 12, "unit_label": "pages" }
 Response 201: { "id": "...", "workspace_id": "...", "widget_id": "...", "instance_id": "...", "value": 12, "unit_label": "pages", "created_at": "..." }
 
-GET /api/widgets/:widget_id/counter-logs?from=&to=
-Response 200: { "counter_logs": [...] }   -- cross-instance, powers the Progress chart widget's SUM/trend query (D1 Schema S3.3.1)
+GET /api/widgets/:widget_id/counter-logs?from=&to=&cursor=&limit=
+Response 200: { "counter_logs": [...], "next_cursor": "..." }   -- cross-instance, powers the Progress chart widget's SUM/trend query (D1 Schema S3.3.1); next_cursor is null on the last page
 
 DELETE /api/counter-logs/:id
 Response 200: { "id": "...", "deleted": true }
@@ -434,8 +509,8 @@ POST /api/instances/:instance_id/timer-sessions
 Request body: { "widget_id": "w_timer1", "duration_secs": 1500, "started_at": "...", "ended_at": "..." }
 Response 201: same shape pattern as counter-logs
 
-GET /api/widgets/:widget_id/timer-sessions?from=&to=
-Response 200: { "timer_sessions": [...] }
+GET /api/widgets/:widget_id/timer-sessions?from=&to=&cursor=&limit=
+Response 200: { "timer_sessions": [...], "next_cursor": "..." }   -- next_cursor is null on the last page
 
 DELETE /api/timer-sessions/:id
 Response 200: { "id": "...", "deleted": true }
@@ -463,12 +538,13 @@ MongoDB-backed, using the D1 `widget_entries` row as a pointer (`entry_type = 'l
 ```
 POST /api/instances/:instance_id/journal_log/:widget_id
 Request body: { "text": "Finished chapter 3. Slower going than expected." }
-Response 201: { "entry_id": "...", "created_at": "..." }
-Response 202: { "entry_id": "...", "created_at": "...", "status": "pending" }   -- Mongo down, queued for retry
+Response 201: { "entry_id": "...", "created_at": "..." }   -- Mongo document + D1 pointer row written
+Response 201: { "entry_id": "...", "created_at": "...", "status": "fallback" }   -- Mongo down; entry persisted to D1 as a full journal_entry fallback row
+Response 202: { "entry_id": "...", "created_at": "...", "status": "pending" }   -- Mongo AND the D1 fallback both failed; enqueued to paragon-journal-retry
 Response 400: { "error": "invalid_input", "message": "text must be a non-empty string." }
 ```
 
-The happy path (`201`) means both the Mongo document and the D1 pointer row were written synchronously. The `202` retry path means the direct Mongo write failed, the entry was enqueued to `paragon-journal-retry`, and the frontend should treat the entry as accepted but pending — it will appear once the Queue consumer retries successfully. The frontend does not poll for resolution in v1; the entry becomes visible on next full page load or workspace re-fetch.
+The happy path (`201` without `status`) means both the Mongo document and the D1 pointer row were written synchronously. If the direct Mongo write fails, the route falls back to writing the entry as a D1 `widget_entries` row with `entry_type = 'journal_entry'` holding the full text — the entry is durably persisted and still returns `201`, now with `status: "fallback"` (the GET read path merges both row types, so the entry is immediately visible; ADR 003 S6). Only if that D1 fallback write also fails is the entry enqueued to `paragon-journal-retry` and `202 status: "pending"` returned — the frontend should treat it as accepted but pending; it will appear once the Queue consumer retries successfully. The frontend does not poll for resolution in v1; the entry becomes visible on next full page load or workspace re-fetch.
 
 ```
 GET /api/instances/:instance_id/journal_log/:widget_id?cursor=&limit=
@@ -543,7 +619,7 @@ Response 200:
 }
 ```
 
-`source` is not required -- omitting it returns both built-in and the session user's own saved templates together, which is what the System Creator's template picker (PRD S6.1) actually needs: one list, built-ins first by convention (sorted server-side, `source = 'built_in'` before `'user'`, then alphabetical within each group).
+`source` is not required -- omitting it returns both built-in and the session user's own saved templates together, which is what the System Creator's template picker (PRD S6.1) actually needs: one combined list, sorted alphabetically by name (`ORDER BY name COLLATE NOCASE`) with no built-in-first grouping. The `source` filter exists for callers that want only one flavor.
 
 ---
 
@@ -608,10 +684,11 @@ Response 200:
 ## 9. Attachments
 
 | Method | Path |
-|---|---|---|
+|---|---|
 | `POST` | `/api/attachments` |
 | `GET` | `/api/attachments/:id` |
 | `GET` | `/api/attachments` |
+| `DELETE` | `/api/attachments/:id` |
 
 Implements ADR 001 S5.7's proxied-upload flow exactly -- this document just pins down the HTTP contract around it.
 
@@ -638,12 +715,19 @@ Response 400: { "error": "file_too_large" }   // 25 MB limit, checked before R2 
 GET /api/attachments?workspace_id=<uuid>&widget_id=<id>
 
 Response 200: { "attachments": [ { "id": "...", "filename": "...", "content_type": "...", "size_bytes": 123, "created_at": "..." }, ... ] }
-Response 400: { "error": "missing_params" }    // when workspace_id or widget_id omitted
+Response 400: { "error": "invalid_input" }    // when workspace_id or widget_id omitted
 ```
 
 Note: `r2_key` is intentionally excluded from the list response — the frontend requests individual attachments via `GET /api/attachments/:id` on click.
 
 `GET /api/attachments/:id` streams the R2 object back directly (`Content-Type` set from the stored `content_type`, `Content-Disposition: inline` so PDFs/images render in-browser rather than force-downloading) rather than returning a JSON pointer -- the frontend links directly to this URL as an `<a href>` / `<img src>`.
+
+`DELETE /api/attachments/:id` removes the R2 object and the D1 pointer row (R2 delete first, then the D1 row, matching ADR 001 S5.7's ordering):
+
+```
+Response 200: { "ok": true }
+Response 404: not found / not owned
+```
 
 ---
 
@@ -658,19 +742,24 @@ Fully specified in the [AI Workers reference](ai-workers.md). The single route (
 | Method | Path | Ownership check | Notes |
 |---|---|---|---|
 | `*` | `/api/auth/*` | Better Auth-managed | See Auth Integration doc |
-| `POST` | `/api/auth/recover` | none (public) | Password reset via recovery code; see Auth Integration S5.2 |
-| `GET` | `/api/recovery-codes` | `user_id` | Returns unused recovery codes for settings display |
-| `POST` | `/api/recovery-codes/generate` | `user_id` | Generates 3 new codes, returns `{ "codes": [...] }` |
+| `POST` | `/api/auth/recover` | none (public) | Password reset via recovery code; rate-limited (`429 rate_limited`), `400 invalid_json` on malformed body; see Auth Integration S5.2 |
+| `GET` | `/api/recovery-codes` | `user_id` | Returns unused recovery codes for settings display -- masked only, never the raw code (codes are hashed at rest, SHA-256) |
+| `POST` | `/api/recovery-codes/generate` | `user_id` | Generates 3 new codes (30-day expiry), returns `{ "codes": [...] }` in full -- the one time raw codes are returned |
 | `GET` | `/api/systems` | `user_id` | |
 | `POST` | `/api/systems` | `user_id` on insert | |
 | `GET` | `/api/systems/:id` | ownership-scoped | |
 | `PATCH` | `/api/systems/:id` | ownership-scoped | |
 | `POST` | `/api/systems/:id/confirm` | ownership-scoped | enforces `floor_action` |
 | `POST` | `/api/systems/:id/archive` | ownership-scoped | |
+| `POST` | `/api/systems/:id/pause` | ownership-scoped | |
+| `POST` | `/api/systems/:id/unarchive` | ownership-scoped | |
+| `DELETE` | `/api/systems/:id` | ownership-scoped | hard delete: R2 objects + attachment rows + cascade |
 | `POST` | `/api/systems/:id/save-as-template` | ownership-scoped | |
 | `POST` | `/api/systems/:system_id/visual-aid` | `user_id` | R2 put + D1 pointer update |
 | `GET` | `/api/systems/:system_id/visual-aid` | `user_id` | R2 stream |
 | `DELETE` | `/api/systems/:system_id/visual-aid` | `user_id` | R2 delete + column clear |
+| `GET` | `/api/systems/:system_id/metrics` | ownership-scoped | SQL aggregation: floor hold rate, review completion, streaks |
+| `GET` | `/api/systems/:system_id/export` | ownership-scoped | full data dump, Mongo best-effort |
 | `GET` | `/api/systems/:system_id/schedules` | ownership-scoped | |
 | `POST` | `/api/systems/:system_id/schedules` | ownership-scoped | |
 | `PATCH` | `/api/schedules/:id` | ownership-scoped | |
@@ -682,14 +771,14 @@ Fully specified in the [AI Workers reference](ai-workers.md). The single route (
 | `GET` | `/api/systems/:system_id/workspace` | ownership-scoped | |
 | `PUT` | `/api/systems/:system_id/workspace` | ownership-scoped | |
 | `POST` | `/api/instances/:instance_id/counter-logs` | ownership-scoped | |
-| `GET` | `/api/widgets/:widget_id/counter-logs` | ownership-scoped | |
+| `GET` | `/api/widgets/:widget_id/counter-logs` | ownership-scoped | `from`/`to` + cursor-paginated |
 | `DELETE` | `/api/counter-logs/:id` | ownership-scoped | |
 | `POST` | `/api/instances/:instance_id/timer-sessions` | ownership-scoped | |
-| `GET` | `/api/widgets/:widget_id/timer-sessions` | ownership-scoped | |
+| `GET` | `/api/widgets/:widget_id/timer-sessions` | ownership-scoped | `from`/`to` + cursor-paginated |
 | `DELETE` | `/api/timer-sessions/:id` | ownership-scoped | |
 | `PUT` | `/api/instances/:instance_id/checklist/:widget_id` | ownership-scoped | |
 | `GET` | `/api/instances/:instance_id/checklist/:widget_id` | ownership-scoped | |
-| `POST` | `/api/instances/:instance_id/journal_log/:widget_id` | ownership-scoped | MongoDB-backed; `201` direct or `202` queued retry |
+| `POST` | `/api/instances/:instance_id/journal_log/:widget_id` | ownership-scoped | MongoDB-backed; `201` direct, `201 status:fallback` (D1 fallback row), or `202 status:pending` (queued) |
 | `GET` | `/api/instances/:instance_id/journal_log/:widget_id` | ownership-scoped | cursor-paginated, newest-first; empty entries on Mongo failure |
 | `PUT` | `/api/workspaces/:workspace_id/link-list/:widget_id` | ownership-scoped | workspace-scoped (`instance_id IS NULL`) |
 | `GET` | `/api/workspaces/:workspace_id/link-list/:widget_id` | ownership-scoped | workspace-scoped (`instance_id IS NULL`) |
@@ -703,4 +792,5 @@ Fully specified in the [AI Workers reference](ai-workers.md). The single route (
 | `POST` | `/api/attachments` | ownership-scoped (via workspace_id) | proxied R2 upload, MIME + size validation per Security Review S2 |
 | `GET` | `/api/attachments/:id` | ownership-scoped | streams R2 object |
 | `GET` | `/api/attachments` | ownership-scoped (via workspace_id) | lists attachments for workspace+widget |
+| `DELETE` | `/api/attachments/:id` | ownership-scoped | R2 delete + D1 row |
 | `POST` | `/api/ai/draft-system` | session only | see ADR 003 |

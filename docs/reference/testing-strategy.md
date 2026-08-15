@@ -112,16 +112,26 @@ export default defineConfig(async () => {
 
 These test the Hono routes with **real D1 bindings** (Miniflare in-memory SQLite, seeded from migration files). No mocking of database calls.
 
-**P0 integration tests:**
+**Integration tests (counts per spec file, August 2026 -- 227 total):**
 
-- **System CRUD:** create -> read -> update -> soft-delete (status: archived). Verify `updated_at` updates, `template_origin` is preserved. ✓ 16 integration tests in `systems.spec.ts`.
-- **Instance auto-generation (dashboard load path):** seed an active System with a schedule matching today; call the dashboard Instance-generation logic; assert exactly one `pending` Instance is created; call it again and assert no duplicate is created (idempotency). ✓ 7 integration tests in `instances.spec.ts`.
-- **Nightly Cron handler:** invoke `scheduled()` with a mocked `env` and a real D1 binding seeded with active Systems; assert tomorrow's Instances are created; invoke again and assert no duplicates. ✓ Same file.
-- **Instance state transition:** create an Instance in `pending`, PATCH to `full`, assert state and `updated_at` are correct. ✓ Same file.
-- **Review write-back:** POST a Review with `change_applied` containing a new `floor_action`; assert the parent System's `floor_action` field is updated. ✓ 10 integration tests in `reviews.spec.ts`.
-- **R2 attachment upload:** POST a small test file to `/api/attachments`; assert the R2 object exists at the generated key; assert a D1 pointer row was created with correct `r2_key`.
-- **Auth flows:** sign-up, sign-in, session validation, sign-out - all against the real Better Auth + D1 integration.
-- **Link List / Notes upsert:** PUT with a full payload, assert row created with `instance_id = NULL`; PUT again with a different payload, assert the row is replaced (not duplicated) for the same `(workspace_id, widget_id)`.
+- **Smoke:** 3 tests (`smoke.spec.ts` -- worker boots, DB binding present, routes respond).
+- **Recovery:** 2 tests (`recovery.spec.ts` -- `POST /api/auth/recover` success and failure paths).
+- **Auth:** 3 tests (`auth.spec.ts` -- sign-up, session validation, sign-out against real Better Auth + D1).
+- **System CRUD:** create -> read -> update -> soft-delete (status: archived). Verify `updated_at` updates, `template_origin` is preserved. ✓ 26 integration tests in `systems.spec.ts` (incl. pause/unarchive/hard-delete routes).
+- **Calendar:** 32 tests (`calendar.spec.ts` -- streak/calendar computation across date boundaries).
+- **Schedules:** 12 tests (`schedules.spec.ts` -- CRUD + day-of-week bitmask matching).
+- **Instance auto-generation (dashboard load path):** seed an active System with a schedule matching today; call the dashboard Instance-generation logic; assert exactly one `pending` Instance is created; call it again and assert no duplicate is created (idempotency). ✓ 10 integration tests in `instances.spec.ts` (incl. instance state transition + cursor pagination).
+- **Workspace:** 35 tests (`workspace.spec.ts` -- layout persistence, widget types, ownership checks).
+- **Journal:** 13 tests (`journal.spec.ts` -- Mongo-first write with D1 fallback + queue path).
+- **Reviews:** POST a Review with `change_applied` containing a new `floor_action`; assert the parent System's `floor_action` field is updated. ✓ 10 integration tests in `reviews.spec.ts`.
+- **Templates:** 7 tests (`templates.spec.ts` -- built-in + user-saved template CRUD).
+- **Attachments:** 16 tests (`attachments.spec.ts` -- R2 upload: POST a small test file to `/api/attachments`; assert the R2 object exists at the generated key; assert a D1 pointer row was created with correct `r2_key`; delete).
+- **AI:** 6 tests (`ai.spec.ts` -- draft endpoint with `env.AI.run` spied, malformed responses).
+- **Export:** 6 tests (`export.spec.ts` -- `GET /api/systems/:id/export` JSON bundle).
+- **Metrics:** 6 tests (`metrics.spec.ts` -- floor hold rate / review completion / streak aggregation).
+- **System content:** 11 tests (`system-content.spec.ts` -- enrichment columns: `reference_table`, `success_metric`, `visual_aid`).
+- **Parse (unit):** 10 tests (`parse.test.ts` -- `stripThinkTokens` / `parseSystemDraft` with real inputs incl. malformed `<think>` blocks).
+- **AI parse (unit):** 19 tests (`ai/__tests__/parse.test.ts` -- `stripThinkTokens` + `parseSystemDraft` corpus incl. markdown fences).
 
 **What is not integration-tested:**
 - MongoDB (Atlas) write path - this is tested in unit tests with a mock, and manually against a real Atlas connection in dev. Miniflare does not emulate external TCP services.
@@ -239,20 +249,18 @@ All tests that involve "today" or "tomorrow" must use the `toManilaDate()` / `to
 
 ## 5. CI Pipeline
 
-Runs on every push to `main` and every PR (config not yet created -- to be written during scaffolding as `.github/workflows/ci.yml`):
+Runs on every push and PR, defined in `.github/workflows/ci.yml` (path-filtered to `packages/**` and workflow/config files). One matrix job runs `lint`, `test:unit`, and `build` per package in parallel; `integration` (API `test:int`) runs after the matrix; `e2e` (Playwright) runs after both; `deploy` runs on `main` merge only:
 
 ```
-pnpm install
+pnpm install (per job)
 v
-pnpm -r lint          # ESLint + Svelte check
+test job (matrix: api | web)     # lint -> test:unit -> build (per package)
 v
-pnpm --filter web test:unit   # Vitest unit (browser, Svelte components)
+integration job                  # pnpm --filter api test:int (@cloudflare/vitest-pool-workers, real D1)
 v
-pnpm --filter api test:integration  # Vitest integration (@cloudflare/vitest-pool-workers, real D1)
+e2e job                          # pnpm -r build (VITE_API_BASE_URL=http://localhost:8787) -> test:e2e
 v
-pnpm -r build         # SvelteKit static build + Hono Worker build
-v
-pnpm --filter web test:e2e    # Playwright against locally-started dev stack
+deploy job (main only)           # D1 migrations -> wrangler deploy (api) -> build (VITE_API_BASE_URL="") -> pages deploy (web)
 ```
 
 E2E runs last because it requires a built + running app. The unit and integration steps fail fast before spending time on E2E if there are logic errors.
@@ -286,7 +294,7 @@ packages/api/src/
 ├── lib/             # Pure utility functions -- no DB access, no I/O
 ```
 
-**Frontend** (`packages/web/src/lib/services/`): domain modules wrapping `apiFetch` -- always, no exceptions. Components never call `fetch()` directly.
+**Frontend** (`packages/web/src/lib/api/`): domain modules wrapping `apiFetch` -- always, no exceptions. Components never call `fetch()` directly.
 
 ### 7.2 Why
 
@@ -381,28 +389,43 @@ Components import from `$lib/api/systems`, never from `$lib/api/client` directly
 ```
 packages/api/src/
 ├── index.ts                    # fetch + scheduled + queue exports
+├── middleware/
+│   └── require-auth.ts         # requireAuth early-return guard (Auth Integration S1.3)
 ├── routes/
 │   ├── systems.ts              # CRUD passthroughs inline; POST /confirm calls services/confirm
-│   ├── dashboard.ts             # lazy generation via services/instances, date-only filter (API Route Design S4.1)
+│   ├── dashboard.ts            # lazy generation via services/instances, date-only filter (API Route Design S4.1)
 │   ├── instances.ts
 │   ├── counter-logs.ts         # simple CRUD inline
 │   ├── timer-sessions.ts       # simple CRUD inline
 │   ├── checklist.ts
+│   ├── link-list.ts
+│   ├── notes.ts
+│   ├── journal-log.ts          # Mongo-first write, D1 fallback, queue (API Route Design S6.4)
 │   ├── schedules.ts
 │   ├── workspaces.ts
-│   ├── reviews.ts              # write-back logic calls services/reviews
+│   ├── reviews.ts              # per-system history + review-day aggregation (due-list); write-back calls services/reviews
 │   ├── templates.ts
 │   ├── attachments.ts
+│   ├── metrics.ts              # floor hold rate / review completion / streaks aggregation
+│   ├── export.ts               # full-system JSON export bundle
+│   ├── recovery.ts             # recovery-code generate/list (masked after hardening)
+│   ├── visual-aid.ts
 │   └── ai.ts
 ├── services/
 │   ├── instances.ts            # Instance generation, date-matching logic
 │   └── reviews.ts              # cross-table write-back, change_applied derivation
-├── lib/
-│   ├── auth-middleware.ts
-│   ├── ownership.ts            # getOwnedInstance, getOwnedSystem, etc.
-│   ├── calendar.ts             # dayMatchesBitmask, toManilaDate, tomorrowManilaDate
-│   ├── ai-parser.ts            # stripThinkTokens, parseSystemDraft
-│   └── layout-upgrade.ts       # upgradeLayout for workspace v1 -> v2 -> ...
+├── ai/
+│   ├── parse.ts                # stripThinkTokens, parseSystemDraft (unit-tested in ai/__tests__/parse.test.ts)
+│   └── prompts/                # system prompt templates (`system-prompt.v1.ts`)
+└── lib/
+    ├── ownership.ts            # getOwnedInstance, getOwnedSystem, etc.
+    ├── calendar.ts             # dayMatchesBitmask, toManilaDate, tomorrowManilaDate
+    ├── cursor.ts               # btoa({n,i}) pagination cursor helpers
+    ├── mongo.ts                # Mongo client wrapper (journal write path)
+    ├── recovery.ts             # generateRecoveryCode / handleRecovery
+    ├── attachments.ts          # R2 key generation, mime allowlist
+    ├── workspace.ts            # upgradeLayout for workspace v1 -> v2 -> ...
+    └── visual-aid.ts
 ```
 
 Services are only created when Rule 2's criteria are met. The rest of the API stays flat -- route handler calls D1 directly, tested in the integration layer. This keeps the codebase proportional to complexity and avoids the mock-D1 trap.

@@ -16,19 +16,23 @@
 
 This is not a compliance document, a formal threat model, or a pen-test report -- none of those are proportional to a single-user personal tool with no third-party data at risk (consistent with the "Ship it" / "Free" constraint ordering in ADR 001 S2). This document exists to answer one question per risk: **is this checked, and if the risk is accepted rather than mitigated, why.**
 
-Four risks are covered below because they're the ones that actually apply to this app's specific shape (freeform text fields, file uploads, a locked-out-user-facing unauthenticated endpoint, cross-subdomain cookies). Anything not listed here either doesn't apply to this stack (no OAuth, no third-party data sharing, no admin panel) or is already fully owned by another document and isn't duplicated.
+Four risks are covered below because they're the ones that actually apply to this app's specific shape (freeform text fields, file uploads, a locked-out-user-facing unauthenticated endpoint, session cookies). Anything not listed here either doesn't apply to this stack (no OAuth, no third-party data sharing, no admin panel) or is already fully owned by another document and isn't duplicated.
 
 ---
 
 ## 1. `POST /api/auth/recover` -- Brute-Force Exposure
 
-**The risk:** this is the one intentionally unauthenticated route in the entire API (API Route Design S1.2) -- it has to be, since the person calling it is by definition locked out. That also makes it the one endpoint an attacker can hit repeatedly without a session. The recovery flow (Auth Integration S5.2) matches on `email` + one of 3 plaintext recovery codes; with no rate limiting, an attacker who knows (or guesses) the account's email can brute-force the code space.
+**The risk:** this is the one intentionally unauthenticated route in the entire API (API Route Design S1.2) -- it has to be, since the person calling it is by definition locked out. That also makes it the one endpoint an attacker can hit repeatedly without a session. The recovery flow (Auth Integration S5.2) matches on `email` + one of 3 recovery codes; with no rate limiting, an attacker who knows (or guesses) the account's email can brute-force the code space.
 
-**Status: risk accepted for v1, with a cheap mitigation left on the table for later.**
+**Status: mitigated.** The v1 hardening pass (migration `0020`, "recovery-code hardening") closed the original accepted-risk gap:
 
-- This is a single-user personal app -- the attacker's search space is "guess the right email" *and* "guess one of 3 codes" for the one account that exists. The recovery codes themselves (`PARAGON-XXXX-XXXX`, 8 random alphanumeric chars per segment via `crypto.randomUUID()` truncation, Auth Integration S5.2) are high-entropy enough that brute-forcing the code itself is not practical even with unlimited attempts -- 36^8 per segment gives an effective search space of roughly 2.8 trillion per code. The realistic risk is closer to zero than it would be for a 4-digit PIN.
-- No lockout counter exists today. If this becomes a concern (e.g. if the app is ever opened to more users per ADR 001 S8's "if opened to additional users" contingency), the cheapest fix is an in-memory or D1-backed attempt counter per `email`, returning `429` after N failed attempts within a window -- this is a small addition to the existing `POST /api/auth/recover` handler (Auth Integration S5.2), not a new subsystem, and is the first thing to add if this document is ever revisited with more users in mind.
-- **Not doing:** CAPTCHA, IP-based blocking, or a third-party rate-limiting service (e.g. Cloudflare's own rate limiting rules) -- all disproportionate to a single-account app and each adds its own dependency/config surface.
+- **Code format:** `PARAGON-XXXX-XXXX` where each segment is **4 hex chars** (0-9A-F, derived from `crypto.randomUUID()` truncation -- UUIDs are hex, not arbitrary alphanumerics). Per segment: 16^4 = **65,536** possibilities; two segments = **32 bits** of entropy (~4.3 billion codes). For a single-user app that is ample *combined* with rate limiting (below), which is the load-bearing control.
+- **Rate limiting** on `POST /api/auth/recover`: per-email (5 attempts / 15 min) and per-IP (20 attempts / 15 min) windows. Exceeding either returns `429 { "error": "rate_limited" }`. At 5 attempts per 15 minutes, brute-forcing a 32-bit code space is not practical on any timescale the attacker would have before the lockout window resets.
+- **Hashing at rest:** codes are stored as **SHA-256 hashes** (`recovery_codes.code_hash`), never plaintext -- a D1 backup leak yields hashes, not usable codes, and the comparison is timing-safe.
+- **30-day expiry:** codes stop being usable 30 days after `created_at`, so a leaked code has a bounded lifetime and regenerating new codes rotates stale ones out.
+- **Malformed body handling:** a body that fails to parse returns `400 { "error": "invalid_json" }` rather than leaking a 500/stack trace.
+
+**Not doing:** CAPTCHA, per-account lockout beyond the rate-limit window, or a third-party rate-limiting service (e.g. Cloudflare's own rate limiting rules) -- the in-handler counters are proportional to a single-account app and each skipped option would add its own dependency/config surface.
 
 ---
 
@@ -63,7 +67,7 @@ Four risks are covered below because they're the ones that actually apply to thi
 
 ## 4. Session Cookie Hardening & CSRF
 
-Fully owned by the [Auth Integration doc](auth-integration.md) S2 (cookie config table: `httpOnly`, `secure`, `sameSite`, no explicit domain scope) and S3 (CSRF / trusted origins / Vite dev proxy header preservation). Not repeated here -- this entry exists only so this document's "have we looked at the standard risk categories" checklist is complete. See those sections directly for the actual configuration and reasoning, including the specific `sameSite: lax` justification for the cross-subdomain `*.workers.dev` deployment shape.
+Fully owned by the [Auth Integration doc](auth-integration.md) S2 (cookie config table: `httpOnly`, `secure`, `sameSite`, no explicit domain scope) and S3 (CSRF / trusted origins / Vite dev proxy header preservation). Not repeated here -- this entry exists only so this document's "have we looked at the standard risk categories" checklist is complete. See those sections directly for the actual configuration and reasoning, including the `sameSite: lax` justification: the client is served from Pages (`paragons.pages.dev`) and proxies every `/api/*` call to the Worker through a same-origin Pages Function (`functions/api/[[path]].ts`), so the request origin is always the Pages hostname -- with no third-party origins in scope, `lax` is sufficient and the `strict` tradeoff against email-link flows is unnecessary.
 
 ---
 
