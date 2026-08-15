@@ -8,15 +8,15 @@
 
 @theme {
   --color-surface: #ece2d0;
-  --color-surface-container-low: #cebebe;
-  --color-surface-container-lowest: #f5efe3;
+  --color-surface-container-low: #503b31;
+  --color-surface-container-lowest: #705d56;
   --color-on-surface: #020202;
   --color-primary: #503b31;
   --color-on-primary: #ece2d0;
-  --color-primary-container: #705d56;
+  --color-primary-container: #503b31;
   --color-secondary: #705d56;
-  --color-blush: #cebebe;
-  --color-muted: rgba(2, 2, 2, 0.04);
+  --color-blush: #705d56;
+  --color-muted: rgba(236, 226, 208, 0.04);
   --color-muted-foreground: #705d56;
   --color-border: rgba(2, 2, 2, 0.12);
   --color-outline-variant: #cebebe;
