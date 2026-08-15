@@ -5,11 +5,14 @@
     "dev": "wrangler dev",
     "deploy": "wrangler d1 migrations apply DB && wrangler deploy",
     "cf-typegen": "wrangler types --env-interface CloudflareBindings",
-    "test:integration": "vitest",
+    "test": "vitest run",
+    "test:integration": "vitest run",
     "test:unit": "vitest run",
     "test:int": "vitest run",
+    "test:watch": "vitest",
     "dev:e2e": "wrangler d1 migrations apply DB --local --config wrangler.e2e.jsonc && wrangler dev --port 8787 --config wrangler.e2e.jsonc",
     "build": "wrangler types --env-interface CloudflareBindings",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint src/"
   },
   "dependencies": {
@@ -20,9 +23,10 @@
   "devDependencies": {
     "@cloudflare/vitest-pool-workers": "^0.17.0",
     "@types/node": "^26.1.0",
-    "eslint": "^9.0.0",
-    "@typescript-eslint/parser": "^8.0.0",
     "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.0.0",
+    "typescript": "^5.9.0",
     "vitest": "^4.1.9",
     "wrangler": "^4.4.0"
   }

@@ -2,48 +2,6 @@ import { Hono } from 'hono';
 import type { User, Session } from 'better-auth/types';
 import { requireAuth } from '../middleware/require-auth';
 
-export interface StreakResult {
-    current: number;
-    longest: number;
-}
-
-export function calculateServerStreak(instances: { date: string; state: string }[]): StreakResult {
-    // Sort ascending by date for sequential scan
-    const sorted = [...instances].sort((a, b) => a.date.localeCompare(b.date));
-
-    let currentRun = 0;
-    let longest = 0;
-
-    for (const inst of sorted) {
-        if (inst.state === 'full' || inst.state === 'floor') {
-            currentRun++;
-            if (currentRun > longest) longest = currentRun;
-        } else if (inst.state === 'missed') {
-            currentRun = 0;
-        }
-        // 'pending'
-    }
-
-    // Current streak: walk descending from most recent non-pending date
-    const desc = [...instances].sort((a, b) => b.date.localeCompare(a.date));
-    let current = 0;
-    let started = false;
-
-    for (const inst of desc) {
-        if (!started && inst.state === 'pending') continue; // skip today if undecided
-        started = true;
-
-        if (inst.state === 'full' || inst.state === 'floor') {
-            current++;
-        } else if (inst.state === 'missed') {
-            break;
-        }
-        if (inst.state === 'pending') break;
-    }
-
-    return { current, longest };
-}
-
 const app = new Hono<{
     Bindings: CloudflareBindings;
     Variables: { user: User; session: Session };
@@ -100,10 +58,43 @@ app.get('/', async (c) => {
     const survivalWeeks = Math.floor(survivalRow?.survival_weeks ?? 0);
     const totalDue = survivalWeeks > 0 ? survivalWeeks : 1;
 
-    const { results: instances } = await db.prepare(
-        "SELECT date, state FROM instances WHERE system_id = ? AND state != 'pending' ORDER BY date DESC"
-    ).bind(systemId).all<{ date: string; state: string }>();
-    const streak = calculateServerStreak(instances.map(i => ({ date: i.date, state: i.state })));
+    const streakRow = await db.prepare(`
+        WITH base AS (
+            SELECT date, state FROM instances
+            WHERE system_id = ? AND state != 'pending'
+        ),
+        tagged AS (
+            SELECT date, state,
+                CASE
+                    WHEN state = 'missed'
+                      OR julianday(date) - julianday(LAG(date) OVER (ORDER BY date)) <> 1
+                    THEN 1 ELSE 0
+                END AS breaker
+            FROM base
+        ),
+        islands AS (
+            SELECT date, state,
+                SUM(breaker) OVER (ORDER BY date) AS grp
+            FROM tagged
+        ),
+        runs AS (
+            SELECT grp, COUNT(*) AS run_len, MAX(date) AS run_end
+            FROM islands
+            WHERE state IN ('full', 'floor')
+            GROUP BY grp
+        ),
+        latest AS (
+            SELECT date, state FROM base ORDER BY date DESC LIMIT 1
+        )
+        SELECT
+            CASE
+                WHEN (SELECT state FROM latest) = 'missed' THEN 0
+                ELSE COALESCE((SELECT run_len FROM runs WHERE run_end = (SELECT date FROM latest)), 0)
+            END AS current,
+            COALESCE((SELECT MAX(run_len) FROM runs), 0) AS longest
+    `).bind(systemId).first<{ current: number; longest: number }>();
+    const current = streakRow?.current ?? 0;
+    const longest = streakRow?.longest ?? 0;
 
     const { total: totalInstances } = (await db.prepare(
         "SELECT COUNT(*) as total FROM instances WHERE system_id = ? AND state != 'pending'"
@@ -117,7 +108,7 @@ app.get('/', async (c) => {
             total_due: totalDue,
             with_changes: reviewData?.with_changes ?? 0,
         },
-        current_streak: { current: streak.current, longest: streak.longest },
+        current_streak: { current, longest },
         total_instances: totalInstances,
         survival_weeks: survivalWeeks,
     });

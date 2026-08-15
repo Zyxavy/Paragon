@@ -101,7 +101,7 @@ systemInstanceRoutes.get('/:system_id/instances', async (c) => {
     if (cursor) {
         const decoded = decodeDateCursor(cursor);
         if (decoded) {
-            conditions.push('(date > ? OR (date = ? AND id > ?))');
+            conditions.push('(date < ? OR (date = ? AND id < ?))');
             params.push(decoded.date, decoded.date, decoded.id);
         }
     }

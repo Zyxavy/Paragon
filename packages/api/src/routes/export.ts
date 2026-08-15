@@ -50,6 +50,7 @@ app.get('/', async (c) => {
 
     let journalEntries: any[] = [];
     try {
+        if (!c.env.MONGODB_URI) throw new Error('MONGODB_URI not configured');
         const client = await getMongoClient(c.env.MONGODB_URI);
         const collection = client.db().collection('journal_entries');
         journalEntries = await collection.find({ system_id: systemId }).toArray() as any[];

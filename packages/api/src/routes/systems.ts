@@ -326,22 +326,11 @@ app.delete('/:id', async (c) => {
         });
     }
 
-    // Step 3: Delete attachments D1 rows
+    // Step 3: Delete attachments D1 rows (single statement, no per-workspace loop)
     if (attachmentKeys.length > 0) {
-        const workspaceIds = new Set<string>();
-        const { results: workspaceRows } = await db.prepare(
-            'SELECT id FROM workspaces WHERE system_id = ?'
-        ).bind(systemId).all<{ id: string }>();
-
-        for (const w of workspaceRows) {
-            workspaceIds.add(w.id);
-        }
-
-        for (const wsId of workspaceIds) {
-            await db.prepare(
-                'DELETE FROM attachments WHERE workspace_id = ?'
-            ).bind(wsId).run();
-        }
+        await db.prepare(
+            'DELETE FROM attachments WHERE workspace_id IN (SELECT id FROM workspaces WHERE system_id = ?)'
+        ).bind(systemId).run();
     }
 
     // Step 4: Delete system row — D1 cascades handle schedules, instances, reviews, workspaces, widget_entries

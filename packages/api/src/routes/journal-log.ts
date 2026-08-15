@@ -80,8 +80,9 @@ app.post('/instances/:instance_id/journal_log/:widget_id', async (c) => {
 
     //Attempt direct-write path
     try {
+        if (!c.env.MONGODB_URI) throw new Error('MONGODB_URI not configured');
         const client = await getMongoClient(c.env.MONGODB_URI);
-        const collection = client.db().collection('journal_entries');
+        const collection = client.db().collection<{ _id: string } & Record<string, unknown>>('journal_entries');
 
         await collection.insertOne({
             _id: entryId,
@@ -170,6 +171,7 @@ app.get('/instances/:instance_id/journal_log/:widget_id', async (c) => {
         // Source 1: MongoDB (primary). Unavailable => empty list.
         let mongoEntries: JournalEntryResult[] = [];
         try {
+            if (!c.env.MONGODB_URI) throw new Error('MONGODB_URI not configured');
             const client = await getMongoClient(c.env.MONGODB_URI);
             const collection = client.db().collection('journal_entries');
 
