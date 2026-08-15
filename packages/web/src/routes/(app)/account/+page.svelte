@@ -3,6 +3,9 @@
   import { regenerateRecoveryCodes, getRecoveryCodes } from '$lib/api/recovery-codes';
   import type { RecoveryCode } from '$lib/api/recovery-codes';
   import { ApiError } from '$lib/api/client';
+  import Moon from '@lucide/svelte/icons/moon';
+  import Sun from '@lucide/svelte/icons/sun';
+  import { themeStore } from '$lib/stores/theme.svelte';
 
   let { data } = $props();
 
@@ -58,6 +61,25 @@
         <span>{session?.user?.name ?? '—'}</span>
       </div>
     </div>
+  </section>
+
+  <!-- Appearance section -->
+  <section class="bg-surface-container-lowest rounded-xl p-6 shadow-ambient-sm">
+    <h2 class="font-body text-base font-semibold text-on-surface mb-4">Appearance</h2>
+    <button
+      onclick={themeStore.toggle}
+      class="flex items-center gap-2 px-4 py-2 rounded-2xl bg-surface-container-low text-on-surface
+             text-sm font-medium transition-all duration-200 hover:bg-muted cursor-pointer"
+      aria-label={themeStore.theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+    >
+      {#if themeStore.theme === 'light'}
+        <Moon class="w-4 h-4" />
+        <span>Dark mode</span>
+      {:else}
+        <Sun class="w-4 h-4" />
+        <span>Light mode</span>
+      {/if}
+    </button>
   </section>
 
   <!-- Recovery Codes section -->
