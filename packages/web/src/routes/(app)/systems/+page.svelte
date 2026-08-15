@@ -1,14 +1,15 @@
 <script lang="ts">
   import { Clock, Sparkles } from '@lucide/svelte';
   import { goto } from '$app/navigation';
+  import type { System } from '$lib/api/systems';
 
   let { data } = $props();
 
   let ready = $state(false);
   let loadError = $state(false);
-  let systems: any[] = $state([]);
+  let systems: System[] = $state([]);
   let next_cursor: string | null = $state(null);
-  let todayMap: Record<string, any> = $state({});
+  let todayMap: Record<string, { state: string }> = $state({});
   let currentStatus = $state('active');
 
   $effect(() => {

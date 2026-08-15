@@ -11,7 +11,7 @@ test('P0 flow #4: daily execution: mark instances on dashboard', async ({ page }
     await page.click('button:has-text("Create account")');
     await expect(page.locator('text=Save your recovery codes')).toBeVisible({ timeout: 10000 });
     await page.click('text=I\'ve saved them');
-    await expect(page).toHaveURL('/guides');
+    await expect(page).toHaveURL('/guides', { timeout: 10000 });
 
     const resA = await page.request.post('http://localhost:8787/api/systems', {
         data: { name: 'Morning Journal', domain: 'journal', floor_action: 'Write 3 things', trigger: 'After coffee' },

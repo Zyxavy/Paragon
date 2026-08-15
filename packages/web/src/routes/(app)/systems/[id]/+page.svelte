@@ -3,6 +3,7 @@
     import { saveAsTemplate } from '$lib/api/templates';
     import { exportSystem } from '$lib/api/export';
     import { pauseSystem, unarchiveSystem, deleteSystem } from '$lib/api/systems';
+    import { clearCache } from '$lib/api/cache';
     import { addToast } from '$lib/stores/toast.svelte';
     import Modal from '$lib/components/Modal.svelte';
     import MarkdownText from '$lib/components/MarkdownText.svelte';
@@ -10,7 +11,17 @@
     import { visualAidSrc } from '$lib/api/visual-aid';
 
     let { data } = $props();
-    let system = $state(data.system);
+    // Shallow copy so reassignment of data.system by the layout doesn't alias
+    // the local copy, while local mutations (pause/resume) keep working.
+    let system = $state({ ...data.system });
+
+    // Re-sync from the server snapshot only when it is actually newer than the
+    // local copy, so in-page edits are never clobbered by a stale layout reload.
+    $effect(() => {
+        if (data.system && data.system.updated_at > system.updated_at) {
+            system = data.system;
+        }
+    });
 
     let showTemplateModal = $state(false);
     let templateName = $state('');
@@ -57,6 +68,7 @@
         try {
             const updated = await pauseSystem(system.id);
             system = updated;
+            clearCache();
             addToast('success', 'System paused');
         } catch {
             addToast('error', 'Failed to pause system');
@@ -71,6 +83,7 @@
         try {
             const updated = await unarchiveSystem(system.id);
             system = updated;
+            clearCache();
             addToast('success', 'System resumed');
         } catch {
             addToast('error', 'Failed to resume system');
@@ -85,6 +98,7 @@
         deleting = true;
         try {
             await deleteSystem(system.id);
+            clearCache();
             addToast('success', 'System deleted');
             goto('/systems');
         } catch {

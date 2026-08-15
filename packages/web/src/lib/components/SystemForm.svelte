@@ -2,6 +2,7 @@
   import { createSystem, patchSystem, confirmSystem } from '$lib/api/systems';
   import { ApiError } from '$lib/api/client';
   import type { System } from '$lib/api/systems';
+  import { clearCache } from '$lib/api/cache';
   import { AUTOSAVE_DEBOUNCE_MS } from './system-form.config';
   import SchedulePicker from './SchedulePicker.svelte';
   import { Check } from '@lucide/svelte';
@@ -14,7 +15,7 @@
       name?: string;
       purpose?: string;
       philosophy?: string;
-      protocol?: string;
+      protocol?: string | string[];
       floor_action?: string;
       trigger?: string;
       barrier_list?: string[];
@@ -90,7 +91,16 @@
     autosaveTimer = setTimeout(doAutosave, AUTOSAVE_DEBOUNCE_MS);
   }
 
+  // Clear the pending debounce timer when the form unmounts.
+  $effect(() => () => {
+    if (autosaveTimer) {
+      clearTimeout(autosaveTimer);
+      autosaveTimer = null;
+    }
+  });
+
   async function doAutosave() {
+    if (saving) return;
     if (!name.trim()) return;
     saving = true;
     try {
@@ -109,6 +119,7 @@
       if (!systemId) {
         const created = await createSystem(payload);
         systemId = created.id;
+        clearCache();
       } else {
         await patchSystem(systemId, payload);
       }
@@ -135,13 +146,17 @@
   }
 
   async function handleConfirm() {
+    if (saving) return;
     if (!systemId) {
       await doAutosave();
+      // Autosave failed to create the system — abort the confirm.
       if (!systemId) return;
     }
 
-    confirmError = null;
+    // Set synchronously before awaiting so a second submit can't overlap the confirm.
+    saving = true;
     try {
+      confirmError = null;
       await confirmSystem(systemId);
     } catch (e) {
       if (e instanceof ApiError && e.code === 'floor_action_required') {
@@ -149,6 +164,8 @@
       } else {
         throw e;
       }
+    } finally {
+      saving = false;
     }
   }
 </script>
@@ -265,7 +282,7 @@
       <div class="field-group">
         <p class="font-body text-sm font-medium text-on-surface">What usually gets in the way?</p>
         <div class="flex flex-wrap gap-2 mt-1 mb-2">
-          {#each barrier_list as barrier, i}
+          {#each barrier_list as barrier, i (i)}
             <span class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-body text-primary">
               {barrier}
               <button type="button" onclick={() => removeBarrier(i)} class="hover:text-destructive">&times;</button>
@@ -312,7 +329,9 @@
           value={reference_table}
           onchange={(v) => { reference_table = v; scheduleAutosave(); }}
           rows={4}
-          placeholder={'| Trigger | Action |\n|---|---|\n| Alarm | Stand up |'}
+          placeholder="| Trigger | Action |
+|---|---|
+| Alarm | Stand up |"
           hint="A Markdown table is rendered as a table on the detail page; other content renders as prose."
         />
       </div>
@@ -365,7 +384,7 @@
       {#if saving}
         <span class="text-xs text-muted-foreground font-body">Autosaving&hellip;</span>
       {/if}
-      <button type="submit" disabled={!name.trim()}
+      <button type="submit" disabled={!name.trim() || saving}
               class="rounded-2xl bg-gradient-to-br from-primary to-primary-container text-on-primary
                      px-8 py-3 font-semibold text-sm
                      disabled:opacity-50 transition-all duration-200

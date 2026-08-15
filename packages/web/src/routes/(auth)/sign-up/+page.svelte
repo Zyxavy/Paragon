@@ -1,7 +1,8 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { authClient } from '$lib/auth-client';
-  import { apiFetch } from '$lib/api/client';
+  import { regenerateRecoveryCodes } from '$lib/api/recovery-codes';
+  import Modal from '$lib/components/Modal.svelte';
   import { LoaderCircle } from '@lucide/svelte';
 
   let name = $state('');
@@ -23,7 +24,8 @@
       return;
     }
     try {
-      const { codes: generated } = await apiFetch<{ codes: string[] }>('/api/recovery-codes/generate', { method: 'POST' });
+      // Raw codes are returned exactly once here — show them for safekeeping.
+      const { codes: generated } = await regenerateRecoveryCodes();
       codes = generated;
     } catch {
       goto('/guides');
@@ -110,36 +112,33 @@
 </div>
 
 {#if codes}
-  <div class="fixed inset-0 bg-on-surface/30 backdrop-blur-sm z-40 flex items-center justify-center p-4">
-    <div class="bg-surface-container-lowest text-on-surface rounded-xl p-8 shadow-ambient-lg max-w-md w-full">
-      <h2 class="font-display text-lg font-semibold text-on-surface mb-2">Save your recovery codes</h2>
-      <p class="font-body text-sm text-muted-foreground mb-6">
-        Each code can be used once to sign in if you lose access to your account.
-      </p>
+  <Modal open={codes !== null} title="Save your recovery codes" onclose={handleDone}>
+    <p class="font-body text-sm text-muted-foreground mb-6">
+      Each code can be used once to sign in if you lose access to your account.
+    </p>
 
-      <div class="bg-surface-container-low rounded-xl p-4 mb-6 font-mono text-sm text-on-surface space-y-2">
-        {#each codes as code}
-          <div class="flex items-center justify-between">
-            <span>{code}</span>
-            <span class="text-blush text-xs font-medium">unused</span>
-          </div>
-        {/each}
-      </div>
-
-      <div class="flex flex-col gap-3">
-        <button onclick={copyCodes}
-                class="w-full bg-surface-container-low text-on-surface py-3 rounded-2xl font-semibold
-                       transition-all duration-200 hover:bg-muted cursor-pointer">
-          Copy codes
-        </button>
-        <button onclick={handleDone}
-                class="w-full bg-gradient-to-br from-primary to-primary-container text-on-primary
-                       py-3 rounded-2xl font-semibold
-                       transition-all duration-200 hover:opacity-90 active:scale-[0.98]
-                       cursor-pointer">
-          I've saved them, let's go
-        </button>
-      </div>
+    <div class="bg-surface-container-low rounded-xl p-4 mb-6 font-mono text-sm text-on-surface space-y-2">
+      {#each codes as code}
+        <div class="flex items-center justify-between">
+          <span>{code}</span>
+          <span class="text-blush text-xs font-medium">unused</span>
+        </div>
+      {/each}
     </div>
-  </div>
+
+    <div class="flex flex-col gap-3">
+      <button onclick={copyCodes}
+              class="w-full bg-surface-container-low text-on-surface py-3 rounded-2xl font-semibold
+                     transition-all duration-200 hover:bg-muted cursor-pointer">
+        Copy codes
+      </button>
+      <button onclick={handleDone}
+              class="w-full bg-gradient-to-br from-primary to-primary-container text-on-primary
+                     py-3 rounded-2xl font-semibold
+                     transition-all duration-200 hover:opacity-90 active:scale-[0.98]
+                     cursor-pointer">
+        I've saved them, let's go
+      </button>
+    </div>
+  </Modal>
 {/if}

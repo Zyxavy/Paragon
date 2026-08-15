@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { page } from '$app/stores';
+    import { page } from '$app/state';
     import { goto } from '$app/navigation';
 
     let { error } = $props();
@@ -10,7 +10,7 @@
         <span class="text-2xl font-bold">!</span>
     </div>
     <h1 class="font-display text-xl font-semibold text-on-surface mb-2">
-        {$page.status === 404 ? 'Not found' : 'Something went wrong'}
+        {page.status === 404 ? 'Not found' : 'Something went wrong'}
     </h1>
     <p class="font-body text-sm text-muted-foreground text-center max-w-sm mb-6">
         {error?.message ?? 'An unexpected error occurred.'}

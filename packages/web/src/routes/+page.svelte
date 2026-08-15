@@ -23,6 +23,13 @@
     { state: 'full', label: 'Full' },
   ];
 
+  // Deterministic heights — computed once in the script, never in the template,
+  // so the bar chart renders identically on every render.
+  const streakBars = [1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1].map((val, i) => ({
+    active: val === 1,
+    height: val === 1 ? 60 + (i % 4) * 13 : 10,
+  }));
+
   function reveal(node: HTMLElement) {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -139,10 +146,10 @@
             <span class="font-body text-sm font-semibold text-on-surface">The streak model</span>
           </div>
           <div class="flex items-end gap-1.5 sm:gap-2 h-24 sm:h-28 mb-4">
-            {#each [1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1] as val}
+            {#each streakBars as bar}
               <div
-                class="w-4 sm:w-5 md:w-6 rounded-t-md transition-all duration-500 {val === 1 ? 'bg-primary/60' : 'bg-destructive/30'}"
-                style="height: {val === 1 ? 60 + Math.random() * 40 : 10}%;"></div>
+                class="w-4 sm:w-5 md:w-6 rounded-t-md transition-all duration-500 {bar.active ? 'bg-primary/60' : 'bg-destructive/30'}"
+                style="height: {bar.height}%;"></div>
             {/each}
           </div>
           <p class="font-body text-sm text-muted-foreground leading-relaxed">

@@ -1,6 +1,8 @@
 <script lang="ts">
-  import { page } from '$app/stores';
+  import { page } from '$app/state';
+  import { goto } from '$app/navigation';
   import { authClient } from '$lib/auth-client';
+  import { invalidateCachedSession } from '$lib/auth/session.svelte';
   import LayoutDashboard from '@lucide/svelte/icons/layout-dashboard';
   import Cog from '@lucide/svelte/icons/cog';
   import ClipboardCheck from '@lucide/svelte/icons/clipboard-check';
@@ -10,13 +12,15 @@
   import type { Component } from 'svelte';
   import UserCircle from '@lucide/svelte/icons/user-circle';
 
+  type Session = NonNullable<Awaited<ReturnType<typeof authClient.getSession>>['data']>;
+
   let { session, collapsed, ontoggle }: {
-    session: any;
+    session: Session | null;
     collapsed: boolean;
     ontoggle: () => void;
   } = $props();
 
-  let active = $derived($page.url.pathname);
+  let active = $derived(page.url.pathname);
 
   interface NavItem {
     label: string;
@@ -117,7 +121,7 @@
       <span class:hidden={collapsed}>Account</span>
     </a>
     <button
-      onclick={async () => { await authClient.signOut(); window.location.href = '/'; }}
+      onclick={async () => { await authClient.signOut(); invalidateCachedSession(); goto('/'); }}
       class="text-left text-sm text-muted-foreground hover:text-on-surface px-3 py-2 rounded-lg font-body
              transition-colors duration-150 hover:bg-muted cursor-pointer w-full"
       class:hidden={collapsed}

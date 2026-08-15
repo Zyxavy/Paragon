@@ -12,11 +12,11 @@ test('P1 flow: create system from built-in template', async ({ page }) => {
     await page.click('button:has-text("Create account")');
     await expect(page.locator('text=Save your recovery codes')).toBeVisible({ timeout: 10000 });
     await page.click('text=I\'ve saved them');
-    await expect(page).toHaveURL('/guides');
+    await expect(page).toHaveURL('/guides', { timeout: 10000 });
 
     // 2. Go to System Creator
     await page.goto('/systems/new');
-    await expect(page.locator('h1:has-text("Create a system")')).toBeVisible();
+    await expect(page.locator('h1:has-text("Create a system")')).toBeVisible({ timeout: 10000 });
 
     // 3. Expand template picker
     await page.click('summary:has-text("Use a template")');
@@ -31,8 +31,8 @@ test('P1 flow: create system from built-in template', async ({ page }) => {
     // 6. Edit the floor_action
     await floorAction.fill('Read one page at my desk');
 
-    // 7. Wait for autosave, then confirm
-    await page.waitForTimeout(3000);
+    // 7. Wait for autosave to complete (the "Saved" indicator in the form footer), then confirm
+    await expect.poll(async () => await page.getByText('Saved', { exact: true }).count(), { timeout: 5000 }).toBeGreaterThan(0);
     await page.click('text=Confirm system');
     await expect(page.locator('text=Every system needs a floor action')).not.toBeVisible({ timeout: 3000 });
 

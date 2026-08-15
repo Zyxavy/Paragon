@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { Eye, EyeOff } from '@lucide/svelte';
   import Modal from '$lib/components/Modal.svelte';
-  import { regenerateRecoveryCodes, getRecoveryCodes, maskCode } from '$lib/api/recovery-codes';
+  import { regenerateRecoveryCodes, getRecoveryCodes } from '$lib/api/recovery-codes';
   import type { RecoveryCode } from '$lib/api/recovery-codes';
   import { ApiError } from '$lib/api/client';
 
@@ -9,37 +8,37 @@
 
   let codes = $state<RecoveryCode[]>(data.codes);
   let loadError = $state<string | null>(data.error);
-  let revealed = $state<Set<string>>(new Set());
   let showRegenConfirm = $state(false);
   let regenError = $state<string | null>(null);
   let regenerating = $state(false);
+  // Raw codes returned exactly once by the regenerate endpoint — shown once.
+  let newCodes: string[] | null = $state(null);
 
   let session = $derived(data.session);
-
-  function toggleReveal(id: string) {
-    const next = new Set(revealed);
-    if (next.has(id)) {
-      next.delete(id);
-    } else {
-      next.add(id);
-    }
-    revealed = next;
-  }
 
   async function handleRegenerate() {
     regenerating = true;
     regenError = null;
     try {
-      await regenerateRecoveryCodes();
+      const { codes: generated } = await regenerateRecoveryCodes();
+      showRegenConfirm = false;
+      newCodes = generated;
+      // Refresh the stored (masked) list behind the once-only display.
       const fresh = await getRecoveryCodes();
       codes = fresh.codes;
-      revealed = new Set();
-      showRegenConfirm = false;
     } catch (e) {
       regenError = e instanceof ApiError ? e.message : 'Failed to regenerate codes.';
     } finally {
       regenerating = false;
     }
+  }
+
+  function handleNewCodesDone() {
+    newCodes = null;
+  }
+
+  async function copyNewCodes() {
+    if (newCodes) await navigator.clipboard.writeText(newCodes.join('\n'));
   }
 </script>
 
@@ -73,21 +72,13 @@
     {:else if codes.length === 0}
       <p class="text-sm text-muted-foreground mb-4">No recovery codes available. Generate some below.</p>
     {:else}
+      <p class="font-body text-xs text-muted-foreground mb-4">
+        Recovery codes are only shown in full once — at sign-up or when you regenerate them. They are masked here for your safety.
+      </p>
       <div class="space-y-3 mb-6">
         {#each codes as rc (rc.id)}
           <div class="flex items-center justify-between bg-surface-container-low rounded-xl px-4 py-3">
-            <span class="font-mono text-sm text-on-surface">
-              {revealed.has(rc.id) ? rc.code : maskCode(rc.code)}
-            </span>
-            <button onclick={() => toggleReveal(rc.id)}
-                    class="text-muted-foreground hover:text-on-surface transition-colors cursor-pointer p-1 rounded"
-                    aria-label={revealed.has(rc.id) ? 'Hide code' : 'Show code'}>
-              {#if revealed.has(rc.id)}
-                <EyeOff class="w-4 h-4" />
-              {:else}
-                <Eye class="w-4 h-4" />
-              {/if}
-            </button>
+            <span class="font-mono text-sm text-on-surface">{rc.masked_code}</span>
           </div>
         {/each}
       </div>
@@ -125,3 +116,33 @@
     </button>
   </div>
 </Modal>
+
+{#if newCodes}
+  <Modal open={newCodes !== null} title="Save your new recovery codes" onclose={handleNewCodesDone}>
+    <p class="text-sm text-muted-foreground mb-6">
+      Your old codes are now invalid. Each of these can be used once to sign in.
+    </p>
+    <div class="bg-surface-container-low rounded-xl p-4 mb-6 font-mono text-sm text-on-surface space-y-2">
+      {#each newCodes as code}
+        <div class="flex items-center justify-between">
+          <span>{code}</span>
+          <span class="text-blush text-xs font-medium">unused</span>
+        </div>
+      {/each}
+    </div>
+    <div class="flex flex-col gap-3">
+      <button onclick={copyNewCodes}
+              class="w-full bg-surface-container-low text-on-surface py-3 rounded-2xl font-semibold
+                     transition-all duration-200 hover:bg-muted cursor-pointer">
+        Copy codes
+      </button>
+      <button onclick={handleNewCodesDone}
+              class="w-full bg-gradient-to-br from-primary to-primary-container text-on-primary
+                     py-3 rounded-2xl font-semibold
+                     transition-all duration-200 hover:opacity-90 active:scale-[0.98]
+                     cursor-pointer">
+        I've saved them
+      </button>
+    </div>
+  </Modal>
+{/if}

@@ -1,7 +1,6 @@
 <script lang="ts">
     import { Settings, Play, Square } from '@lucide/svelte';
     import { createTimerSession, getTimerSessions } from '$lib/api/timer-sessions';
-    import { ApiError } from '$lib/api/client';
     import type { Widget } from '$lib/api/workspaces';
 
     let { widget, instanceId }: { widget: Widget; instanceId: string | null } = $props();
@@ -16,7 +15,6 @@
     let durationSecs = $state((() => widget.config?.duration_secs ?? 0)());
     let isCountdown = $derived(durationSecs > 0);
     let display = $derived(isCountdown ? Math.max(0, durationSecs - elapsed) : elapsed);
-    let isFinished = $derived(isCountdown && durationSecs > 0 && elapsed >= durationSecs);
 
     function playBeep() {
         try {
@@ -48,18 +46,22 @@
         } catch { /* silent */ }
     }
 
+    /** Countdown hit zero: stop ticking, beep, and persist the session. */
+    function finishCountdown() {
+        if (intervalId) clearInterval(intervalId);
+        intervalId = null;
+        timerState = 'saving';
+        playBeep();
+        saveSession();
+    }
+
     function startTimer() {
-        if (isFinished) elapsed = 0;
         timerState = 'running';
         startedAt = new Date().toISOString();
         intervalId = setInterval(() => {
             elapsed++;
             if (isCountdown && elapsed >= durationSecs) {
-                clearInterval(intervalId!);
-                intervalId = null;
-                timerState = 'saving';
-                playBeep();
-                saveSession();
+                finishCountdown();
             }
         }, 1000);
     }
@@ -87,7 +89,12 @@
             startedAt = null;
         } catch {
             timerState = 'running';
-            intervalId = setInterval(() => { elapsed++; }, 1000);
+            intervalId = setInterval(() => {
+                elapsed++;
+                if (isCountdown && elapsed >= durationSecs) {
+                    finishCountdown();
+                }
+            }, 1000);
         }
     }
 
@@ -109,6 +116,7 @@
                 bind:value={durationSecs}
                 onchange={() => { if (durationSecs < 0) durationSecs = 0; }}
                 disabled={timerState !== 'idle'}
+                aria-label="Duration in seconds"
                 class="w-20 text-sm text-center bg-surface-container-lowest rounded-lg px-2 py-1 outline-none ring-1 ring-inset ring-outline focus:ring-2 focus:ring-primary disabled:opacity-40"
             />
             <span class="text-xs text-muted-foreground">sec (0 = stopwatch)</span>
@@ -143,7 +151,7 @@
                        hover:opacity-90 active:scale-[0.98] transition-all duration-200 flex items-center gap-2"
             >
                 <Play class="w-4 h-4" />
-                {isCountdown ? 'Start' : 'Start'}
+                Start
             </button>
         {:else if timerState === 'running'}
             <button

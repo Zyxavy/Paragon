@@ -6,7 +6,20 @@
   import type { Template } from '$lib/api/templates';
   import type { SystemDraft } from '$lib/api/ai';
 
-  let formDefaults = $state<{ [key: string]: any } | undefined>(undefined);
+  interface SystemFormDefaults {
+    name?: string;
+    purpose?: string;
+    philosophy?: string;
+    protocol?: string | string[];
+    floor_action?: string;
+    trigger?: string;
+    barrier_list?: string[];
+    environment_cue?: string;
+    reference_table?: string;
+    success_metric?: string;
+  }
+
+  let formDefaults = $state<SystemFormDefaults | undefined>(undefined);
 
   function onTemplateSelect(tpl: Template) {
     formDefaults = {

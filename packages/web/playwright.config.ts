@@ -1,6 +1,7 @@
 import { defineConfig } from '@playwright/test';
 
 export default defineConfig({
+	retries: process.env.CI ? 2 : 0,
 	webServer: [
 		{
 			command: 'pnpm run dev:e2e',

@@ -1,11 +1,12 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import type { Review } from '$lib/api/reviews';
 
   let { data } = $props();
 
   let ready = $state(false);
   let loadError = $state(false);
-  let reviews: any[] = $state([]);
+  let reviews: Review[] = $state([]);
   let next_cursor: string | null = $state(null);
   let systemId: string = $state('');
 

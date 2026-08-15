@@ -1,5 +1,6 @@
 import { putWorkspace } from '$lib/api/workspaces';
 import type { Layout, Widget } from '$lib/api/workspaces';
+import { addToast } from '$lib/stores/toast.svelte';
 
 const CURRENT_LAYOUT_VERSION = 1;
 
@@ -126,8 +127,13 @@ export class WorkspaceEditorStore {
     }
 
     async save() {
-        const saved = await putWorkspace(this.systemId, this.layout);
-        this.layout = saved.layout;
-        this.dirty = false;
+        try {
+            const saved = await putWorkspace(this.systemId, this.layout);
+            this.layout = saved.layout;
+            this.dirty = false;
+        } catch {
+            // Keep dirty=true so unsaved changes aren't silently lost.
+            addToast('error', 'Failed to save workspace');
+        }
     }
 }

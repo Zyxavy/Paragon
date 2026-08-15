@@ -1,11 +1,10 @@
 import { page } from 'vitest/browser';
 import { describe, it, expect, vi } from 'vitest';
 import { render } from 'vitest-browser-svelte';
-import { readable } from 'svelte/store';
 import NavBar from './NavBar.svelte';
 
-vi.mock('$app/stores', () => ({
-    page: readable({ url: { pathname: '/dashboard' } }),
+vi.mock('$app/state', () => ({
+    page: { url: { pathname: '/dashboard' } },
 }));
 
 vi.mock('$lib/auth-client', () => ({
