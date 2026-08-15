@@ -211,7 +211,7 @@
         </button>
       {:else}
         <button onclick={handleUnarchive} disabled={pausing}
-                class="rounded-xl bg-gradient-to-br from-primary to-primary-container text-on-primary
+                class="rounded-xl bg-primary text-on-primary
                        px-5 py-2.5 text-sm font-body font-semibold
                        transition-all duration-200 hover:opacity-90 active:scale-[0.98]
                        disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
@@ -234,7 +234,7 @@
       <p class="font-body text-xs text-muted-foreground mt-0.5">Reuse this system's structure for a new one</p>
     </div>
     <button onclick={() => { templateName = system.name; showTemplateModal = true; }}
-            class="rounded-2xl bg-gradient-to-br from-primary to-primary-container text-on-primary
+            class="rounded-2xl bg-primary text-on-primary
                    px-5 py-2.5 text-sm font-body font-semibold
                    transition-all duration-200 hover:opacity-90 active:scale-[0.98]
                    cursor-pointer">
@@ -248,7 +248,7 @@
       <p class="font-body text-xs text-muted-foreground mt-0.5">Download this system's data as a JSON file</p>
     </div>
     <button onclick={handleExport} disabled={exporting}
-            class="rounded-2xl bg-gradient-to-br from-primary to-primary-container text-on-primary
+            class="rounded-2xl bg-primary text-on-primary
                    px-5 py-2.5 text-sm font-body font-semibold
                    transition-all duration-200 hover:opacity-90 active:scale-[0.98]
                    disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
@@ -268,7 +268,7 @@
                 class="rounded-xl border border-border text-on-surface px-4 py-2 text-sm font-body font-medium
                        transition-colors duration-150 hover:bg-surface/50 cursor-pointer">Cancel</button>
         <button onclick={handleSaveAsTemplate}
-                class="rounded-2xl bg-gradient-to-br from-primary to-primary-container text-on-primary
+                class="rounded-2xl bg-primary text-on-primary
                        px-4 py-2 text-sm font-body font-semibold cursor-pointer">Save</button>
     </div>
 </Modal>

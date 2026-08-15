@@ -42,7 +42,7 @@
     <h2 class="font-body text-lg font-semibold text-on-surface">Couldn't load reviews</h2>
     <p class="font-body text-sm text-muted-foreground text-center max-w-sm">Something went wrong.</p>
     <button onclick={() => location.reload()}
-            class="bg-gradient-to-br from-primary to-primary-container text-on-primary
+            class="bg-primary text-on-primary
                    px-5 py-2.5 rounded-2xl font-semibold text-sm mt-2 cursor-pointer">
       Try again
     </button>
@@ -51,7 +51,7 @@
   <div class="flex items-center justify-between mb-6">
     <h2 class="font-display text-xl font-semibold text-on-surface">Reviews</h2>
     <a href="/systems/{systemId}/reviews/new"
-       class="bg-gradient-to-br from-primary to-primary-container text-on-primary
+       class="bg-primary text-on-primary
               px-4 py-2 rounded-2xl text-sm font-semibold
               transition-all duration-200 hover:opacity-90 active:scale-[0.98] cursor-pointer">
       + New review

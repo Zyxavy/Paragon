@@ -111,7 +111,7 @@
     {/if}
 
     <button onclick={() => showRegenConfirm = true} disabled={regenerating}
-            class="bg-gradient-to-br from-primary to-primary-container text-on-primary
+            class="bg-primary text-on-primary
                    px-5 py-2.5 rounded-2xl text-sm font-semibold
                    transition-all duration-200 hover:opacity-90 active:scale-[0.98]
                    disabled:opacity-40 cursor-pointer">
@@ -159,7 +159,7 @@
         Copy codes
       </button>
       <button onclick={handleNewCodesDone}
-              class="w-full bg-gradient-to-br from-primary to-primary-container text-on-primary
+              class="w-full bg-primary text-on-primary
                      py-3 rounded-2xl font-semibold
                      transition-all duration-200 hover:opacity-90 active:scale-[0.98]
                      cursor-pointer">

@@ -58,7 +58,7 @@
     <h2 class="font-body text-lg font-semibold text-on-surface">Couldn't load systems</h2>
     <p class="font-body text-sm text-muted-foreground text-center max-w-sm">Something went wrong. Try again.</p>
     <button onclick={() => location.reload()}
-            class="bg-gradient-to-br from-primary to-primary-container text-on-primary
+            class="bg-primary text-on-primary
                    px-5 py-2.5 rounded-2xl font-semibold text-sm mt-2 cursor-pointer">
       Try again
     </button>
@@ -68,7 +68,7 @@
     <div class="flex items-center justify-between mb-4">
       <h1 class="font-display text-2xl font-semibold text-on-surface">Your systems</h1>
       <a href="/systems/new"
-         class="bg-gradient-to-br from-primary to-primary-container text-on-primary
+         class="bg-primary text-on-primary
                 px-5 py-2.5 rounded-2xl font-semibold text-sm
                 transition-all duration-200 hover:opacity-90 active:scale-[0.98] cursor-pointer">
         + New system
@@ -103,7 +103,7 @@
           Create your first system to get started.
         </p>
         <a href="/systems/new"
-           class="inline-block bg-gradient-to-br from-primary to-primary-container text-on-primary
+           class="inline-block bg-primary text-on-primary
                   px-5 py-2.5 rounded-2xl font-semibold text-sm
                   transition-all duration-200 hover:opacity-90 active:scale-[0.98] cursor-pointer">
           Create a system

@@ -146,7 +146,7 @@
         {#if timerState === 'idle'}
             <button
                 onclick={startTimer}
-                class="bg-gradient-to-br from-primary to-primary-container text-on-primary
+                class="bg-primary text-on-primary
                        px-6 py-2 rounded-2xl font-semibold text-sm cursor-pointer
                        hover:opacity-90 active:scale-[0.98] transition-all duration-200 flex items-center gap-2"
             >
@@ -156,7 +156,7 @@
         {:else if timerState === 'running'}
             <button
                 onclick={stopTimer}
-                class="bg-gradient-to-br from-destructive to-destructive/80 text-white
+                class="bg-destructive text-white
                        px-6 py-2 rounded-2xl font-semibold text-sm cursor-pointer
                        hover:opacity-90 active:scale-[0.98] transition-all duration-200 flex items-center gap-2"
             >

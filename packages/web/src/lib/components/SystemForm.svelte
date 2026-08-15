@@ -297,7 +297,7 @@
                         placeholder:text-muted-foreground transition-all duration-200"
                  placeholder="e.g. Phone notifications, tired after work" />
           <button type="button" onclick={addBarrier}
-                  class="rounded-xl bg-gradient-to-br from-primary to-primary-container text-on-primary px-4 py-2 text-sm font-body font-semibold
+                  class="rounded-xl bg-primary text-on-primary px-4 py-2 text-sm font-body font-semibold
                          transition-all duration-200 hover:opacity-90 active:scale-[0.98] cursor-pointer">
             Add
           </button>
@@ -385,7 +385,7 @@
         <span class="text-xs text-muted-foreground font-body">Autosaving&hellip;</span>
       {/if}
       <button type="submit" disabled={!name.trim() || saving}
-              class="rounded-2xl bg-gradient-to-br from-primary to-primary-container text-on-primary
+              class="rounded-2xl bg-primary text-on-primary
                      px-8 py-3 font-semibold text-sm
                      disabled:opacity-50 transition-all duration-200
                      hover:opacity-90 active:scale-[0.98] cursor-pointer">

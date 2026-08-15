@@ -225,7 +225,7 @@
       Cancel
     </a>
     <button type="submit" disabled={saving}
-            class="bg-gradient-to-br from-primary to-primary-container text-on-primary
+            class="bg-primary text-on-primary
                    px-8 py-3 rounded-2xl font-semibold text-sm
                    disabled:opacity-50 transition-all duration-200
                    hover:opacity-90 active:scale-[0.98] cursor-pointer">

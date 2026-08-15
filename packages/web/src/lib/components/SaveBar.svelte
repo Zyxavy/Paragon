@@ -21,7 +21,7 @@
     <button
         onclick={onSave}
         disabled={!dirty}
-        class="bg-gradient-to-br from-primary to-primary-container text-on-primary
+        class="bg-primary text-on-primary
                px-6 py-2.5 rounded-2xl font-semibold text-sm
                transition-all duration-200 hover:opacity-90 active:scale-[0.98]
                disabled:opacity-40 disabled:cursor-not-allowed

@@ -87,7 +87,7 @@
         <button
             type="button"
             onclick={apply}
-            class="rounded-2xl bg-gradient-to-br from-primary to-primary-container text-on-primary px-4 py-2 text-sm font-body font-semibold cursor-pointer"
+            class="rounded-2xl bg-primary text-on-primary px-4 py-2 text-sm font-body font-semibold cursor-pointer"
         >
             OK
         </button>

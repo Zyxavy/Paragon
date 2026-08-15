@@ -32,7 +32,7 @@
                     {metrics.review_completion.completed}/{metrics.review_completion.total_due}
                 </p>
                 <div class="w-full bg-surface-container-low rounded-full h-2 mb-2">
-                    <div class="bg-gradient-to-r from-primary to-primary-container rounded-full h-2"
+                    <div class="bg-primary rounded-full h-2"
                          style="width: {metrics.review_completion.total_due > 0 ? (metrics.review_completion.completed / metrics.review_completion.total_due) * 100 : 0}%">
                     </div>
                 </div>

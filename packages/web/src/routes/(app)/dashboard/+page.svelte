@@ -51,7 +51,7 @@
       We couldn't load your dashboard. Please try again.
     </p>
     <button onclick={() => location.reload()}
-            class="bg-gradient-to-br from-primary to-primary-container text-on-primary
+            class="bg-primary text-on-primary
                    px-5 py-2.5 rounded-2xl font-semibold text-sm mt-2 cursor-pointer">
       Try again
     </button>
@@ -67,7 +67,7 @@
         Set up your first system to get started.
       </p>
       <a href="/systems/new"
-         class="bg-gradient-to-br from-primary to-primary-container text-on-primary
+         class="bg-primary text-on-primary
                 px-5 py-2.5 rounded-2xl font-semibold text-sm inline-block
                 transition-all duration-200 hover:opacity-90 active:scale-[0.98] cursor-pointer">
         Create a system

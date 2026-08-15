@@ -61,7 +61,7 @@
         {/if}
 
         <button type="submit" disabled={loading}
-                class="w-full bg-gradient-to-br from-primary to-primary-container text-on-primary
+                class="w-full bg-primary text-on-primary
                        py-3 rounded-2xl font-semibold flex items-center justify-center gap-2
                        transition-all duration-200 hover:opacity-90 active:scale-[0.98]
                        cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100">

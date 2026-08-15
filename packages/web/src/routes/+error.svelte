@@ -18,7 +18,7 @@
     <div class="flex gap-3">
         <button
             onclick={() => goto('/dashboard')}
-            class="rounded-xl bg-gradient-to-br from-primary to-primary-container text-on-primary px-5 py-2.5 text-sm font-body font-semibold transition-all duration-200 hover:opacity-90 active:scale-[0.98] cursor-pointer"
+            class="rounded-xl bg-primary text-on-primary px-5 py-2.5 text-sm font-body font-semibold transition-all duration-200 hover:opacity-90 active:scale-[0.98] cursor-pointer"
         >
             Go to Dashboard
         </button>

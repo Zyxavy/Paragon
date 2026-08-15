@@ -77,7 +77,7 @@
       </a>
       <div class="flex items-center gap-3">
         <a href="/sign-in" class="font-body text-sm font-medium text-muted-foreground hover:text-on-surface transition-colors duration-200 no-underline px-4 py-2">Log in</a>
-        <a href="/sign-up" class="font-body text-sm font-semibold text-on-primary bg-gradient-to-br from-primary to-primary-container px-5 py-2 rounded-2xl transition-all duration-200 hover:opacity-90 active:scale-[0.98] no-underline">Get started</a>
+        <a href="/sign-up" class="font-body text-sm font-semibold text-on-primary bg-primary px-5 py-2 rounded-2xl transition-all duration-200 hover:opacity-90 active:scale-[0.98] no-underline">Get started</a>
       </div>
     </div>
   </nav>
@@ -102,7 +102,7 @@
 
           <div class="mt-10 animate-fade-up [animation-delay:800ms] opacity-0 flex flex-col sm:flex-row items-start gap-4" style="animation-fill-mode: both;">
             <a href="/sign-up"
-               class="inline-flex items-center gap-2 bg-gradient-to-br from-primary to-primary-container text-on-primary px-8 py-3.5 rounded-2xl font-body font-semibold text-sm transition-all duration-200 hover:opacity-90 active:scale-[0.98] cursor-pointer no-underline">
+               class="inline-flex items-center gap-2 bg-primary text-on-primary px-8 py-3.5 rounded-2xl font-body font-semibold text-sm transition-all duration-200 hover:opacity-90 active:scale-[0.98] cursor-pointer no-underline">
               Get started free
             </a>
           </div>
@@ -301,7 +301,7 @@
         No streaks to protect. No motivation required. Just your next floor action.
       </p>
       <a href="/sign-up"
-         class="mt-10 inline-flex items-center gap-2 bg-gradient-to-br from-primary to-primary-container text-on-primary px-10 py-4 rounded-2xl font-body font-semibold text-sm transition-all duration-200 hover:opacity-90 active:scale-[0.98] cursor-pointer no-underline shadow-ambient-md">
+         class="mt-10 inline-flex items-center gap-2 bg-primary text-on-primary px-10 py-4 rounded-2xl font-body font-semibold text-sm transition-all duration-200 hover:opacity-90 active:scale-[0.98] cursor-pointer no-underline shadow-ambient-md">
         Get started free
       </a>
     </div>
