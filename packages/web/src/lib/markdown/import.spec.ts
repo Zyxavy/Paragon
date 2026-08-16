@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { parseSystemMarkdown } from './import';
+import { EXAMPLE_MARKDOWN, parseSystemMarkdown } from './import';
 
 const FULL_FILE = `# Morning Focus System
 
@@ -52,6 +52,29 @@ describe('parseSystemMarkdown', () => {
     expect(draft!.environment_cue).toBe('Nightstand lamp timer');
     expect(draft!.reference_table).toContain('| Trigger | Action |');
     expect(draft!.success_metric).toBe('2 hours of deep reading');
+  });
+
+  it('EXAMPLE_MARKDOWN fills every supported field and its sub-fields', () => {
+    const { draft, error } = parseSystemMarkdown(EXAMPLE_MARKDOWN);
+    expect(error).toBeUndefined();
+    expect(draft!.name).toBe('Daily Reading System');
+    expect(draft!.domain).toBe('Learning');
+    expect(draft!.purpose).toContain('reading habit');
+    expect(draft!.philosophy).toContain('identity');
+    expect(draft!.protocol).toContain('1. **Turn off** my phone');
+    expect(draft!.protocol).toContain('2. **Pick up** the book');
+    expect(draft!.protocol).toContain('3. **Read** 10 pages');
+    expect(draft!.floor_action).toBe('Open the book and read one paragraph.');
+    expect(draft!.trigger).toBe('After I brush my teeth, I will open my book.');
+    expect(draft!.barrier_list).toEqual([
+      'Phone on the nightstand is easier to reach than the book',
+      'Falling asleep before starting',
+      'No specific book chosen',
+    ]);
+    expect(draft!.environment_cue).toContain('pillow');
+    expect(draft!.reference_table).toContain('| Rule | Value |');
+    expect(draft!.reference_table).toContain('| Weekly target | 3 nights minimum |');
+    expect(draft!.success_metric).toBe('I read at least 3 nights a week and finish one book every month.');
   });
 
   it('preserves ### subheadings inside a section', () => {

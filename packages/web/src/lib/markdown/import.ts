@@ -27,6 +27,48 @@ const SECTION_MAP: Record<string, keyof ImportedSystemDraft> = {
   'success-metric': 'success_metric',
 };
 
+export const EXAMPLE_MARKDOWN = `# Daily Reading System
+
+## Domain
+Learning
+
+## Purpose
+Build a consistent reading habit before bed so I finish more books this year.
+
+## Philosophy
+Every day I read, I invest in my future self. One paragraph still counts; the identity is showing up.
+
+## Protocol
+1. **Turn off** my phone and put it in another room.
+
+2. **Pick up** the book from the nightstand.
+
+3. **Read** 10 pages and write one takeaway.
+
+## Floor Action
+Open the book and read one paragraph.
+
+## Trigger
+After I brush my teeth, I will open my book.
+
+## Barriers
+- Phone on the nightstand is easier to reach than the book
+- Falling asleep before starting
+- No specific book chosen
+
+## Environment Cue
+Book left open on the pillow, phone charging in the kitchen.
+
+## Reference Table
+| Rule | Value |
+| --- | --- |
+| Reading time | 10 pages |
+| Location | Nightstand chair |
+| Weekly target | 3 nights minimum |
+
+## Success Metric
+I read at least 3 nights a week and finish one book every month.`;
+
 export function parseSystemMarkdown(text: string): ImportResult {
   const lines = text.split(/\r?\n/);
 
