@@ -88,8 +88,8 @@
 </script>
 
 {#if widgets.length === 0}
-    <div class="flex items-center justify-center w-full min-h-[60vh] bg-surface rounded-xl p-6">
-        <p class="font-body text-sm text-muted-foreground text-center">
+    <div class="flex items-center justify-center w-full min-h-[60vh] bg-surface-container-lowest border-2 border-dashed border-outline-variant/40 rounded-xl p-6 overflow-hidden md:resize-y">
+        <p class="font-body text-sm text-on-container/70 text-center">
             Drag widgets from the palette to build your workspace
         </p>
     </div>
