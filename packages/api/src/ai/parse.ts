@@ -1,5 +1,6 @@
 export interface SystemDraft {
   name: string;
+  domain: string;
   purpose: string;
   philosophy: string;
   protocol: string;
@@ -7,6 +8,8 @@ export interface SystemDraft {
   trigger: string;
   barrier_list: string[];
   environment_cue: string;
+  reference_table: string;
+  success_metric: string;
 }
 
 export class AIParseError extends Error {
@@ -44,7 +47,7 @@ export function parseSystemDraft(raw: string): SystemDraft {
   }
 
   const required: (keyof SystemDraft)[] = [
-    'name', 'purpose', 'philosophy', 'protocol', 'floor_action', 'trigger', 'barrier_list', 'environment_cue'
+    'name', 'domain', 'purpose', 'philosophy', 'protocol', 'floor_action', 'trigger', 'barrier_list', 'environment_cue', 'reference_table', 'success_metric'
   ];
   for (const field of required) {
     if (!(field in (parsed as object))) {

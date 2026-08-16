@@ -28,17 +28,20 @@ describe('POST /api/ai/draft-system', () => {
   it('returns 200 with draft on successful AI response', async () => {
     const app = getTestApp(userId);
 
-    vi.spyOn(env.AI, 'run').mockResolvedValue({
-      response: '<think>Reasoning about reading habit</think>\n```json\n' +
+vi.spyOn(env.AI, 'run').mockResolvedValue({
+      response: ' thinkingReasoning about reading habit response\n```json\n' +
         JSON.stringify({
           name: 'Daily Reading System',
+          domain: 'Learning',
           purpose: 'Build a consistent reading habit before bed',
           philosophy: 'Every day I read, I invest in myself',
-          protocol: '1. Turn off phone\n2. Pick up book\n3. Read 10 pages\n4. Note one takeaway',
+          protocol: '1. **Turn off** phone\n2. **Pick up** book\n3. **Read** 10 pages\n4. **Note** one takeaway',
           floor_action: 'Read one paragraph',
           trigger: 'After I brush my teeth, I will open my book',
           barrier_list: ['Phone notifications', 'Falling asleep early'],
-          environment_cue: 'Book left open on the nightstand'
+          environment_cue: 'Book left open on the nightstand',
+          reference_table: '| Rule | Value |\n|---|---|\n| Reading time | 10 pages |\n| Place | Nightstand |',
+          success_metric: 'I read 3+ nights a week and finish one book a month.'
         }) + '\n```'
     });
 
