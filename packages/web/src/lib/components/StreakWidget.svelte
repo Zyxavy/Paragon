@@ -31,21 +31,21 @@
 </script>
 
 {#if !systemId}
-    <p class="text-sm text-muted-foreground text-center py-4">Save system to track streak</p>
+    <p class="text-sm text-on-container/70 text-center py-4">Save system to track streak</p>
 {:else if !loaded}
-    <p class="text-sm text-muted-foreground text-center py-4">Loading...</p>
+    <p class="text-sm text-on-container/70 text-center py-4">Loading...</p>
 {:else if error}
-    <p class="text-sm text-muted-foreground text-center py-4">Could not load streak</p>
+    <p class="text-sm text-on-container/70 text-center py-4">Could not load streak</p>
 {:else}
     <div class="flex flex-col items-center gap-2 py-2">
         <RingChart value={longest > 0 ? (current / longest) * 100 : 0} size={80} />
-        <div class="flex items-center gap-1 text-sm text-on-surface">
-            <Flame class="w-4 h-4 text-primary" />
+<div class="flex items-center gap-1 text-sm text-on-container">
+            <Flame class="w-4 h-4 text-on-container" />
             <span class="font-semibold">{current}</span>
-            <span class="text-muted-foreground">day{current !== 1 ? 's' : ''}</span>
-        </div>
-        {#if longest > current}
-            <p class="text-xs text-muted-foreground">Best: {longest} day{longest !== 1 ? 's' : ''}</p>
+            <span class="text-on-container/70">day{current !== 1 ? 's' : ''}</span>
+          </div>
+          {#if longest > 0 || current > 0}
+            <p class="text-xs text-on-container/70">Best: {longest} day{longest !== 1 ? 's' : ''}</p>
         {/if}
     </div>
 {/if}

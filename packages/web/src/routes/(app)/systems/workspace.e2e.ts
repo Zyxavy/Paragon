@@ -55,4 +55,21 @@ test('P0 flow #5: workspace widget CRUD: add, save, reload, persist', async ({ p
     await expect(page.locator('h4:has-text("Counter")')).toBeVisible();
     await expect(page.locator('h4:has-text("Timer")')).toHaveCount(1);
     await expect(page.locator('h4:has-text("Counter")')).toHaveCount(1);
+
+    // Adding the same widget type twice produces two separate, visible widgets
+    await page.getByRole('complementary', { name: 'Widget palette' }).getByRole('button', { name: 'Timer' }).click();
+    await expect(page.locator('h4:has-text("Timer")')).toHaveCount(2);
+
+    // Deleting a widget removes it from the canvas (topmost widget is clickable)
+    await page.getByRole('button', { name: 'Remove Timer' }).last().click();
+    await expect(page.locator('h4:has-text("Timer")')).toHaveCount(1);
+    await expect(page.locator('h4:has-text("Counter")')).toHaveCount(1);
+
+    // Deletion persists after save and reload
+    await page.click('button:has-text("Save layout")');
+    await expect(page.locator('button:has-text("Save layout")')).toBeDisabled();
+    await page.goto(`/systems/${system.id}/workspace`);
+    await expect(page.getByRole('heading', { name: 'Widgets' })).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('h4:has-text("Timer")')).toHaveCount(1);
+    await expect(page.locator('h4:has-text("Counter")')).toHaveCount(1);
 });

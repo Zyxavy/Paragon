@@ -70,11 +70,16 @@ The `env.AI` binding is declared in `packages/api/wrangler.jsonc`:
 
 The system prompt is the most important maintainable asset in the AI feature. It encodes the five-step framework from `docs/core/systems-framework.md` and tells the model exactly what schema to return. It lives as a versioned constant in the codebase - **not** inlined in the route handler.
 
-**Location:** `packages/api/src/ai/prompts/system-prompt.v1.ts`
+**Location:** `packages/api/src/ai/prompts/system-prompt.v1.ts` (archived), `system-prompt.v2.ts` (current)
 
 **Version tracking:** the prompt file is suffixed with its version (`.v1.ts`, `.v2.ts`) so git history shows exactly when and why the prompt changed. The active version is re-exported from `packages/api/src/ai/prompts/index.ts` as `SYSTEM_PROMPT_CURRENT`.
 
-**Current prompt (v1):**
+**Current prompt (v2, `system-prompt.v2.ts`):** same five-step framework as v1, with three additions:
+
+- New required JSON fields that mirror the extended `systems` table columns (migration `0019_system_content.sql`): `domain` (short category label), `reference_table` (compact markdown fact sheet — table or bullet list — rendered on the system detail page via `MarkdownText`), and `success_metric` (one measurable sentence).
+- Markdown output rules: `protocol` and `reference_table` MUST be markdown (numbered steps with blank lines, bold key verbs, tables/bullets); `philosophy`/`purpose` may use light markdown; short fields stay plain text.
+
+**Prompt (v1, archived):**
 
 ```typescript
 // packages/api/src/ai/prompts/system-prompt.v1.ts
@@ -142,6 +147,7 @@ export function stripMarkdownFences(raw: string): string {
 
 export interface SystemDraft {
   name: string;
+  domain: string;
   purpose: string;
   philosophy: string;
   protocol: string;
@@ -149,6 +155,8 @@ export interface SystemDraft {
   trigger: string;
   barrier_list: string[];
   environment_cue: string;
+  reference_table: string;
+  success_metric: string;
 }
 
 export function parseSystemDraft(raw: string): SystemDraft {
@@ -163,7 +171,7 @@ export function parseSystemDraft(raw: string): SystemDraft {
 
   // Validate required fields
   const required: (keyof SystemDraft)[] = [
-    'name', 'purpose', 'philosophy', 'protocol', 'floor_action', 'trigger', 'barrier_list', 'environment_cue'
+    'name', 'domain', 'purpose', 'philosophy', 'protocol', 'floor_action', 'trigger', 'barrier_list', 'environment_cue', 'reference_table', 'success_metric'
   ];
   for (const field of required) {
     if (!(field in (parsed as object))) {
@@ -206,13 +214,16 @@ export class AIParseError extends Error {
 {
   "draft": {
     "name": "Daily Reading System",
+    "domain": "Learning",
     "purpose": "...",
     "philosophy": "...",
-    "protocol": "...",
+    "protocol": "1. **Turn off** your phone and put it in another room.\n\n2. **Pick up** the book you left on the nightstand.",
     "floor_action": "Open the book and read one paragraph",
     "trigger": "After I brush my teeth, I will open my book",
     "barrier_list": ["Phone on nightstand is easier to reach", "Falling asleep before starting", "No specific book chosen"],
-    "environment_cue": "Book left open on the pillow, phone charging in another room"
+    "environment_cue": "Book left open on the pillow, phone charging in another room",
+    "reference_table": "| Rule | Value |\n|---|---|\n| Reading time | 10 pages |\n| Location | Nightstand chair |",
+    "success_metric": "I read at least 3 nights a week and finish one book a month."
   }
 }
 ```
@@ -333,7 +344,7 @@ The system prompt is the primary mechanism by which the five-step framework is e
 
 **Old prompt files are kept** (not deleted) so git blame gives a complete history of what the AI was instructed to do and when it changed. They can be deleted once a subsequent version has been stable for a few weeks.
 
-**Current prompt (v1) includes `environment_cue` in the JSON schema.** This was added alongside the D1 schema column and PRD field (July 2026). If a future field is added to the System blueprint, the checklist above applies: new prompt version, new SystemDraft field, new test fixtures.
+**Current prompt (v2) adds `domain`, `reference_table`, `success_metric` to the JSON schema, and mandates markdown output for `protocol` and `reference_table` (both rendered as markdown on the system detail page).** The checklist above applies whenever a field is added to the System blueprint: new prompt version, new `SystemDraft` fields, new test fixtures, doc update.
 
 ---
 

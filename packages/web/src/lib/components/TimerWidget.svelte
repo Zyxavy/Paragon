@@ -1,7 +1,6 @@
 <script lang="ts">
     import { Settings, Play, Square } from '@lucide/svelte';
     import { createTimerSession, getTimerSessions } from '$lib/api/timer-sessions';
-    import { ApiError } from '$lib/api/client';
     import type { Widget } from '$lib/api/workspaces';
 
     let { widget, instanceId }: { widget: Widget; instanceId: string | null } = $props();
@@ -16,7 +15,6 @@
     let durationSecs = $state((() => widget.config?.duration_secs ?? 0)());
     let isCountdown = $derived(durationSecs > 0);
     let display = $derived(isCountdown ? Math.max(0, durationSecs - elapsed) : elapsed);
-    let isFinished = $derived(isCountdown && durationSecs > 0 && elapsed >= durationSecs);
 
     function playBeep() {
         try {
@@ -48,18 +46,22 @@
         } catch { /* silent */ }
     }
 
+    /** Countdown hit zero: stop ticking, beep, and persist the session. */
+    function finishCountdown() {
+        if (intervalId) clearInterval(intervalId);
+        intervalId = null;
+        timerState = 'saving';
+        playBeep();
+        saveSession();
+    }
+
     function startTimer() {
-        if (isFinished) elapsed = 0;
         timerState = 'running';
         startedAt = new Date().toISOString();
         intervalId = setInterval(() => {
             elapsed++;
             if (isCountdown && elapsed >= durationSecs) {
-                clearInterval(intervalId!);
-                intervalId = null;
-                timerState = 'saving';
-                playBeep();
-                saveSession();
+                finishCountdown();
             }
         }, 1000);
     }
@@ -87,7 +89,12 @@
             startedAt = null;
         } catch {
             timerState = 'running';
-            intervalId = setInterval(() => { elapsed++; }, 1000);
+            intervalId = setInterval(() => {
+                elapsed++;
+                if (isCountdown && elapsed >= durationSecs) {
+                    finishCountdown();
+                }
+            }, 1000);
         }
     }
 
@@ -101,7 +108,7 @@
 <div class="flex flex-col items-center gap-2 py-2 relative">
     {#if showSettings}
         <div class="flex items-center gap-2 bg-surface-container-low px-3 py-2 rounded-xl w-full">
-            <span class="text-xs text-muted-foreground shrink-0">Duration:</span>
+            <span class="text-xs text-on-container/70 shrink-0">Duration:</span>
             <input
                 type="number"
                 min="0"
@@ -109,27 +116,28 @@
                 bind:value={durationSecs}
                 onchange={() => { if (durationSecs < 0) durationSecs = 0; }}
                 disabled={timerState !== 'idle'}
+                aria-label="Duration in seconds"
                 class="w-20 text-sm text-center bg-surface-container-lowest rounded-lg px-2 py-1 outline-none ring-1 ring-inset ring-outline focus:ring-2 focus:ring-primary disabled:opacity-40"
             />
-            <span class="text-xs text-muted-foreground">sec (0 = stopwatch)</span>
+            <span class="text-xs text-on-container/70">sec (0 = stopwatch)</span>
             <button
                 onclick={() => showSettings = false}
-                class="ml-auto text-xs text-primary hover:underline cursor-pointer bg-transparent border-none"
+                class="ml-auto text-xs text-on-container hover:underline cursor-pointer bg-transparent border-none"
             >Done</button>
         </div>
     {/if}
 
     {#if !instanceId}
-        <p class="text-sm text-muted-foreground text-center py-2">No instance for today</p>
+        <p class="text-sm text-on-container/70 text-center py-2">No instance for today</p>
     {:else}
         <div class="flex items-center gap-2">
-            <span class="text-3xl font-display font-bold font-mono text-on-surface">
+            <span class="text-3xl font-display font-bold font-mono text-on-container">
                 {formatDuration(display)}
             </span>
             <button
                 onclick={() => showSettings = !showSettings}
                 disabled={timerState !== 'idle'}
-                class="text-muted-foreground hover:text-on-surface transition-colors cursor-pointer disabled:opacity-30 p-1 rounded bg-transparent border-none"
+                class="text-on-container/70 hover:text-on-container transition-colors cursor-pointer disabled:opacity-30 p-1 rounded bg-transparent border-none"
                 aria-label="Timer settings"
             >
                 <Settings class="w-4 h-4" />
@@ -138,17 +146,17 @@
         {#if timerState === 'idle'}
             <button
                 onclick={startTimer}
-                class="bg-gradient-to-br from-primary to-primary-container text-on-primary
+                class="bg-primary text-on-primary
                        px-6 py-2 rounded-2xl font-semibold text-sm cursor-pointer
                        hover:opacity-90 active:scale-[0.98] transition-all duration-200 flex items-center gap-2"
             >
                 <Play class="w-4 h-4" />
-                {isCountdown ? 'Start' : 'Start'}
+                Start
             </button>
         {:else if timerState === 'running'}
             <button
                 onclick={stopTimer}
-                class="bg-gradient-to-br from-destructive to-destructive/80 text-white
+                class="bg-destructive text-white
                        px-6 py-2 rounded-2xl font-semibold text-sm cursor-pointer
                        hover:opacity-90 active:scale-[0.98] transition-all duration-200 flex items-center gap-2"
             >
@@ -160,7 +168,7 @@
                 Saving...
             </button>
         {/if}
-        <p class="text-xs text-muted-foreground">
+        <p class="text-xs text-on-container/70">
             Today: {formatDuration(todayTotal)}
         </p>
     {/if}

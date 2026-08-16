@@ -14,7 +14,9 @@
     "test:int": "pnpm --filter api test:int",
     "test:e2e": "pnpm --filter web test:e2e"
   },
-  "keywords": [],
+  "keywords": [
+    
+  ],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@11.9.0",

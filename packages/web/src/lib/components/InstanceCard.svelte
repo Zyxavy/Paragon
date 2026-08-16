@@ -16,11 +16,11 @@
             flex flex-col gap-3 min-h-[140px]">
     <div class="flex items-start justify-between gap-2">
         <div class="min-w-0">
-            <h3 class="font-body text-sm font-semibold text-on-surface truncate">
+            <h3 class="font-body text-sm font-semibold text-on-container truncate">
                 {instance.name}
             </h3>
             {#if instance.domain}
-                <p class="font-body text-xs text-muted-foreground mt-0.5">
+                <p class="font-body text-xs text-on-container/70 mt-0.5">
                     {instance.domain}
                 </p>
             {/if}
@@ -28,7 +28,7 @@
     </div>
 
     {#if instance.floor_action}
-        <p class="font-body text-xs text-on-surface/70 leading-relaxed line-clamp-2">
+        <p class="font-body text-xs text-on-container/70 leading-relaxed line-clamp-2">
             {instance.floor_action}
         </p>
     {/if}

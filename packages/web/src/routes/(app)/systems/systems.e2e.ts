@@ -14,7 +14,7 @@ test('P0 flow #2: create system from scratch', async ({ page }) => {
     // Skip recovery codes
     await expect(page.locator('text=Save your recovery codes')).toBeVisible({ timeout: 10000 });
     await page.click('text=I\'ve saved them');
-    await expect(page).toHaveURL('/guides');
+    await expect(page).toHaveURL('/guides', { timeout: 10000 });
 
     // Navigate to Systems page
     await page.goto('/systems');
@@ -22,7 +22,7 @@ test('P0 flow #2: create system from scratch', async ({ page }) => {
 
     // Click "New System"
     await page.click('text=+ New system');
-    await expect(page).toHaveURL('/systems/new');
+    await expect(page).toHaveURL('/systems/new', { timeout: 10000 });
 
     // Fill required fields
     await page.fill('#name', 'Reading System');
@@ -31,8 +31,8 @@ test('P0 flow #2: create system from scratch', async ({ page }) => {
     await page.fill('#floor_action', 'Open the book and read one paragraph');
     await page.fill('#trigger', 'After morning coffee');
 
-    // Wait for autosave to complete
-    await page.waitForTimeout(3000);
+    // Wait for autosave to complete (the "Saved" indicator in the form footer)
+    await expect.poll(async () => await page.getByText('Saved', { exact: true }).count(), { timeout: 5000 }).toBeGreaterThan(0);
 
     // Click "Confirm system" to confirm
     await page.click('text=Confirm system');

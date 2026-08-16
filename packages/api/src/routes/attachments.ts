@@ -86,6 +86,25 @@ app.post('/attachments', async (c) => {
   }
 });
 
+// DELETE /api/attachments/:id, remove R2 object + D1 pointer row
+app.delete('/attachments/:id', async (c) => {
+  const userId = c.get('user').id;
+  const db = c.env.DB;
+  const r2 = c.env.ATTACHMENTS;
+  const attachmentId = c.req.param('id');
+
+  const attachment = await getOwnedAttachment(db, attachmentId, userId);
+  if (!attachment) {
+    return c.json({ error: 'not_found', message: 'Attachment not found.' }, 404);
+  }
+
+  // Delete R2 object first (best-effort), then D1 row (per ADR 001 S5.7 ordering)
+  await r2.delete(attachment.r2_key);
+  await db.prepare('DELETE FROM attachments WHERE id = ?').bind(attachmentId).run();
+
+  return c.json({ ok: true });
+});
+
 // GET /api/attachments/:id, stream R2 object
 app.get('/attachments/:id', async (c) => {
   const userId = c.get('user').id;

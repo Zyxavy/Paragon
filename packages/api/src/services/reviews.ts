@@ -55,29 +55,26 @@ export async function createReview(
         change_applied_note?: string | null;
     }
 ): Promise<{ review: any; updated_system: any }> {
-    // 1. Check for existing review in this period
-    const existing = await db.prepare(
-        `SELECT id FROM reviews WHERE system_id = ? AND period_start = ? AND period_end = ?`
-    ).bind(systemId, data.period_start, data.period_end).first();
-    if (existing) {
-        throw new DuplicateReviewError();
-    }
-
-    // 2. Insert review with derived change_applied text
+    // 1. Insert review with derived change_applied text.
+    //    ON CONFLICT makes the period-uniqueness race-free: a concurrent
+    //    duplicate insert fails atomically instead of the loser 500ing.
     const id = crypto.randomUUID();
     const now = new Date().toISOString();
     const changeText = deriveChangeText(data.change_applied, data.change_applied_note);
 
-    await db.prepare(`
-        INSERT INTO reviews (id, system_id, period_start, period_end, what_worked, what_broke, worst_day_check, change_applied, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `).bind(
-        id, systemId, data.period_start, data.period_end,
-        data.what_worked, data.what_broke, data.worst_day_check ? 1 : 0,
-        changeText, now, now
-    ).run();
+    const statements: D1PreparedStatement[] = [
+        db.prepare(`
+            INSERT INTO reviews (id, system_id, period_start, period_end, what_worked, what_broke, worst_day_check, change_applied, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(system_id, period_start, period_end) DO NOTHING
+        `).bind(
+            id, systemId, data.period_start, data.period_end,
+            data.what_worked, data.what_broke, data.worst_day_check ? 1 : 0,
+            changeText, now, now
+        ),
+    ];
 
-    // 3. Write-back to systems if change_applied has any fields
+    // 2. Write-back to systems if change_applied has any fields
     if (data.change_applied) {
         const sets: string[] = [];
         const params: any[] = [];
@@ -97,17 +94,28 @@ export async function createReview(
             params.push(now);
             params.push(systemId, userId);
 
-            await db.prepare(
-                `UPDATE systems SET ${sets.join(', ')} WHERE id = ? AND user_id = ?`
-            ).bind(...params).run();
+            statements.push(
+                db.prepare(
+                    `UPDATE systems SET ${sets.join(', ')} WHERE id = ? AND user_id = ?`
+                ).bind(...params)
+            );
         }
     }
 
-    // 4. Fetch and return both records
-    const review = await db.prepare('SELECT * FROM reviews WHERE id = ?').bind(id).first<any>();
-    const updatedSystem = await db.prepare(
-        'SELECT * FROM systems WHERE id = ? AND user_id = ?'
-    ).bind(systemId, userId).first<any>();
+    // 3. Fetch and return both records (batched AFTER the writes above)
+    statements.push(
+        db.prepare('SELECT * FROM reviews WHERE id = ?').bind(id),
+        db.prepare('SELECT * FROM systems WHERE id = ? AND user_id = ?').bind(systemId, userId)
+    );
+
+    const results = await db.batch(statements);
+
+    if (results[0].meta.changes === 0) {
+        throw new DuplicateReviewError();
+    }
+
+    const review = results[results.length - 2].results?.[0];
+    const updatedSystem = results[results.length - 1].results?.[0];
 
     return { review, updated_system: updatedSystem };
 }

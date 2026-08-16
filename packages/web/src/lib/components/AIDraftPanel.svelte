@@ -68,7 +68,7 @@
         type="button"
         onclick={handleDraft}
         disabled={loading || prompt.trim().length < 5}
-        class="mt-3 rounded-2xl bg-gradient-to-br from-primary to-primary-container
+        class="mt-3 rounded-2xl bg-primary
                text-on-primary px-5 py-2.5 text-sm font-body font-semibold
                disabled:opacity-50 transition-all duration-200
                hover:opacity-90 active:scale-[0.98] cursor-pointer"

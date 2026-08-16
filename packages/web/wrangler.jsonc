@@ -2,5 +2,6 @@
   "$schema": "./node_modules/wrangler/config-schema.json",
   "name": "paragons",
   "pages_build_output_dir": "./build",
+  "not_found_handling": "single-page-application",
   "compatibility_date": "2026-07-22"
 }

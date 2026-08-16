@@ -1,5 +1,6 @@
 <script lang="ts">
   import { fly } from 'svelte/transition';
+  import { ExternalLink } from '@lucide/svelte';
 
   const guides = [
     {
@@ -40,6 +41,17 @@
       ],
     },
   ];
+
+  const sources = [
+    { number: 1, title: 'How To Set Systems Instead Of Goals', creator: '', url: 'https://www.youtube.com/watch?v=hyUr5E_xwjk' },
+    { number: 2, title: 'How to Build Systems to Actually Achieve Your Goals', creator: 'Dr. Justin Sung', url: 'https://www.youtube.com/watch?v=fXyRprdoEoE' },
+    { number: 3, title: 'Productivity is Hard Until You Build Systems Like This', creator: 'Dr. Justin Sung', url: 'https://www.youtube.com/watch?v=AeV5F0ppaGw' },
+    { number: 4, title: 'Success Is Hard Until You Build Systems Like This', creator: 'Ali Abdaal', url: 'https://www.youtube.com/watch?v=MBPHU7aaklM' },
+    { number: 5, title: 'How to Build Systems (with AI) to ACTUALLY Achieve Your Goals', creator: 'Dan Martell', url: 'https://www.youtube.com/watch?v=y5jL8KsUwaI' },
+    { number: 6, title: 'How to Create Systems in Your Life', creator: '', url: 'https://www.youtube.com/watch?v=e-hhoaTi2T0' },
+    { number: 7, title: 'Success Is Hard Until You Build Systems Like This', creator: 'MIT Monk', url: 'https://www.youtube.com/watch?v=p3F-1QyvHnY' },
+    { number: 8, title: 'Success Is Hard Until You Build Systems Like This', creator: 'Matt Gray', url: 'https://youtu.be/iemuHxed0nY' },
+  ];
 </script>
 
 <div class="max-w-3xl mx-auto px-6 py-12">
@@ -58,12 +70,12 @@
           {guide.number}
         </span>
         <div class="flex-1">
-          <h2 class="font-body text-lg font-semibold text-on-surface mb-2">{guide.title}</h2>
-          <p class="font-body text-sm text-muted-foreground mb-3">{guide.description}</p>
+          <h2 class="font-body text-lg font-semibold text-on-container mb-2">{guide.title}</h2>
+          <p class="font-body text-sm text-on-container/70 mb-3">{guide.description}</p>
           <ul class="flex flex-col gap-1">
             {#each guide.detail as point}
-              <li class="font-body text-xs text-muted-foreground flex items-start gap-2">
-                <span class="text-blush mt-0.5">&bull;</span>
+              <li class="font-body text-xs text-on-container/70 flex items-start gap-2">
+                <span class="text-on-container/80 mt-0.5">&bull;</span>
                 {point}
               </li>
             {/each}
@@ -73,14 +85,46 @@
     </article>
   {/each}
 
+  <div class="mt-12">
+    <h2 class="font-display text-xl font-semibold text-on-surface mb-4">Sources</h2>
+    <p class="font-body text-sm text-muted-foreground mb-6 max-w-2xl">
+      These are the creators and frameworks the Paragon guides are built on.
+    </p>
+    <div class="flex flex-col gap-3">
+      {#each sources as source}
+        <a
+          href={source.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex items-center gap-4 bg-surface-container-lowest rounded-xl p-4 shadow-ambient-sm
+                 transition-shadow duration-200 hover:shadow-ambient-md no-underline"
+        >
+          <span
+            class="w-8 h-8 rounded-lg bg-blush/20 text-blush
+                   flex items-center justify-center font-display text-sm font-semibold shrink-0"
+          >
+            {source.number}
+          </span>
+          <span class="flex-1 min-w-0">
+            <span class="block font-body text-sm font-semibold text-on-container truncate">{source.title}</span>
+            {#if source.creator}
+              <span class="block font-body text-xs text-on-container/70">{source.creator}</span>
+            {/if}
+          </span>
+          <ExternalLink class="w-4 h-4 text-on-container/70 shrink-0" />
+        </a>
+      {/each}
+    </div>
+  </div>
+
   <div class="mt-12 bg-surface-container-low rounded-xl p-8 text-center">
-    <h2 class="font-display text-xl font-semibold text-on-surface mb-3">Ready to start?</h2>
-    <p class="font-body text-sm text-muted-foreground mb-6 max-w-md mx-auto text-balance">
+    <h2 class="font-display text-xl font-semibold text-on-container mb-3">Ready to start?</h2>
+    <p class="font-body text-sm text-on-container/70 mb-6 max-w-md mx-auto text-balance">
       Skip the guides and build your first system right now.
     </p>
     <a
       href="/systems/new"
-      class="inline-block bg-gradient-to-br from-primary to-primary-container text-on-primary
+      class="inline-block bg-primary text-on-primary
              px-8 py-3 rounded-2xl font-semibold text-sm
              transition-all duration-200 hover:opacity-90 active:scale-[0.98]
              cursor-pointer"

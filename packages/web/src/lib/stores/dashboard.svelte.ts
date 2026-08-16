@@ -25,7 +25,7 @@ class DashboardStore {
             };
         } catch {
             this.instances[idx] = prev;
-            toastStore.push({ type: 'error', message: 'Could not save — try again.' });
+            toastStore.push({ type: 'error', message: 'Could not save: try again.' });
         }
     }
 }

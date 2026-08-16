@@ -9,6 +9,7 @@
         { label: 'Overview', path: (id: string) => `/systems/${id}` },
         { label: 'Workspace', path: (id: string) => `/systems/${id}/workspace` },
         { label: 'Reviews', path: (id: string) => `/systems/${id}/reviews` },
+        { label: 'Metrics', path: (id: string) => `/systems/${id}/metrics` },
         { label: 'Edit', path: (id: string) => `/systems/${id}/edit` },
     ];
 
@@ -16,6 +17,7 @@
         const path = page.url.pathname;
         if (path.endsWith('/workspace')) return 'workspace';
         if (path.includes('/reviews')) return 'reviews';
+        if (path.includes('/metrics')) return 'metrics';
         if (path.endsWith('/edit')) return 'edit';
         return 'overview';
     }
@@ -23,19 +25,13 @@
     let activeTab = $derived(tabFromUrl());
 </script>
 
-<div class="w-full md:max-w-2xl lg:max-w-4xl mx-auto px-4 md:px-0">
-  <div class="flex items-start justify-between mb-6">
+<div class="w-full">
+  <div class="flex items-start mb-6">
     <div>
       <h1 class="font-display text-2xl text-on-surface">{system.name}</h1>
       {#if system.domain}
         <span class="font-body text-xs font-medium text-secondary">{system.domain}</span>
       {/if}
-    </div>
-    <div class="flex items-center gap-3">
-      <a href="/systems/{system.id}/edit"
-         class="text-sm font-body font-medium text-muted-foreground hover:text-on-surface transition-colors duration-150 no-underline">Edit</a>
-      <a href="/systems/{system.id}/workspace"
-         class="text-sm font-body font-medium text-muted-foreground hover:text-on-surface transition-colors duration-150 no-underline">Workspace</a>
     </div>
   </div>
 

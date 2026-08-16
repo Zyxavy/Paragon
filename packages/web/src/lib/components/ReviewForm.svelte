@@ -84,7 +84,7 @@
 
 <div class="mb-8">
   <p class="font-body text-sm text-muted-foreground">
-    {periodStart} — {periodEnd}
+    {periodStart}, {periodEnd}
   </p>
 </div>
 
@@ -108,7 +108,7 @@
     </div>
     <div class="bg-surface-container-lowest rounded-xl p-6 shadow-ambient-sm space-y-4">
       <div class="field-group">
-        <label for="what_worked" class="font-body text-sm font-medium text-on-surface">What worked?</label>
+        <label for="what_worked" class="font-body text-sm font-medium text-on-container">What worked?</label>
         <textarea id="what_worked" name="what_worked" bind:value={whatWorked}
                   class="mt-1 w-full rounded-xl border-border bg-surface text-on-surface px-4 py-3 text-sm font-body
                          focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
@@ -117,7 +117,7 @@
       </div>
 
       <div class="field-group">
-        <label for="what_broke" class="font-body text-sm font-medium text-on-surface">What broke?</label>
+        <label for="what_broke" class="font-body text-sm font-medium text-on-container">What broke?</label>
         <textarea id="what_broke" name="what_broke" bind:value={whatBroke}
                   class="mt-1 w-full rounded-xl border-border bg-surface text-on-surface px-4 py-3 text-sm font-body
                          focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
@@ -125,9 +125,9 @@
                   rows="3" placeholder="What didn't work? Where did you get stuck?"></textarea>
       </div>
 
-      <label class="flex items-center gap-2 text-sm text-on-surface cursor-pointer select-none pt-1">
+      <label class="flex items-center gap-2 text-sm text-on-container cursor-pointer select-none pt-1">
         <input type="checkbox" bind:checked={worstDayCheck}
-               class="rounded border-border text-primary focus:ring-primary" />
+               class="rounded border-outline-variant/25 text-on-container focus:ring-primary" />
         <span class="font-body">This was a worst day</span>
       </label>
     </div>
@@ -144,7 +144,7 @@
     </p>
     <div class="bg-surface-container-lowest rounded-xl p-6 shadow-ambient-sm space-y-4">
       <div class="field-group">
-        <label for="floor_action" class="font-body text-sm font-medium text-on-surface">Floor action</label>
+        <label for="floor_action" class="font-body text-sm font-medium text-on-container">Floor action</label>
         <textarea id="floor_action" name="floor_action" bind:value={floorAction}
                   class="mt-1 w-full rounded-xl border-border bg-surface text-on-surface px-4 py-3 text-sm font-body
                          focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
@@ -153,7 +153,7 @@
       </div>
 
       <div class="field-group">
-        <label for="purpose" class="font-body text-sm font-medium text-on-surface">Purpose</label>
+        <label for="purpose" class="font-body text-sm font-medium text-on-container">Purpose</label>
         <textarea id="purpose" bind:value={purpose}
                   class="mt-1 w-full rounded-xl border-border bg-surface text-on-surface px-4 py-3 text-sm font-body
                          focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
@@ -162,7 +162,7 @@
       </div>
 
       <div class="field-group">
-        <label for="philosophy" class="font-body text-sm font-medium text-on-surface">Philosophy</label>
+        <label for="philosophy" class="font-body text-sm font-medium text-on-container">Philosophy</label>
         <textarea id="philosophy" bind:value={philosophy}
                   class="mt-1 w-full rounded-xl border-border bg-surface text-on-surface px-4 py-3 text-sm font-body
                          focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
@@ -171,7 +171,7 @@
       </div>
 
       <div class="field-group">
-        <label for="protocol" class="font-body text-sm font-medium text-on-surface">Protocol</label>
+        <label for="protocol" class="font-body text-sm font-medium text-on-container">Protocol</label>
         <textarea id="protocol" bind:value={protocol}
                   class="mt-1 w-full rounded-xl border-border bg-surface text-on-surface px-4 py-3 text-sm font-body
                          focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
@@ -180,7 +180,7 @@
       </div>
 
       <div class="field-group">
-        <label for="trigger" class="font-body text-sm font-medium text-on-surface">Trigger</label>
+        <label for="trigger" class="font-body text-sm font-medium text-on-container">Trigger</label>
         <textarea id="trigger" bind:value={trigger}
                   class="mt-1 w-full rounded-xl border-border bg-surface text-on-surface px-4 py-3 text-sm font-body
                          focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
@@ -189,7 +189,7 @@
       </div>
 
       <div class="field-group">
-        <label for="environment_cue" class="font-body text-sm font-medium text-on-surface">Environment cue</label>
+        <label for="environment_cue" class="font-body text-sm font-medium text-on-container">Environment cue</label>
         <textarea id="environment_cue" bind:value={environmentCue}
                   class="mt-1 w-full rounded-xl border-border bg-surface text-on-surface px-4 py-3 text-sm font-body
                          focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
@@ -202,16 +202,16 @@
   <!-- Change note -->
   <section>
     <div class="bg-surface-container-low rounded-xl p-6">
-      <label for="change_note" class="font-body text-sm font-medium text-on-surface block mb-2">
-        Change description <span class="text-muted-foreground font-normal">(optional)</span>
+      <label for="change_note" class="font-body text-sm font-medium text-on-container block mb-2">
+        Change description <span class="text-on-container/70 font-normal">(optional)</span>
       </label>
       <textarea id="change_note" bind:value={changeNote}
                 placeholder="Briefly describe what changed and why..."
-                class="w-full rounded-xl border-border bg-surface-container-lowest text-on-surface px-4 py-3 text-sm font-body
+                class="w-full rounded-xl border-outline-variant/25 bg-surface-container-lowest text-on-container px-4 py-3 text-sm font-body
                        focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
-                       placeholder:text-muted-foreground transition-all duration-200"
+                       placeholder:text-on-container/70 transition-all duration-200"
                 rows="2"></textarea>
-      <p class="font-body text-xs text-muted-foreground mt-2">
+      <p class="font-body text-xs text-on-container/70 mt-2">
         If left empty, a description is auto-derived from the differences above.
       </p>
     </div>
@@ -225,7 +225,7 @@
       Cancel
     </a>
     <button type="submit" disabled={saving}
-            class="bg-gradient-to-br from-primary to-primary-container text-on-primary
+            class="bg-primary text-on-primary
                    px-8 py-3 rounded-2xl font-semibold text-sm
                    disabled:opacity-50 transition-all duration-200
                    hover:opacity-90 active:scale-[0.98] cursor-pointer">

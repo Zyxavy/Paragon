@@ -249,6 +249,77 @@ describe('GET /api/attachments/:id', () => {
   });
 });
 
+describe('DELETE /api/attachments/:id', () => {
+  let userId: string;
+  let app: ReturnType<typeof getAuthedApp>;
+
+  beforeAll(async () => {
+    userId = crypto.randomUUID();
+    await seedUser(env.DB, userId);
+
+    const systemId = await seedSystem(env.DB, userId);
+    const workspaceId = await seedWorkspace(env.DB, systemId);
+    const widgetId = 'w_attach4';
+    const now = new Date().toISOString();
+
+    // Seed one attachment that the DELETE tests will target
+    await env.ATTACHMENTS.put(`${systemId}/${widgetId}/seed.txt`, 'to delete');
+    await env.DB.prepare(
+      `INSERT INTO attachments (id, workspace_id, widget_id, r2_key, filename, content_type, size_bytes, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+    ).bind('att-delete-1', workspaceId, widgetId, `${systemId}/${widgetId}/seed.txt`, 'seed.txt', 'text/plain', 9, now).run();
+
+    app = getAuthedApp(userId);
+  });
+
+  it('deletes the R2 object and D1 row and returns 200', async () => {
+    const res = await app.fetch(new Request('http://localhost/api/attachments/att-delete-1', {
+      method: 'DELETE',
+    }), env);
+
+    expect(res.status).toBe(200);
+    const body = await res.json() as any;
+    expect(body).toEqual({ ok: true });
+
+    const row = await env.DB.prepare('SELECT id FROM attachments WHERE id = ?').bind('att-delete-1').first();
+    expect(row).toBeNull();
+
+    // R2 object must be gone too
+    const seeded = await env.ATTACHMENTS.list();
+    expect(seeded.objects.filter(o => o.key.endsWith('seed.txt')).length).toBe(0);
+  });
+
+  it('returns 404 for non-existent attachment', async () => {
+    const res = await app.fetch(new Request('http://localhost/api/attachments/nonexistent-id', {
+      method: 'DELETE',
+    }), env);
+    expect(res.status).toBe(404);
+  });
+
+  it('returns 404 for non-owned attachment', async () => {
+    // Seed an attachment owned by another user
+    const otherUserId = crypto.randomUUID();
+    await seedUser(env.DB, otherUserId);
+    const otherSystemId = await seedSystem(env.DB, otherUserId);
+    const otherWorkspaceId = await seedWorkspace(env.DB, otherSystemId);
+    const otherKey = `${otherSystemId}/w_attach4/other.txt`;
+    await env.ATTACHMENTS.put(otherKey, 'other user file');
+    await env.DB.prepare(
+      `INSERT INTO attachments (id, workspace_id, widget_id, r2_key, filename, content_type, size_bytes, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+    ).bind('att-other-1', otherWorkspaceId, 'w_attach4', otherKey, 'other.txt', 'text/plain', 9, new Date().toISOString()).run();
+
+    const res = await app.fetch(new Request('http://localhost/api/attachments/att-other-1', {
+      method: 'DELETE',
+    }), env);
+    expect(res.status).toBe(404);
+
+    // Other user's data must be untouched
+    const row = await env.DB.prepare('SELECT id FROM attachments WHERE id = ?').bind('att-other-1').first();
+    expect(row).toBeDefined();
+  });
+});
+
 describe('GET /api/attachments?workspace_id=&widget_id=', () => {
   let userId: string;
   let workspaceId: string;

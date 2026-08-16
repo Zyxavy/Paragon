@@ -1,12 +1,12 @@
 import type { MiddlewareHandler } from "hono";
-import { createAuth } from "../auth";
+import { getAuth } from "../auth";
 
 
 export const requireAuth: MiddlewareHandler = async(c, next) => {
     const existingUser = c.get('user');
     if (existingUser) return next();
 
-    const auth = createAuth(c.env);
+    const auth = getAuth(c.env);
     const session = await auth.api.getSession({ headers: c.req.raw.headers});
 
     if(!session) {

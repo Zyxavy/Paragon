@@ -22,13 +22,7 @@ app.get('/', async (c) => {
         if (!msg.includes('UNIQUE constraint')) throw e;
     });
 
-    // Filtered SELECT with window gate
-    const now = new Date();
-    const manilaTime = new Intl.DateTimeFormat('en-US', {
-        timeZone: 'Asia/Manila',
-        hour: '2-digit', minute: '2-digit', hour12: false
-    }).format(now);
-
+    // Filtered SELECT: all of today's scheduled systems
     const { results: instances } = await db.prepare(
         ` SELECT DISTINCT instances.*, systems.name, systems.domain, systems.floor_action
         FROM instances
@@ -37,9 +31,8 @@ app.get('/', async (c) => {
         WHERE instances.date = ?
         AND systems.user_id = ?
         AND (schedules.days_of_week & ?) != 0
-        AND schedules.time_window_start <= ?
         ORDER BY instances.created_at DESC`
-    ).bind(todayStr, userId, todayBit(), manilaTime).all<any>();
+    ).bind(todayStr, userId, todayBit()).all<any>();
 
     return c.json({ instances });
 

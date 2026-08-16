@@ -21,11 +21,19 @@
         "binding": "JOURNAL_RETRY_QUEUE",
         "queue": "paragon-journal-retry"
       }
+    ],
+    "consumers": [
+      {
+        "queue": "paragon-journal-retry",
+        "max_batch_size": 10,
+        "max_batch_timeout": 5
+      }
     ]
   },
 
   "vars": {
-    "MONGODB_URI": "mongodb://localhost:27017/paragon"
+    "MONGODB_URI": "mongodb://localhost:27017/paragon",
+    "BETTER_AUTH_SECRET": "paragon-e2e-dev-secret-1000-32chars!"
   },
 
   "d1_databases": [

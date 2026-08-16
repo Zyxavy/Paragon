@@ -51,11 +51,11 @@
 </script>
 
 {#if !loaded}
-    <p class="text-sm text-muted-foreground text-center py-4">Loading...</p>
+    <p class="text-sm text-on-container/70 text-center py-4">Loading...</p>
 {:else if error}
-    <p class="text-sm text-muted-foreground text-center py-4">Could not load chart data</p>
+    <p class="text-sm text-on-container/70 text-center py-4">Could not load chart data</p>
 {:else if bars.every(b => b.total === 0)}
-    <p class="text-sm text-muted-foreground text-center py-4">No data yet — start logging</p>
+    <p class="text-sm text-on-container/70 text-center py-4">No data yet: start logging</p>
 {:else}
     <div class="flex items-end gap-1 justify-center h-[100px]">
         {#each bars as bar}
@@ -69,7 +69,7 @@
                         class="transition-all duration-300"
                     />
                 </svg>
-                <span class="text-[10px] text-muted-foreground">{shortDate(bar.date)}</span>
+                <span class="text-[10px] text-on-container/70">{shortDate(bar.date)}</span>
             </div>
         {/each}
     </div>

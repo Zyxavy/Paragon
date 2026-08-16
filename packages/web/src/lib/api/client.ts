@@ -11,10 +11,17 @@ export class ApiError extends Error {
 
 export async function apiFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
     const BASE = import.meta.env.VITE_API_BASE_URL || '';
+    const isFormData = options.body instanceof FormData;
+    const headers: Record<string, string> = { ...(options.headers as Record<string, string> | undefined) };
+    // For FormData bodies, leave Content-Type unset so the browser adds the
+    // multipart boundary itself. Only default to JSON for non-FormData bodies.
+    if (!isFormData && !headers['Content-Type']) {
+        headers['Content-Type'] = 'application/json';
+    }
     const res = await fetch(`${BASE}${path}`, {
         ...options,
         credentials: 'include',
-        headers: { 'Content-Type': 'application/json', ...options.headers },
+        headers,
     });
 
     if (!res.ok) {
@@ -22,6 +29,6 @@ export async function apiFetch<T>(path: string, options: RequestInit = {}): Prom
         throw new ApiError(res.status, body.error, body.message);
     }
 
-    return res.json();
+    return res.status === 204 ? (undefined as T) : res.json();
 }
 

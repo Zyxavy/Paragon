@@ -23,6 +23,13 @@
     { state: 'full', label: 'Full' },
   ];
 
+  // Deterministic heights — computed once in the script, never in the template,
+  // so the bar chart renders identically on every render.
+  const streakBars = [1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1].map((val, i) => ({
+    active: val === 1,
+    height: val === 1 ? 60 + (i % 4) * 13 : 10,
+  }));
+
   function reveal(node: HTMLElement) {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -70,7 +77,7 @@
       </a>
       <div class="flex items-center gap-3">
         <a href="/sign-in" class="font-body text-sm font-medium text-muted-foreground hover:text-on-surface transition-colors duration-200 no-underline px-4 py-2">Log in</a>
-        <a href="/sign-up" class="font-body text-sm font-semibold text-on-primary bg-gradient-to-br from-primary to-primary-container px-5 py-2 rounded-2xl transition-all duration-200 hover:opacity-90 active:scale-[0.98] no-underline">Get started</a>
+        <a href="/sign-up" class="font-body text-sm font-semibold text-on-primary bg-primary px-5 py-2 rounded-2xl transition-all duration-200 hover:opacity-90 active:scale-[0.98] no-underline">Get started</a>
       </div>
     </div>
   </nav>
@@ -95,7 +102,7 @@
 
           <div class="mt-10 animate-fade-up [animation-delay:800ms] opacity-0 flex flex-col sm:flex-row items-start gap-4" style="animation-fill-mode: both;">
             <a href="/sign-up"
-               class="inline-flex items-center gap-2 bg-gradient-to-br from-primary to-primary-container text-on-primary px-8 py-3.5 rounded-2xl font-body font-semibold text-sm transition-all duration-200 hover:opacity-90 active:scale-[0.98] cursor-pointer no-underline">
+               class="inline-flex items-center gap-2 bg-primary text-on-primary px-8 py-3.5 rounded-2xl font-body font-semibold text-sm transition-all duration-200 hover:opacity-90 active:scale-[0.98] cursor-pointer no-underline">
               Get started free
             </a>
           </div>
@@ -105,7 +112,7 @@
         <div class="animate-fade-up [animation-delay:1000ms] opacity-0" style="animation-fill-mode: both;">
           <div class="flex flex-col items-start gap-4">
             <div class="flex items-end justify-start gap-2 sm:gap-3 h-20 sm:h-24 md:h-28 w-full">
-              {#each days as day, i}
+              {#each days as day, i (i)}
                 <div class="relative flex flex-col items-center justify-end" style="animation-delay: {i * 100}ms;">
                   <div class="pill-dot rounded-full transition-all duration-1000 ease-out {day.state === 'full' ? 'bg-primary w-4 sm:w-5 md:w-6 h-10 sm:h-12 md:h-16' : 'bg-blush w-3 sm:w-4 md:w-5 h-6 sm:h-7 md:h-9'}"></div>
                   <span class="mt-2 font-body text-[10px] sm:text-xs font-medium {day.state === 'full' ? 'text-primary' : 'text-blush'}">{day.label}</span>
@@ -131,21 +138,21 @@
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-        <div class="bg-surface-container-lowest rounded-2xl p-8 shadow-ambient-sm border border-border/20">
+        <div class="bg-surface-container-lowest rounded-2xl p-8 shadow-ambient-sm border border-outline-variant/25">
           <div class="flex items-center gap-3 mb-6">
             <span class="w-10 h-10 rounded-xl bg-destructive/10 text-destructive flex items-center justify-center">
               <TrendingUp class="w-5 h-5" />
             </span>
-            <span class="font-body text-sm font-semibold text-on-surface">The streak model</span>
+            <span class="font-body text-sm font-semibold text-on-container">The streak model</span>
           </div>
           <div class="flex items-end gap-1.5 sm:gap-2 h-24 sm:h-28 mb-4">
-            {#each [1, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 0, 1] as val}
+            {#each streakBars as bar, i (i)}
               <div
-                class="w-4 sm:w-5 md:w-6 rounded-t-md transition-all duration-500 {val === 1 ? 'bg-primary/60' : 'bg-destructive/30'}"
-                style="height: {val === 1 ? 60 + Math.random() * 40 : 10}%;"></div>
+                class="w-4 sm:w-5 md:w-6 rounded-t-md transition-all duration-500 {bar.active ? 'bg-primary/60' : 'bg-destructive/30'}"
+                style="height: {bar.height}%;"></div>
             {/each}
           </div>
-          <p class="font-body text-sm text-muted-foreground leading-relaxed">
+          <p class="font-body text-sm text-on-container/70 leading-relaxed">
             One missed day resets everything. The pressure to maintain a streak makes every gap feel like failure, and failure makes it harder to start again.
           </p>
         </div>
@@ -155,16 +162,16 @@
             <span class="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
               <Layers class="w-5 h-5" />
             </span>
-            <span class="font-body text-sm font-semibold text-on-surface">The system model</span>
+            <span class="font-body text-sm font-semibold text-on-container">The system model</span>
           </div>
           <div class="flex items-end gap-1.5 sm:gap-2 h-24 sm:h-28 mb-4">
-            {#each [1, 0.9, 0.4, 0.3, 0.8, 1, 0.5, 0.3, 1, 0.9, 1, 1, 0.4, 0.8] as val}
+            {#each [1, 0.9, 0.4, 0.3, 0.8, 1, 0.5, 0.3, 1, 0.9, 1, 1, 0.4, 0.8] as val, i (i)}
               <div
                 class="w-4 sm:w-5 md:w-6 rounded-t-md transition-all duration-500 {val >= 0.7 ? 'bg-primary' : 'bg-blush'}"
                 style="height: {val * 100}%;"></div>
             {/each}
           </div>
-          <p class="font-body text-sm text-muted-foreground leading-relaxed">
+          <p class="font-body text-sm text-on-container/70 leading-relaxed">
             Every day counts, no matter the intensity. A floor action keeps the system alive on low-energy days. The baseline never resets, you build on everything.
           </p>
         </div>
@@ -184,35 +191,35 @@
       </div>
 
       <div use:stagger class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-5">
-        <div data-stagger class="relative bg-surface-container-lowest rounded-2xl p-8 shadow-ambient-sm border border-border/20 opacity-0 translate-y-6 transition-all duration-700 ease-out hover:shadow-ambient-md">
+        <div data-stagger class="relative bg-surface-container-lowest rounded-2xl p-8 shadow-ambient-sm border border-outline-variant/25 opacity-0 translate-y-6 transition-all duration-700 ease-out hover:shadow-ambient-md">
           <span class="font-display text-6xl font-bold text-primary/10 absolute top-4 right-6 leading-none">01</span>
           <div class="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-5">
             <LayoutDashboard class="w-5 h-5" />
           </div>
-          <h3 class="font-body text-lg font-semibold text-on-surface mb-2">Design a system</h3>
-          <p class="font-body text-sm text-muted-foreground leading-relaxed">
+          <h3 class="font-body text-lg font-semibold text-on-container mb-2">Design a system</h3>
+          <p class="font-body text-sm text-on-container/70 leading-relaxed">
             Name its purpose, set a floor action you can always hit, and schedule when it runs. The floor is the minimum version that counts as a win.
           </p>
         </div>
 
-        <div data-stagger class="relative bg-surface-container-lowest rounded-2xl p-8 shadow-ambient-sm border border-border/20 opacity-0 translate-y-6 transition-all duration-700 ease-out hover:shadow-ambient-md">
+        <div data-stagger class="relative bg-surface-container-lowest rounded-2xl p-8 shadow-ambient-sm border border-outline-variant/25 opacity-0 translate-y-6 transition-all duration-700 ease-out hover:shadow-ambient-md">
           <span class="font-display text-6xl font-bold text-primary/10 absolute top-4 right-6 leading-none">02</span>
           <div class="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-5">
             <ClipboardCheck class="w-5 h-5" />
           </div>
-          <h3 class="font-body text-lg font-semibold text-on-surface mb-2">Execute daily</h3>
-          <p class="font-body text-sm text-muted-foreground leading-relaxed">
+          <h3 class="font-body text-lg font-semibold text-on-container mb-2">Execute daily</h3>
+          <p class="font-body text-sm text-on-container/70 leading-relaxed">
             Instances appear automatically. Mark full, floor, or missed, no decisions, just data. The system never asks if you feel like it.
           </p>
         </div>
 
-        <div data-stagger class="relative bg-surface-container-lowest rounded-2xl p-8 shadow-ambient-sm border border-border/20 opacity-0 translate-y-6 transition-all duration-700 ease-out hover:shadow-ambient-md">
+        <div data-stagger class="relative bg-surface-container-lowest rounded-2xl p-8 shadow-ambient-sm border border-outline-variant/25 opacity-0 translate-y-6 transition-all duration-700 ease-out hover:shadow-ambient-md">
           <span class="font-display text-6xl font-bold text-primary/10 absolute top-4 right-6 leading-none">03</span>
           <div class="w-12 h-12 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-5">
             <Repeat class="w-5 h-5" />
           </div>
-          <h3 class="font-body text-lg font-semibold text-on-surface mb-2">Review &amp; refine</h3>
-          <p class="font-body text-sm text-muted-foreground leading-relaxed">
+          <h3 class="font-body text-lg font-semibold text-on-container mb-2">Review &amp; refine</h3>
+          <p class="font-body text-sm text-on-container/70 leading-relaxed">
             Weekly reviews capture what broke and what changed. Every review produces an edit, the system evolves with you, not against you.
           </p>
         </div>
@@ -231,7 +238,7 @@
         </h2>
       </div>
 
-      <div class="bg-surface-container-lowest rounded-3xl p-8 md:p-12 shadow-ambient-sm border border-border/20">
+      <div class="bg-surface-container-lowest rounded-3xl p-8 md:p-12 shadow-ambient-sm border border-outline-variant/25">
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
           <div>
             <div class="flex items-center gap-3 mb-6">
@@ -239,17 +246,17 @@
                 <Target class="w-5 h-5" />
               </span>
               <div>
-                <h3 class="font-body text-base font-semibold text-on-surface">The floor action</h3>
-                <p class="font-body text-xs text-muted-foreground">The heart of the system</p>
+                <h3 class="font-body text-base font-semibold text-on-container">The floor action</h3>
+                <p class="font-body text-xs text-on-container/70">The heart of the system</p>
               </div>
             </div>
-            <p class="font-body text-sm text-muted-foreground leading-relaxed mb-5">
+            <p class="font-body text-sm text-on-container/70 leading-relaxed mb-5">
               Every system has a floor: the minimum version that counts as a win. Not the ideal version, the version that's achievable when you're tired, distracted, or running on empty.
             </p>
-            <p class="font-body text-sm text-muted-foreground leading-relaxed mb-6">
+            <p class="font-body text-sm text-on-container/70 leading-relaxed mb-6">
               Bad day? Hit the floor. Great day? Go full. The system never skips, it adjusts. A floor completion earns the same continuity as a full one.
             </p>
-            <div class="flex items-center gap-2 text-primary">
+            <div class="flex items-center gap-2 text-on-container">
               <CheckCircle class="w-4 h-4" />
               <span class="font-body text-sm font-semibold">The system works on your worst day, or it doesn't ship.</span>
             </div>
@@ -294,7 +301,7 @@
         No streaks to protect. No motivation required. Just your next floor action.
       </p>
       <a href="/sign-up"
-         class="mt-10 inline-flex items-center gap-2 bg-gradient-to-br from-primary to-primary-container text-on-primary px-10 py-4 rounded-2xl font-body font-semibold text-sm transition-all duration-200 hover:opacity-90 active:scale-[0.98] cursor-pointer no-underline shadow-ambient-md">
+         class="mt-10 inline-flex items-center gap-2 bg-primary text-on-primary px-10 py-4 rounded-2xl font-body font-semibold text-sm transition-all duration-200 hover:opacity-90 active:scale-[0.98] cursor-pointer no-underline shadow-ambient-md">
         Get started free
       </a>
     </div>

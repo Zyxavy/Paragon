@@ -40,6 +40,8 @@
   "dependencies": {
     "@lucide/svelte": "^1.25.0",
     "better-auth": "^1.6.23",
+    "dompurify": "^3.4.13",
+    "marked": "^18.0.9",
     "svelte-dnd-action": "^0.9.74"
   }
 }

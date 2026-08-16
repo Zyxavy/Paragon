@@ -1,6 +1,6 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import { createAuth } from './auth';
+import { getAuth } from './auth';
 import type { User, Session } from 'better-auth/types';
 import { requireAuth } from './middleware/require-auth';
 import { handleRecovery } from './lib/recovery';
@@ -24,7 +24,9 @@ import type { JournalRetryMessage } from './routes/journal-log';
 import linkListRoutes from './routes/link-list';
 import notesRoutes from './routes/notes';
 import attachmentsRoutes from './routes/attachments';
+import visualAidRoutes from './routes/visual-aid';
 import exportRoutes from './routes/export';
+import metricsRoutes from './routes/metrics';
 
 const app = new Hono<{ Bindings: CloudflareBindings; Variables: { user: User | null; session: Session | null } }>();
 
@@ -33,6 +35,9 @@ const allowedOrigins = ['http://localhost:5173', 'http://localhost:4173', 'https
 app.use('*', cors({ origin: allowedOrigins, credentials: true }));
 
 app.onError((err, c) => {
+  if (err instanceof SyntaxError) {
+    return c.json({ error: 'invalid_json', message: 'Request body must be valid JSON.' }, 400);
+  }
   console.error(`[error] ${err.message}`);
   const origin = c.req.header('origin') || '';
   const headers: Record<string, string> = {
@@ -42,16 +47,55 @@ app.onError((err, c) => {
   return c.json({ error: 'internal_error', message: 'An unexpected error occurred.' }, 500, headers);
 });
 
+const RECOVER_WINDOW_SEC = 15 * 60;
+const RECOVER_EMAIL_MAX = 5;
+const RECOVER_IP_MAX = 20;
+
+async function recordAttempt(key: string, max: number, windowSec: number): Promise<boolean> {
+  const cache = caches.default;
+  const url = `https://rate-limit.internal/${key}`;
+  const cached = await cache.match(url);
+  let count = 0;
+  if (cached) {
+    count = parseInt(cached.headers.get('X-Count') || '0', 10);
+  }
+  count += 1;
+  if (count > max) return false;
+  await cache.put(
+    new Request(url),
+    new Response('ok', {
+      headers: { 'Cache-Control': `max-age=${windowSec}`, 'X-Count': String(count) },
+    })
+  );
+  return true;
+}
+
 app.post('/api/auth/recover', async (c) => {
-  const { email, recovery_code, new_password } = await c.req.json();
-  const result = await handleRecovery(c.env.DB, email, recovery_code, new_password);
+  const body = await c.req.json<any>().catch(() => null);
+  if (!body || typeof body !== 'object') {
+    return c.json({ error: 'invalid_json', message: 'Request body must be valid JSON.' }, 400);
+  }
+
+  const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+  const ip = c.req.header('cf-connecting-ip')
+    || c.req.header('x-forwarded-for')?.split(',')[0]?.trim()
+    || 'unknown';
+
+  if (email && !(await recordAttempt(`recover:email:${email}`, RECOVER_EMAIL_MAX, RECOVER_WINDOW_SEC))) {
+    return c.json({ error: 'rate_limited', message: 'Too many attempts. Try again later.' }, 429);
+  }
+  if (!(await recordAttempt(`recover:ip:${ip}`, RECOVER_IP_MAX, RECOVER_WINDOW_SEC))) {
+    return c.json({ error: 'rate_limited', message: 'Too many attempts. Try again later.' }, 429);
+  }
+
+  const result = await handleRecovery(c.env.DB, email, body.recovery_code, body.new_password);
   const errorKey = result.status === 400 ? 'validation_error' : result.status === 401 ? 'invalid_credentials' : undefined;
   return c.json(errorKey ? { error: errorKey, message: result.message } : { message: result.message }, result.status as 200 | 400 | 401);
 });
 
 // Better Auth catch-all
 app.on(['POST', 'GET'], '/api/auth/*', (c) => {
-  const auth = createAuth(c.env);
+  const auth = getAuth(c.env);
   return auth.handler(c.req.raw);
 });
 
@@ -66,6 +110,12 @@ app.use('/api/*', async (c, next) => {
 
 // Systems route
 app.route('/api/systems', systemsRoutes);
+
+// Visual aid (upload/serve/delete)
+app.route('/api/systems', visualAidRoutes);
+
+// System metrics
+app.route('/api/systems/:system_id/metrics', metricsRoutes);
 
 // Schedules
 app.route('/api/systems/:system_id/schedules', schedulesRoutes);
@@ -86,9 +136,6 @@ app.route('/api/systems', systemInstanceRoutes);
 
 // Workspace
 app.route('/api/systems/:system_id/workspace', workspaceRoutes);
-
-// System export
-app.route('/api/systems/:system_id/export', exportRoutes);
 
 // System export
 app.route('/api/systems/:system_id/export', exportRoutes);
@@ -121,16 +168,14 @@ app.route('/api', reviewDayRoutes);
 // Placeholder
 app.get('/', (c) => c.text('Hello Hono!'));
 
-export default app;
-
-export async function scheduled(event: ScheduledEvent, env: CloudflareBindings, _ctx: ExecutionContext) {
+async function scheduled(event: ScheduledEvent, env: CloudflareBindings, _ctx: ExecutionContext) {
   const tomorrow = tomorrowManilaDate();
   console.log(`[cron] pre-generate instances date=${tomorrow}`);
   await generateInstancesForAllUsers(env.DB, tomorrow);
   console.log(`[cron] pre-generate complete date=${tomorrow}`);
 }
 
-export async function queue(
+async function queue(
     batch: MessageBatch<JournalRetryMessage>,
     env: CloudflareBindings,
     _ctx: ExecutionContext
@@ -143,10 +188,10 @@ export async function queue(
             const mongoUri = env.MONGODB_URI;
             if (!mongoUri) { msg.retry({ delaySeconds: 10 }); continue; }
             const client = await getMongoClient(mongoUri);
-            const collection = client.db().collection('journal_entries');
+            const collection = client.db().collection<{ _id: string }>('journal_entries');
 
             const result = await collection.updateOne(
-                { _id: entry_id as string },
+                { _id: entry_id },
                 {
                     $setOnInsert: {
                         system_id, instance_id, widget_id, user_id, text,
@@ -176,3 +221,9 @@ export async function queue(
         }
     }
 }
+
+export default {
+    fetch: (request: Request, env: CloudflareBindings, ctx: ExecutionContext) => app.fetch(request, env, ctx),
+    scheduled,
+    queue,
+};

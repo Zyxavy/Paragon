@@ -34,12 +34,17 @@
   let period = $derived(computePeriod());
   let instanceCounts = $state({ full: 0, floor: 0, missed: 0 });
   let loading = $state(true);
+  // Plain counter (not $state): bumped per effect run to discard stale responses.
+  let fetchSeq = 0;
 
   $effect(() => {
+    const seq = ++fetchSeq;
+    loading = true;
     getSystemInstances(data.system.id, {
       from: period.period_start,
       to: period.period_end,
     }).then(res => {
+      if (seq !== fetchSeq) return; // stale response — a newer fetch is in flight
       const counts = { full: 0, floor: 0, missed: 0 };
       for (const inst of res.instances) {
         if (inst.state === 'full') counts.full++;
@@ -47,7 +52,11 @@
         else if (inst.state === 'missed') counts.missed++;
       }
       instanceCounts = counts;
-    }).finally(() => { loading = false; });
+    }).catch(() => {
+      if (seq !== fetchSeq) return;
+    }).finally(() => {
+      if (seq === fetchSeq) loading = false;
+    });
   });
 </script>
 

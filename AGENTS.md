@@ -1,6 +1,4 @@
-# AGENTS.md — Paragon Coding Conventions
-
-**Implementation status:** Current
+# AGENTS.md 
 
 This file defines the conventions an AI coding assistant should follow when writing or editing code in this project. Read it at session start before any implementation work.
 
@@ -33,7 +31,7 @@ docs: update ADR 002 with hybrid service layer
 | Tool | Purpose | Key commands | Notes |
 |---|---|---|---|---|
 | **pnpm** | Package manager (not npm, not yarn) | `pnpm install`, `pnpm -r build`, `pnpm -r deploy` | |
-| **Vitest** | API integration tests (D1 + Workers runtime) | `pnpm --filter api test:integration` | 186 tests: smoke (3), recovery (2), auth (3), systems CRUD (16), calendar (32), schedules (12), instances (9), workspace (24), journal (9), reviews (10), templates (7), attachments (13) |
+| **Vitest** | API integration tests (D1 + Workers runtime) | `pnpm --filter api test:integration` | 227 API tests: smoke (3), recovery (2), auth (3), systems CRUD (26), calendar (32), schedules (12), instances (10), workspace (35), journal (13), reviews (10), templates (7), attachments (16), ai (6), export (6), metrics (6), system-content (11), parse unit (10), ai parse unit (19); plus web unit (55) and E2E (7) suites |
 | **Vitest** | Web unit tests (browser) | `pnpm --filter web test:unit` | Vitest with Playwright browser |
 | **Playwright** | E2E flows | `pnpm --filter web test:e2e` | Starts API (migrations applied) + preview; runs `*.e2e.ts` |
 | **dev:e2e** | Start API server for E2E | `pnpm --filter api dev:e2e` | Applies D1 migrations then starts `wrangler dev --port 8787` |
@@ -50,6 +48,32 @@ docs: update ADR 002 with hybrid service layer
 - Use `{#each}` blocks over array `.map()` in templates.
 - Use `{#if}` blocks over ternary `&&` in templates for conditional rendering.
 - Use `goto()` from `$app/navigation` for client-side navigation in event handlers, effects, and callbacks — not `throw redirect()`. Reason: `throw redirect()` is only guaranteed to work in load functions and form actions (SvelteKit catches it there). In event handlers or `$effect`, `throw redirect()` is undocumented behavior that can break across versions. Since this is a CSR-only app (SSR disabled), both produce the same result, and `goto()` is the documented API for browser-side navigation.
+
+
+You are able to use the Svelte MCP server, where you have access to comprehensive Svelte 5 and SvelteKit documentation. Here's how to use the available tools effectively:
+
+## Available Svelte MCP Tools:
+
+### 1. list-sections
+
+Use this FIRST to discover all available documentation sections. Returns a structured list with titles, use_cases, and paths.
+When asked about Svelte or SvelteKit topics, ALWAYS use this tool at the start of the chat to find relevant sections.
+
+### 2. get-documentation
+
+Retrieves full documentation content for specific sections. Accepts single or multiple sections.
+After calling the list-sections tool, you MUST analyze the returned documentation sections (especially the use_cases field) and then use the get-documentation tool to fetch ALL documentation sections that are relevant for the user's task.
+
+### 3. svelte-autofixer
+
+Analyzes Svelte code and returns issues and suggestions.
+You MUST use this tool whenever writing Svelte code before sending it to the user. Keep calling it until no issues or suggestions are returned.
+
+### 4. playground-link
+
+Generates a Svelte Playground link with the provided code.
+After completing the code, ask the user if they want a playground link. Only call this tool after user confirmation and NEVER if code was written to files in their project.
+
 
 ## Architecture Patterns
 
@@ -98,8 +122,9 @@ Shared application state lives in `packages/web/src/lib/stores/` as Svelte 5 run
 | Store file | Holds |
 |---|---|
 | `dashboard.svelte.ts` | Dashboard systems list, period info |
-| `workspace-editor-store.ts` | Active workspace layout, dirty state |
-| `toast-store.ts` | Toast notification queue |
+| `workspace-editor.svelte.ts` | Active workspace layout, dirty state |
+| `toast.svelte.ts` | Toast notification queue |
+| `theme.svelte.ts` | Active theme (`light`/`dark`), persisted to localStorage with system fallback |
 
 ### Auth
 

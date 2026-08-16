@@ -29,10 +29,12 @@ This document does not own:
 Per D1 Schema S3.3.1, a `widget_entries` row with `entry_type = 'log_meta'` does **not** hold the journal text itself. It holds a small JSON pointer:
 
 ```json
-{ "mongo_id": "64f1a2b3c4d5e6f7a8b9c0d1" }
+{ "mongo_id": "4f9c1a2b-3d4e-5f60-8a91-b2c3d4e5f607" }
 ```
 
-`mongo_id` is the string form of the `journal_entries` document's `_id` (a Mongo `ObjectId`). This is the entire seam: D1 knows *that* a journal entry exists and which instance it belongs to; Mongo knows what the entry actually says. Nothing else crosses this boundary.
+`mongo_id` is the string form of the `journal_entries` document's `_id`. The `_id` is **not** a Mongo `ObjectId` -- it is a UUID string, generated application-side as `crypto.randomUUID()` before insert (the same `TEXT` UUID convention D1 uses everywhere, ADR 002 S1.2), so a single code path produces IDs for both databases and re-insertion is idempotent by `_id` in the Queue consumer's `updateOne(..., upsert: true)`. This is the entire seam: D1 knows *that* a journal entry exists and which instance it belongs to; Mongo knows what the entry actually says. Nothing else crosses this boundary.
+
+**Fallback exception (migration `0018`):** when Mongo is unreachable at write time, the entry is stored as a `widget_entries` row with `entry_type = 'journal_entry'` and `data = { "text": "..." }` -- the full text lives in D1 until Mongo recovers. The `GET` read path merges both row types, so fallback entries never disappear from the UI (see S6).
 
 **Why the pointer isn't reversed** (i.e. why Mongo doesn't hold a `d1_widget_entry_id` instead): the `widget_entries` row is what the Dashboard's `workspace_snapshot` read cache resolves against (D1 Schema S3.3.1) -- D1 needs to know Mongo exists, but Mongo never needs to look anything up in D1. Denormalizing D1's `system_id`/`instance_id`/`widget_id`/`user_id` directly onto the Mongo document (S3.2 below) is what makes this one-directional -- a Mongo-native query never needs to round-trip to D1 first.
 
@@ -67,17 +69,19 @@ db.createCollection("journal_entries", {
 
 ```json
 {
-  "_id": ObjectId("64f1a2b3c4d5e6f7a8b9c0d1"),
-  "system_id": "sys_a1b2c3",
-  "instance_id": "inst_d4e5f6",
+  "_id": "4f9c1a2b-3d4e-5f60-8a91-b2c3d4e5f607",
+  "system_id": "0f8fad5b-d9cb-469f-a165-70867728950e",
+  "instance_id": "ec2b19c6-2c33-4e3a-8d38-3f9a3d7b1c22",
   "widget_id": "w_journal1",
-  "user_id": "usr_g7h8i9",
+  "user_id": "7c1d9f6a-8e2b-4a5f-9c3d-1e2f3a4b5c6d",
   "text": "Finished chapter 3. Slower going than expected but the concept finally clicked once I re-read the diagram.",
   "schema_version": 1,
   "created_at": ISODate("2026-07-01T13:45:00.000Z"),
   "updated_at": ISODate("2026-07-01T13:45:00.000Z")
 }
 ```
+
+**Validator status (as built):** the `$jsonSchema` validator below is **aspirational/documentation, not auto-enforced**. It is applied manually, once, via `mongosh` against a real cluster (`db.createCollection(...)` in S8) -- the Worker never enforces it, and MongoDB does **not** attach validators to collections it auto-creates on first write. If the validator has not been run against a given database, writes are accepted unvalidated. This is an accepted softness: the only writer is the API Worker, whose insert path is type-checked TypeScript, so the validator is a safety net for hand-edits, not a runtime gate.
 
 ### 3.2 Field notes
 
@@ -114,12 +118,15 @@ Every document carries `schema_version: 1` (an integer, not a string, matching D
 
 ## 6. Write Path (reference only)
 
-The write path, retry strategy, and failure handling are fully specified in ADR 001 S5.5 and are not repeated here. Summary for context only:
+The write path, retry strategy, and failure handling are fully specified in ADR 001 S5.5 and are not repeated here. **Summary amended by the D1 fallback layer (migration `0018_widget_entries_journal_entry.sql`):**
 
 1. Hono Worker attempts a direct MongoDB write on journal entry save.
-2. Success -> `200`, done.
-3. Failure -> entry payload enqueued to `paragon-journal-retry` (Cloudflare Queue), Worker returns `202 Accepted`, entry shows optimistically in the UI.
-4. A Queue consumer retries the write with exponential backoff; persistent failure goes to the dead-letter queue for manual inspection.
+2. Success -> `201`, plus a D1 `widget_entries` pointer row (`entry_type = 'log_meta'`, S3.3.1), done.
+3. Mongo failure -> the entry is written to D1 as a **full fallback row** (`entry_type = 'journal_entry'`, `data = { "text": "..." }`) so the entry is never lost while Mongo is down. Worker still returns `201` (the entry is durably persisted, just not in Mongo).
+4. Only if the D1 fallback write also fails -> entry payload enqueued to `paragon-journal-retry` (Cloudflare Queue), Worker returns `202 Accepted`.
+5. A Queue consumer retries the write with exponential backoff; persistent failure goes to the dead-letter queue for manual inspection.
+
+**Read path:** `GET` journal entries queries Mongo and D1 in parallel and merges the results (dedupe by entry id, newest-first, cursor pagination). Fallback `journal_entry` rows therefore surface in the UI immediately and remain visible after Mongo returns, side by side with Mongo-backed entries.
 
 **One document-shape implication worth noting here:** the queued retry payload must be the *complete* document (including `schema_version`, denormalized IDs, and timestamps) as originally constructed, not just a partial diff -- because the consumer performs the same insert the direct path would have, with no D1 round-trip available to reconstruct missing fields at retry time.
 
@@ -154,10 +161,10 @@ docker run -d -p 27017:27017 --name paragon-mongo-dev mongo:7
 
 | Environment | `MONGODB_URI` |
 |---|---|
-| Local dev | `mongodb://localhost:27017/Paragon` |
+| Local dev | `mongodb://localhost:27017/paragon` |
 | Production | Atlas cluster connection string, set via `wrangler secret put MONGODB_URI` |
 
-The local dev database needs no manual schema setup -- MongoDB creates the collection and applies the validator (S3.1) on first write if the collection doesn't already exist, or the validator can be applied once manually via `mongosh` against `mongodb://localhost:27017/Paragon` using the `createCollection` call in S3.1.
+The database name is lowercase **`paragon`** (matching the local URI -- no `Paragon` capitalization anywhere, including Atlas cluster naming, to avoid case-sensitivity confusion). The local dev database needs no manual schema setup -- the Worker's first journal write auto-creates the `journal_entries` collection. The S3.1 validator, if you want it enforced, must be applied **once manually** via `mongosh` against `mongodb://localhost:27017/paragon` using the `createCollection` call in S3.1 -- MongoDB does not attach it otherwise (S3.1's validator-status note).
 
 **Assumption for anyone working on journal-entry features locally:** the local Mongo container (or an equivalent local instance) must already be running before `wrangler dev` is started in `packages/api` -- there is no automatic startup wiring between the two in v1. If the container isn't running, journal-entry writes fail closed into the Cloudflare Queues retry path (S6) during local dev exactly as they would in production against a genuinely unreachable Atlas cluster -- which is a reasonable way to exercise that failure path locally, incidentally, but isn't a substitute for actually having Mongo up when testing the happy path.
 

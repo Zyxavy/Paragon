@@ -1,0 +1,3 @@
+ALTER TABLE systems ADD COLUMN reference_table TEXT NOT NULL DEFAULT '';
+ALTER TABLE systems ADD COLUMN success_metric TEXT NOT NULL DEFAULT '';
+ALTER TABLE systems ADD COLUMN visual_aid TEXT;

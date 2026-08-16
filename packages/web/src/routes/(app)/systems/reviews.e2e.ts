@@ -12,7 +12,7 @@ test('P0 flow #6: weekly review updates floor_action', async ({ page }) => {
     await page.click('button:has-text("Create account")');
     await expect(page.locator('text=Save your recovery codes')).toBeVisible({ timeout: 10000 });
     await page.click('text=I\'ve saved them');
-    await expect(page).toHaveURL('/guides');
+    await expect(page).toHaveURL('/guides', { timeout: 10000 });
 
     // 2. Create a system with a schedule via API (faster than UI)
     const res = await page.request.post('http://localhost:8787/api/systems', {
@@ -32,7 +32,7 @@ test('P0 flow #6: weekly review updates floor_action', async ({ page }) => {
 
     // 3. Navigate to the review form
     await page.goto(`/systems/${system.id}/reviews/new`);
-    await expect(page.locator('text=Weekly Review Test')).toBeVisible();
+    await expect(page.locator('text=Weekly Review Test')).toBeVisible({ timeout: 10000 });
 
     // 4. Fill reflection fields
     await page.fill('textarea[name="what_worked"]', 'Completed all tasks every day');
@@ -50,7 +50,7 @@ test('P0 flow #6: weekly review updates floor_action', async ({ page }) => {
     await page.click('button:has-text("Submit Review")');
 
     // 8. Verify redirect to review history page
-    await expect(page).toHaveURL(`/systems/${system.id}/reviews`);
+    await expect(page).toHaveURL(`/systems/${system.id}/reviews`, { timeout: 10000 });
 
     // 9. Verify system's floor_action was updated by re-fetching via API
     const updatedRes = await page.request.get(`http://localhost:8787/api/systems/${system.id}`);

@@ -33,9 +33,15 @@ export function createAuth(env: {
   BETTER_AUTH_SECRET?: string;
   BETTER_AUTH_URL?: string;
 }) {
+  const secret = env.BETTER_AUTH_SECRET || process.env.BETTER_AUTH_SECRET;
+  if (!secret) {
+    throw new Error(
+      'BETTER_AUTH_SECRET is required. Set it via wrangler secret put (production) or .dev.vars (local).'
+    );
+  }
   return betterAuth({
     database: env.DB,                    // native D1 — no adapter package needed in v1.5+
-    secret: env.BETTER_AUTH_SECRET || process.env.BETTER_AUTH_SECRET || '',
+    secret,
     baseURL: env.BETTER_AUTH_URL || process.env.BETTER_AUTH_URL || 'http://localhost:8787',
     emailAndPassword: {
       enabled: true,
@@ -46,14 +52,28 @@ export function createAuth(env: {
       updateAge: 60 * 60 * 24,           // refresh the cookie if used within the last day
     },
     trustedOrigins: [
-      'http://localhost:5173',                          // Vite dev server
-      'https://paragons.pages.dev',       // production frontend origin
+      'http://localhost:5173',       // Vite dev server
+      'https://paragons.pages.dev',  // production frontend origin
+      'http://localhost:4173',       // SvelteKit preview server (E2E tests)
     ],
   });
 }
+
+const authCache = new WeakMap<object, ReturnType<typeof createAuth>>();
+
+export function getAuth(env: Parameters<typeof createAuth>[0]): ReturnType<typeof createAuth> {
+  let auth = authCache.get(env);
+  if (!auth) {
+    auth = createAuth(env);
+    authCache.set(env, auth);
+  }
+  return auth;
+}
 ```
 
-`createAuth` is a function, not a module-level singleton, because `env.DB` is only available inside a request handler in the Workers runtime (bindings aren't accessible at module load time); it's called once per request from the Hono middleware in S1.2, not instantiated globally.
+**Fail-closed secret:** `createAuth` throws when `BETTER_AUTH_SECRET` is missing. `wrangler secret put BETTER_AUTH_SECRET` for production; `.dev.vars` for local dev (`dev:e2e` uses a dev-only value in `wrangler.e2e.jsonc`). Better Auth's implicit per-process random secret fallback is never relied on, so sessions survive cold starts.
+
+**Instance caching:** `env.DB` is only available inside a request handler in the Workers runtime (bindings aren't accessible at module load time), so the instance is created via `getAuth(c.env)` on demand and cached in a `WeakMap` keyed by the env object — created once per deployed environment, not per request.
 
 **Native D1 (v1.5+):** Better Auth v1.5+ supports Cloudflare D1 natively — you pass the D1 binding directly as `database: env.DB`. No separate adapter package (`@better-auth/d1`) is needed; it was never published. The import path `@better-auth/d1` shown in earlier versions of this doc was incorrect. See `packages/api/src/auth.ts` for the actual implementation.
 
@@ -207,7 +227,7 @@ Two tempting shortcuts both turn out to be wrong:
 
 ### 5.2 Recovery code implementation
 
-**Approach:** 3 recovery codes, generated at sign-up, stored plaintext in D1, displayed to the user with a "Save these somewhere safe" notice. Settings page shows them with a hide/show toggle.
+**Approach:** 3 recovery codes, generated at sign-up, stored **hashed at rest** (SHA-256 in `code_hash` via migration `0020_recovery_code_hash.sql` -- never plaintext), displayed to the user in full exactly once at generation time, then only ever shown masked. Codes expire **30 days after `created_at`**. The settings page shows them masked with a hide/show toggle; because only hashes are stored, full plaintext is never retrievable again -- only `POST /api/recovery-codes/generate` ever returns raw codes (and it deletes the old ones first).
 
 **`recovery_codes` table (defined in ADR 002 S2):**
 
@@ -215,7 +235,7 @@ Two tempting shortcuts both turn out to be wrong:
 CREATE TABLE recovery_codes (
   id          TEXT PRIMARY KEY,
   user_id     TEXT NOT NULL REFERENCES user(id) ON DELETE CASCADE,
-  code        TEXT NOT NULL,   -- plaintext, for settings display
+  code_hash   TEXT NOT NULL,   -- SHA-256 of the code; never the raw code
   created_at  TEXT NOT NULL,
   used_at     TEXT
 );
@@ -223,25 +243,25 @@ CREATE TABLE recovery_codes (
 CREATE INDEX idx_recovery_codes_user_id ON recovery_codes(user_id);
 ```
 
-**Code format:** `PARAGON-XXXX-XXXX` where each `X` is a random alphanumeric char (uppercase + digits). Generated with `crypto.randomUUID()` truncated to 8 chars per segment -- no external dependencies.
+**Code format:** `PARAGON-XXXX-XXXX` where each `X` is a **hex char (0-9A-F), 4 per segment** -- 16^4 = 65,536 possibilities per segment, 32 bits total. Generated with `crypto.randomUUID()` (hex by construction) truncated to 4-char segments -- no external dependencies. Combined with the per-email/per-IP rate limits on the recovery route (below), the search space is far larger than anything worth brute-forcing within a rate-limit window.
 
 **Sign-up flow:**
 
 1. Frontend calls `authClient.signUp.email({ email, password, name })` -- unchanged.
 2. On success, frontend calls `POST /api/recovery-codes/generate` (authenticated) which:
    - Deletes any existing unused codes for this user (safety net for re-generation).
-   - Generates 3 codes, inserts into `recovery_codes`.
-   - Returns `{ "codes": ["PARAGON-XXXX-XXXX", ...] }`.
+   - Generates 3 codes, computes each's SHA-256, inserts `code_hash` into `recovery_codes`.
+   - Returns `{ "codes": ["PARAGON-XXXX-XXXX", ...] }` -- the **only** moment raw codes are ever returned.
 3. Frontend displays all 3 codes in a green banner with a "I've saved these" button.
-4. User acknowledges; codes are never shown in full again outside settings.
+4. User acknowledges; codes are never shown in full again outside that banner.
 
 **Settings display:**
 
-`GET /api/recovery-codes` (authenticated) returns all unused codes for the user. Settings page renders them with a hide/show toggle (toggles between `PARAGON-****-****` and the full plaintext). A "Regenerate" button calls `POST /api/recovery-codes/generate` again.
+`GET /api/recovery-codes` (authenticated) returns all unused unexpired codes for the user, each **masked to its first segment** (`PARAGON-XXXX-****`). Settings renders them with a hide/show toggle; since codes are stored only as hashes, the toggle cannot (and does not) reveal full plaintext -- the mask is the permanent display form. A "Regenerate" button calls `POST /api/recovery-codes/generate` again, which rotates all three codes.
 
 **Recovery route (`POST /api/auth/recover`):**
 
-The recovery logic is extracted into a shared `handleRecovery` function in `packages/api/src/lib/recovery.ts` so it can be tested independently:
+The recovery logic is extracted into a shared `handleRecovery` function in `packages/api/src/lib/recovery.ts` so it can be tested independently. Rate limiting runs **in the handler before** `handleRecovery` is reached: per-email (5 attempts / 15 min) and per-IP (20 attempts / 15 min) windows return `429 { "error": "rate_limited" }`; a body that fails to parse returns `400 { "error": "invalid_json" }`. `handleRecovery` itself matches the submitted code by hashing it and comparing (timing-safe) against `code_hash`, rejects expired codes (`created_at` > 30 days), marks matched codes `used_at`, and hashes the new password via `better-auth/crypto`:
 
 ```typescript
 // packages/api/src/lib/recovery.ts

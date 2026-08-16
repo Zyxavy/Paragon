@@ -9,7 +9,7 @@
 
 <div class="sticky bottom-0 mt-6 bg-surface-container-lowest rounded-xl px-6 py-4 shadow-ambient-md
             flex items-center justify-between">
-    <span class="text-xs text-muted-foreground flex items-center gap-2">
+    <span class="text-xs text-on-container/70 flex items-center gap-2">
         {#if dirty}
             <span class="w-1.5 h-1.5 rounded-full bg-secondary" ></span>
             Unsaved changes
@@ -21,7 +21,7 @@
     <button
         onclick={onSave}
         disabled={!dirty}
-        class="bg-gradient-to-br from-primary to-primary-container text-on-primary
+        class="bg-primary text-on-primary
                px-6 py-2.5 rounded-2xl font-semibold text-sm
                transition-all duration-200 hover:opacity-90 active:scale-[0.98]
                disabled:opacity-40 disabled:cursor-not-allowed

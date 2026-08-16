@@ -3,7 +3,6 @@ import { applyD1Migrations } from 'cloudflare:test';
 import { describe, it, expect, beforeEach, inject } from 'vitest';
 import { Hono } from 'hono';
 import { createAuth } from '../auth';
-import { requireAuth } from '../middleware/require-auth';
 import systemsRoutes from '../routes/systems';
 import templatesRoutes from '../routes/templates';
 

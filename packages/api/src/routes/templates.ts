@@ -62,13 +62,13 @@ app.get('/', async (c) => {
     if (cursorParam) {
         const cursor = decodeCursor(cursorParam);
         if (cursor) {
-            conditions.push('(name > ? OR (name = ? AND id > ?))');
+            conditions.push('(name COLLATE NOCASE > ? OR (name COLLATE NOCASE = ? AND id > ?))');
             params.push(cursor.name, cursor.name, cursor.id);
         }
     }
 
     const { results } = await db.prepare(
-        `SELECT * FROM templates WHERE ${conditions.join(' AND ')} ORDER BY CASE WHEN source = 'built_in' THEN 0 ELSE 1 END, name COLLATE NOCASE ASC, id ASC LIMIT ?`
+        `SELECT * FROM templates WHERE ${conditions.join(' AND ')} ORDER BY name COLLATE NOCASE ASC, id ASC LIMIT ?`
     ).bind(...params, limit + 1).all<any>();
 
     const hasMore = results.length > limit;

@@ -61,13 +61,16 @@ describe('stripMarkdownFences', () => {
 describe('parseSystemDraft', () => {
   const validDraft = {
     name: 'Reading System',
+    domain: 'Learning',
     purpose: 'Build a consistent reading habit',
     philosophy: 'Every reader is a leader',
-    protocol: '1. Pick a book\n2. Read 10 pages\n3. Note takeaways',
+    protocol: '1. **Pick** a book\n2. **Read** 10 pages\n3. **Note** takeaways',
     floor_action: 'Read one paragraph',
     trigger: 'After I brush my teeth, I will open my book',
     barrier_list: ['Phone notifications', 'Too tired'],
-    environment_cue: 'Book on the nightstand'
+    environment_cue: 'Book on the nightstand',
+    reference_table: '| Rule | Value |\n|---|---|\n| Reading time | 10 pages |',
+    success_metric: 'I read at least 3 days a week.'
   };
 
   it('parses valid JSON with think block', () => {
@@ -103,6 +106,13 @@ describe('parseSystemDraft', () => {
       .toThrow(AIParseError);
     expect(() => parseSystemDraft(JSON.stringify(missingField)))
       .toThrow(/missing required field/);
+  });
+
+  it('throws AIParseError when a new field is missing', () => {
+    const missingNewField = { ...validDraft };
+    delete (missingNewField as Partial<typeof validDraft>).reference_table;
+    expect(() => parseSystemDraft(JSON.stringify(missingNewField)))
+      .toThrow(/missing required field: reference_table/);
   });
 
   it('parses JSON wrapped in markdown fences with think block', () => {

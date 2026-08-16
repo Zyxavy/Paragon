@@ -10,9 +10,9 @@
 
 {#if variant === 'sm'}
     <div class="flex gap-3 text-xs font-body">
-        <span class="text-blush">{counts.full} full</span>
-        <span class="text-secondary">{counts.floor} floor</span>
-        <span class="text-muted-foreground">{counts.missed} missed</span>
+        <span class="text-on-container/80">{counts.full} full</span>
+        <span class="text-on-container/80">{counts.floor} floor</span>
+        <span class="text-on-container/70">{counts.missed} missed</span>
     </div>
 {:else}
     <div class="grid grid-cols-3 gap-2">

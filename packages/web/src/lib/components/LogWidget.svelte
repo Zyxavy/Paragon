@@ -98,11 +98,11 @@
 
 {#if !instanceId}
     <div class="flex-1 flex items-center justify-center">
-        <p class="text-xs text-muted-foreground">No instance for today</p>
+        <p class="text-xs text-on-container/70">No instance for today</p>
     </div>
 {:else if !loaded}
     <div class="flex-1 flex items-center justify-center">
-        <p class="text-xs text-muted-foreground">Loading...</p>
+        <p class="text-xs text-on-container/70">Loading...</p>
     </div>
 {:else}
     <div class="flex flex-col h-full gap-2">
@@ -114,7 +114,7 @@
                 placeholder="Write your journal entry..."
                 class="flex-1 resize-none rounded-lg bg-surface-container-lowest px-3 py-2 text-sm outline-none
                        ring-1 ring-inset ring-outline focus:ring-2 focus:ring-primary
-                       placeholder:text-muted-foreground disabled:opacity-50 min-h-[60px]"
+                       placeholder:text-on-container/70 disabled:opacity-50 min-h-[60px]"
                 onkeydown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); } }}
             ></textarea>
             <button
@@ -135,12 +135,12 @@
         <!-- Entry list -->
         <div class="flex-1 overflow-y-auto flex flex-col gap-1.5">
             {#if entries.length === 0}
-                <p class="text-xs text-muted-foreground text-center mt-4">No journal entries yet</p>
+                <p class="text-xs text-on-container/70 text-center mt-4">No journal entries yet</p>
             {:else}
                 {#each entries as entry (entry.entry_id)}
                     <div class="rounded-lg bg-surface-container-lowest px-3 py-2">
-                        <p class="text-sm text-on-surface whitespace-pre-wrap break-words">{entry.text}</p>
-                        <p class="text-[10px] text-muted-foreground mt-1">
+                        <p class="text-sm text-on-container whitespace-pre-wrap break-words">{entry.text}</p>
+                        <p class="text-[10px] text-on-container/70 mt-1">
                             {formatDate(entry.created_at)} at {formatTime(entry.created_at)}
                         </p>
                     </div>
@@ -151,7 +151,7 @@
                 <button
                     onclick={loadMore}
                     disabled={loadingMore}
-                    class="text-xs text-primary hover:underline disabled:opacity-40 self-center"
+                    class="text-xs text-on-container hover:underline disabled:opacity-40 self-center"
                 >
                     {loadingMore ? 'Loading...' : 'Load more'}
                 </button>

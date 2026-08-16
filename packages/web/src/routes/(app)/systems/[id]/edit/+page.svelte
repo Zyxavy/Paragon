@@ -5,7 +5,7 @@
   let { data } = $props();
 </script>
 
-<div class="max-w-3xl mx-auto px-6 py-8">
+<div class="max-w-5xl mx-auto px-6 py-8">
   <div class="mb-10">
     <div class="flex items-center gap-3 mb-1">
       <a href="/systems/{data.system.id}" class="text-muted-foreground hover:text-on-surface transition-colors">

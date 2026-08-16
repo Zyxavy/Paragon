@@ -3,7 +3,39 @@
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
-		<meta name="description" content="Paragon — Systems that work on your worst day. A personal tool for designing, running, and refining repeatable processes." />
+		<meta name="description" content="Paragon: Systems that work on your worst day. A personal tool for designing, running, and refining repeatable processes." />
+		<script>
+			function isChunkLoadFailure(msg) {
+				return (
+					msg.indexOf('error loading dynamically imported module') !== -1 ||
+					msg.indexOf('Importing a module script failed') !== -1 ||
+					msg.indexOf('failed to fetch dynamically imported module') !== -1
+				);
+			}
+			window.addEventListener('error', function (e) {
+				var msg = e && e.message ? String(e.message) : '';
+				if (isChunkLoadFailure(msg)) {
+					window.location.reload();
+				}
+			});
+			window.addEventListener('unhandledrejection', function (e) {
+				var reason = e && e.reason;
+				var msg = reason && reason.message ? String(reason.message) : '';
+				if (isChunkLoadFailure(msg)) {
+					window.location.reload();
+				}
+			});
+		</script>
+		<script>
+			(function () {
+				var saved = null;
+				try { saved = localStorage.getItem('paragon-theme'); } catch (e) {}
+				var theme = saved === 'light' || saved === 'dark'
+					? saved
+					: (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+				document.documentElement.setAttribute('data-theme', theme);
+			})();
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">

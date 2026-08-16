@@ -2,6 +2,7 @@
     import { getSchedules, createSchedule, patchSchedule, deleteSchedule } from '$lib/api/schedules';
     import { ApiError } from '$lib/api/client';
     import type { Schedule } from '$lib/api/schedules';
+    import TimePicker from './TimePicker.svelte';
 
     let { systemId }: { systemId: string | null } = $props();
 
@@ -121,10 +122,10 @@
 </script>
 
 <div class="field-group">
-    <p class="font-body text-sm font-medium text-on-surface">Schedule</p>
+    <p class="font-body text-sm font-medium text-on-container">Schedule</p>
 
     {#if !systemId}
-        <p class="mt-1 text-sm font-body text-on-surface-muted">Save the system first to configure schedules.</p>
+        <p class="mt-1 text-sm font-body text-on-container/70">Save the system first to configure schedules.</p>
     {:else}
         {#each schedules as schedule (schedule.id)}
             <div class="flex items-center gap-2 mt-2 p-2 rounded-md border border-border bg-surface/50">
@@ -132,7 +133,7 @@
                     {#each DAY_LABELS as label, i}
                         <span
                             class="w-7 h-7 flex items-center justify-center rounded-full text-xs font-body
-                            {schedule.days_of_week & (1 << i) ? 'bg-primary text-white' : 'bg-surface text-on-surface-muted'}"
+                            {schedule.days_of_week & (1 << i) ? 'bg-primary text-on-primary' : 'bg-surface text-on-surface-muted'}"
                         >
                             {label}
                         </span>
@@ -159,31 +160,35 @@
         {/each}
 
         {#if showForm}
-            <div class="mt-3 p-3 rounded-md border border-border">
+            <div class="mt-3 p-3 rounded-md border border-outline-variant/25">
                 <div class="flex gap-1 mb-3">
                     {#each DAY_LABELS as label, i}
                         <button
                             type="button"
                             onclick={() => toggleDay(i)}
                             class="w-8 h-8 rounded-full text-xs font-body
-                            {selectedDays.includes(i) ? 'bg-primary text-white' : 'bg-surface text-on-surface border border-border'}"
+                            {selectedDays.includes(i) ? 'bg-primary text-on-primary' : 'bg-surface text-on-surface border border-border'}"
                         >
                             {label}
                         </button>
                     {/each}
                 </div>
                 <div class="flex gap-3 items-center">
-                    <input
-                        type="time"
-                        bind:value={startTime}
-                        class="block rounded-md border-border bg-surface text-on-surface px-3 py-2 text-sm font-body focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
-                    <span class="text-on-surface-muted text-sm font-body">to</span>
-                    <input
-                        type="time"
-                        bind:value={endTime}
-                        class="block rounded-md border-border bg-surface text-on-surface px-3 py-2 text-sm font-body focus:outline-none focus:ring-2 focus:ring-primary"
-                    />
+                    <div class="w-28">
+                        <TimePicker
+                            value={startTime}
+                            label="Start time"
+                            onchange={(v) => (startTime = v)}
+                        />
+                    </div>
+                    <span class="text-on-container/70 text-sm font-body">to</span>
+                    <div class="w-28">
+                        <TimePicker
+                            value={endTime}
+                            label="End time"
+                            onchange={(v) => (endTime = v)}
+                        />
+                    </div>
                 </div>
                 {#if formError}
                     <p class="mt-1 text-xs text-destructive font-body">{formError}</p>
@@ -193,14 +198,14 @@
                         type="button"
                         onclick={handleSave}
                         disabled={saving}
-                        class="rounded-md bg-primary px-3 py-1 text-xs font-body text-white disabled:opacity-50"
+                        class="rounded-md bg-primary px-3 py-1 text-xs font-body text-on-primary disabled:opacity-50"
                     >
                         {saving ? 'Saving...' : editingId ? 'Update' : 'Add'}
                     </button>
                     <button
                         type="button"
                         onclick={cancelForm}
-                        class="rounded-md border border-border px-3 py-1 text-xs font-body text-on-surface"
+                        class="rounded-md border border-outline-variant/25 px-3 py-1 text-xs font-body text-on-container"
                     >
                         Cancel
                     </button>
@@ -210,7 +215,7 @@
             <button
                 type="button"
                 onclick={openAddForm}
-                class="mt-2 rounded-md border border-border px-3 py-1 text-xs font-body text-on-surface hover:bg-surface"
+                class="mt-2 rounded-md border border-outline-variant/25 px-3 py-1 text-xs font-body text-on-container hover:bg-surface"
             >
                 + Add Schedule
             </button>

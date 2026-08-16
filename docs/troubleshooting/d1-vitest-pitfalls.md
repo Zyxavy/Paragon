@@ -519,7 +519,7 @@ Replace with the full config object:
 ```typescript
 return betterAuth({
   database: env.DB,
-  secret: env.BETTER_AUTH_SECRET || process.env.BETTER_AUTH_SECRET || '',
+  secret: env.BETTER_AUTH_SECRET || process.env.BETTER_AUTH_SECRET, // fail-closed: throws when missing
   baseURL: env.BETTER_AUTH_URL || process.env.BETTER_AUTH_URL || 'http://localhost:8787',
   emailAndPassword: { enabled: true, requireEmailVerification: false },
   session: { expiresIn: 60 * 60 * 24 * 30, updateAge: 60 * 60 * 24 },

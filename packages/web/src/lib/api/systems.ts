@@ -12,6 +12,9 @@ export interface System {
     trigger: string;
     barrier_list: string[];
     environment_cue: string;
+    reference_table: string;
+    success_metric: string;
+    visual_aid: string | null;
     template_origin: string | null;
     status: 'active' | 'paused' | 'archived';
     created_at: string;
@@ -33,6 +36,8 @@ export interface CreateSystemPayload {
     trigger?: string;
     barrier_list?: string[];
     environment_cue?: string;
+    reference_table?: string;
+    success_metric?: string;
     template_origin?: string | null;
 }
 
@@ -77,5 +82,50 @@ export async function archiveSystem(id: string): Promise<System> {
         method: 'POST',
         body: JSON.stringify({}),
     });
+}
+
+export async function pauseSystem(id: string): Promise<System> {
+    return apiFetch<System>(`/api/systems/${id}/pause`, {
+        method: 'POST',
+        body: JSON.stringify({}),
+    });
+}
+
+export async function unarchiveSystem(id: string): Promise<System> {
+    return apiFetch<System>(`/api/systems/${id}/unarchive`, {
+        method: 'POST',
+        body: JSON.stringify({}),
+    });
+}
+
+export async function deleteSystem(id: string): Promise<void> {
+    return apiFetch<void>(`/api/systems/${id}`, {
+        method: 'DELETE',
+    });
+}
+
+export interface SystemMetrics {
+    system_id: string;
+    floor_hold_rate: {
+        full: number;
+        floor: number;
+        missed: number;
+        percentage: number;
+    };
+    review_completion: {
+        completed: number;
+        total_due: number;
+        with_changes: number;
+    };
+    current_streak: {
+        current: number;
+        longest: number;
+    };
+    total_instances: number;
+    survival_weeks: number;
+}
+
+export async function getMetrics(id: string): Promise<SystemMetrics> {
+    return apiFetch<SystemMetrics>(`/api/systems/${id}/metrics`);
 }
 
