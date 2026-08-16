@@ -56,13 +56,13 @@ body {
 
 [data-theme="dark"] {
   color-scheme: dark;
-  --color-surface: #100904;
+  --color-surface: #141414;
   --color-surface-container-low: #503b31;
   --color-surface-container-lowest: #705d56;
   --color-on-surface: #ece2d0;
   --color-on-container: #ece2d0;
   --color-primary: #cebebe;
-  --color-on-primary: #100904;
+  --color-on-primary: #141414;
   --color-primary-container: #503b31;
   --color-secondary: #cebebe;
   --color-blush: #705d56;
