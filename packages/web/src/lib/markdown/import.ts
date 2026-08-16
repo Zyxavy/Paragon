@@ -20,6 +20,7 @@ const SECTION_MAP: Record<string, keyof ImportedSystemDraft> = {
   protocol: 'protocol',
   'floor-action': 'floor_action',
   trigger: 'trigger',
+  domain: 'domain',
   barriers: 'barrier_list',
   'environment-cue': 'environment_cue',
   'reference-table': 'reference_table',
@@ -65,6 +66,7 @@ export function parseSystemMarkdown(text: string): ImportResult {
   return {
     draft: {
       name,
+      domain: content('domain'),
       purpose: content('purpose'),
       philosophy: content('philosophy'),
       protocol: content('protocol'),

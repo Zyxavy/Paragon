@@ -20,6 +20,7 @@
       trigger?: string;
       barrier_list?: string[];
       environment_cue?: string;
+      domain?: string;
       reference_table?: string;
       success_metric?: string;
     };
@@ -49,6 +50,7 @@
       if (key !== lastDefaultsKey) {
         lastDefaultsKey = key;
         systemId = null;
+        domain = defaultsProp.domain ?? '';
         name = defaultsProp.name ?? '';
         purpose = defaultsProp.purpose ?? '';
         philosophy = defaultsProp.philosophy ?? '';
@@ -180,7 +182,7 @@
     <div class="bg-surface-container-lowest rounded-xl p-6 shadow-ambient-sm space-y-4">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div class="field-group">
-        <label for="name" class="font-body text-sm font-medium text-on-surface">Name *</label>
+        <label for="name" class="font-body text-sm font-medium text-on-container">Name *</label>
         <input id="name" type="text" bind:value={name} oninput={scheduleAutosave}
                class="mt-1 block w-full rounded-xl border-border bg-surface text-on-surface px-4 py-3 text-sm font-body
                       focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
@@ -189,7 +191,7 @@
       </div>
 
       <div class="field-group">
-        <label for="domain" class="font-body text-sm font-medium text-on-surface">Domain</label>
+        <label for="domain" class="font-body text-sm font-medium text-on-container">Domain</label>
         <input id="domain" type="text" bind:value={domain} oninput={scheduleAutosave}
                class="mt-1 block w-full rounded-xl border-border bg-surface text-on-surface px-4 py-3 text-sm font-body
                       focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
@@ -229,7 +231,7 @@
       <h2 class="font-body text-base font-semibold text-on-surface">Floor Action</h2>
     </div>
     <div class="bg-surface-container-lowest rounded-xl p-6 shadow-ambient-sm space-y-4">
-      <p class="font-body text-xs text-muted-foreground">
+      <p class="font-body text-xs text-on-container/70">
         The minimum viable action that counts as a win: must be doable on your worst day.
       </p>
 
@@ -242,7 +244,7 @@
           rows={2}
           placeholder="e.g. Read one page"
         />
-        <p class="mt-1 font-body text-xs text-muted-foreground">What would count as a win on your worst day?</p>
+        <p class="mt-1 font-body text-xs text-on-container/70">What would count as a win on your worst day?</p>
         {#if confirmError}
           <p class="mt-1 text-sm text-destructive font-body">{confirmError}</p>
         {/if}
@@ -250,7 +252,7 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div class="field-group">
-        <label for="trigger" class="font-body text-sm font-medium text-on-surface">Trigger (after I [X], I will [Y])</label>
+        <label for="trigger" class="font-body text-sm font-medium text-on-container">Trigger (after I [X], I will [Y])</label>
         <input id="trigger" type="text" bind:value={trigger} oninput={scheduleAutosave}
                class="mt-1 block w-full rounded-xl border-border bg-surface text-on-surface px-4 py-3 text-sm font-body
                       focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
@@ -280,7 +282,7 @@
     </div>
     <div class="bg-surface-container-lowest rounded-xl p-6 shadow-ambient-sm space-y-4">
       <div class="field-group">
-        <p class="font-body text-sm font-medium text-on-surface">What usually gets in the way?</p>
+        <p class="font-body text-sm font-medium text-on-container">What usually gets in the way?</p>
         <div class="flex flex-wrap gap-2 mt-1 mb-2">
           {#each barrier_list as barrier, i (i)}
             <span class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-body text-primary">
@@ -305,7 +307,7 @@
       </div>
 
       <div class="field-group">
-        <label for="environment_cue" class="font-body text-sm font-medium text-on-surface">Environment cue</label>
+        <label for="environment_cue" class="font-body text-sm font-medium text-on-container">Environment cue</label>
         <input id="environment_cue" type="text" bind:value={environment_cue} oninput={scheduleAutosave}
                class="mt-1 block w-full rounded-xl border-border bg-surface text-on-surface px-4 py-3 text-sm font-body
                       focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
@@ -337,19 +339,19 @@
       </div>
 
       <div class="field-group">
-        <label for="success_metric" class="font-body text-sm font-medium text-on-surface">Success Metric</label>
+        <label for="success_metric" class="font-body text-sm font-medium text-on-container">Success Metric</label>
         <input id="success_metric" type="text" bind:value={success_metric} oninput={scheduleAutosave}
                class="mt-1 block w-full rounded-xl border-border bg-surface text-on-surface px-4 py-3 text-sm font-body
                       focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
                       placeholder:text-muted-foreground transition-all duration-200"
                placeholder="e.g. 2 hours of deep reading" />
-        <p class="mt-1 font-body text-xs text-muted-foreground">What does 'full' look like? Shown next to the floor action.</p>
+        <p class="mt-1 font-body text-xs text-on-container/70">What does 'full' look like? Shown next to the floor action.</p>
       </div>
 
       <div class="field-group">
-        <p class="font-body text-sm font-medium text-on-surface">Visual Aid</p>
+        <p class="font-body text-sm font-medium text-on-container">Visual Aid</p>
         {#if !systemId}
-          <p class="mt-1 text-sm font-body text-on-surface-muted">Save the system first to upload a visual aid.</p>
+          <p class="mt-1 text-sm font-body text-on-container/70">Save the system first to upload a visual aid.</p>
         {:else}
           <VisualAidUpload systemId={systemId} value={visual_aid} onchange={(key) => (visual_aid = key)} />
         {/if}
@@ -364,7 +366,7 @@
       <h2 class="font-body text-base font-semibold text-on-surface">Schedule</h2>
     </div>
     <div class="bg-surface-container-lowest rounded-xl p-6 shadow-ambient-sm">
-      <p class="font-body text-xs text-muted-foreground mb-4">
+      <p class="font-body text-xs text-on-container/70 mb-4">
         How often does this system run? Each day has its own time window.
       </p>
       <SchedulePicker systemId={systemId} />

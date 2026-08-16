@@ -15,6 +15,7 @@
     trigger?: string;
     barrier_list?: string[];
     environment_cue?: string;
+    domain?: string;
     reference_table?: string;
     success_metric?: string;
   }
@@ -38,7 +39,7 @@
     formDefaults = { ...draft };
   }
 
-  function onImport(draft: SystemDraft & { reference_table: string; success_metric: string }) {
+  function onImport(draft: SystemDraft) {
     formDefaults = { ...draft };
   }
 </script>
