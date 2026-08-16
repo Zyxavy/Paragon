@@ -37,12 +37,12 @@
                                cursor-pointer"
                     >
                         <div class="flex items-center gap-2 mb-1">
-                            <span class="font-display font-semibold text-on-surface text-sm">{tpl.name}</span>
+                            <span class="font-display font-semibold text-on-container text-sm">{tpl.name}</span>
                             {#if tpl.source === 'built_in'}
                                 <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-primary/10 text-primary font-body">built-in</span>
                             {/if}
                         </div>
-                        <p class="text-xs text-on-surface-muted font-body line-clamp-2">
+                        <p class="text-xs text-on-container/70 font-body line-clamp-2">
                             {tpl.default_floor_action || tpl.default_purpose}
                         </p>
                     </button>

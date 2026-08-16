@@ -37,12 +37,12 @@
   style="-webkit-overflow-scrolling: touch; scrollbar-width: none;"
 >
   <div class="hidden lg:flex items-center justify-between mb-2 shrink-0" class:justify-center={collapsed}>
-    <h3 class="font-body text-xs font-semibold text-muted-foreground uppercase tracking-wide" class:hidden={collapsed}>Widgets</h3>
+    <h3 class="font-body text-xs font-semibold text-on-container/70 uppercase tracking-wide" class:hidden={collapsed}>Widgets</h3>
     <button
       onclick={toggleCollapsed}
       aria-label={collapsed ? 'Expand widget palette' : 'Collapse widget palette'}
       title={collapsed ? 'Expand widget palette' : 'Collapse widget palette'}
-      class="text-muted-foreground hover:text-on-surface transition-colors cursor-pointer bg-transparent border-none p-1 rounded"
+      class="text-on-container/70 hover:text-on-container transition-colors cursor-pointer bg-transparent border-none p-1 rounded"
     >
       {#if collapsed}
         <PanelLeftOpen class="w-4 h-4" />
@@ -56,7 +56,7 @@
       onclick={() => { if (!w.comingSoon) onAdd(w.type); }}
       disabled={w.comingSoon}
       title={w.comingSoon ? 'Coming in a future update' : `Add ${w.label}`}
-      class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-on-surface
+      class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-on-container
              shrink-0
              transition-all duration-150
              {w.comingSoon
@@ -65,10 +65,10 @@
              }"
       class:justify-center={collapsed}
     >
-      <w.icon class="w-4 h-4 {w.comingSoon ? 'text-muted-foreground' : 'text-primary'}" />
+      <w.icon class="w-4 h-4 {w.comingSoon ? 'text-on-container/70' : 'text-on-container'}" />
       <span class="font-medium whitespace-nowrap" class:hidden={collapsed}>{w.label}</span>
       {#if w.comingSoon}
-        <span class="ml-auto text-[10px] text-muted-foreground" class:hidden={collapsed}>Soon</span>
+        <span class="ml-auto text-[10px] text-on-container/70" class:hidden={collapsed}>Soon</span>
       {/if}
     </button>
   {/each}

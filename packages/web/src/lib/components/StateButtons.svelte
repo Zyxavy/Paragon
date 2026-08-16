@@ -10,9 +10,9 @@
     } = $props();
 
     const states = [
-        { value: 'full' as const, label: 'Full', activeClass: 'bg-blush/20 text-blush' },
-        { value: 'floor' as const, label: 'Floor', activeClass: 'bg-secondary/15 text-secondary' },
-        { value: 'missed' as const, label: 'Missed', activeClass: 'bg-muted text-muted-foreground' },
+        { value: 'full' as const, label: 'Full', activeClass: 'bg-on-container/15 text-on-container/80' },
+        { value: 'floor' as const, label: 'Floor', activeClass: 'bg-on-container/20 text-on-container' },
+        { value: 'missed' as const, label: 'Missed', activeClass: 'bg-muted text-on-container/70' },
     ];
 </script>
 
@@ -24,7 +24,7 @@
             class="rounded-full px-3 py-1.5 text-xs font-body font-medium transition-all duration-150
                    {currentState === s.value
                        ? s.activeClass
-                       : 'bg-surface-container-low text-muted-foreground hover:bg-surface-container-lowest'}
+                       : 'bg-surface-container-low text-on-container/70 hover:bg-surface-container-lowest'}
                    disabled:cursor-default"
         >
             {s.label}

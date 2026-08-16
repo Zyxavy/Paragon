@@ -20,8 +20,8 @@
 
 <div>
   <div class="flex items-center justify-between mb-1">
-    <label for={id} class="font-body text-sm font-medium text-on-surface">{label}</label>
-    <div class="flex rounded-lg border border-border overflow-hidden text-xs font-body">
+    <label for={id} class="font-body text-sm font-medium text-on-container">{label}</label>
+    <div class="flex rounded-lg border border-outline-variant/25 overflow-hidden text-xs font-body">
       <button
         type="button"
         onclick={() => toggleMode('write')}
@@ -63,6 +63,6 @@
   {/if}
 
   {#if hint}
-    <p class="mt-1 font-body text-xs text-muted-foreground">{hint}</p>
+    <p class="mt-1 font-body text-xs text-on-container/70">{hint}</p>
   {/if}
 </div>

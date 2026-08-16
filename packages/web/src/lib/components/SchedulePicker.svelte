@@ -122,10 +122,10 @@
 </script>
 
 <div class="field-group">
-    <p class="font-body text-sm font-medium text-on-surface">Schedule</p>
+    <p class="font-body text-sm font-medium text-on-container">Schedule</p>
 
     {#if !systemId}
-        <p class="mt-1 text-sm font-body text-on-surface-muted">Save the system first to configure schedules.</p>
+        <p class="mt-1 text-sm font-body text-on-container/70">Save the system first to configure schedules.</p>
     {:else}
         {#each schedules as schedule (schedule.id)}
             <div class="flex items-center gap-2 mt-2 p-2 rounded-md border border-border bg-surface/50">
@@ -160,7 +160,7 @@
         {/each}
 
         {#if showForm}
-            <div class="mt-3 p-3 rounded-md border border-border">
+            <div class="mt-3 p-3 rounded-md border border-outline-variant/25">
                 <div class="flex gap-1 mb-3">
                     {#each DAY_LABELS as label, i}
                         <button
@@ -181,7 +181,7 @@
                             onchange={(v) => (startTime = v)}
                         />
                     </div>
-                    <span class="text-on-surface-muted text-sm font-body">to</span>
+                    <span class="text-on-container/70 text-sm font-body">to</span>
                     <div class="w-28">
                         <TimePicker
                             value={endTime}
@@ -205,7 +205,7 @@
                     <button
                         type="button"
                         onclick={cancelForm}
-                        class="rounded-md border border-border px-3 py-1 text-xs font-body text-on-surface"
+                        class="rounded-md border border-outline-variant/25 px-3 py-1 text-xs font-body text-on-container"
                     >
                         Cancel
                     </button>
@@ -215,7 +215,7 @@
             <button
                 type="button"
                 onclick={openAddForm}
-                class="mt-2 rounded-md border border-border px-3 py-1 text-xs font-body text-on-surface hover:bg-surface"
+                class="mt-2 rounded-md border border-outline-variant/25 px-3 py-1 text-xs font-body text-on-container hover:bg-surface"
             >
                 + Add Schedule
             </button>

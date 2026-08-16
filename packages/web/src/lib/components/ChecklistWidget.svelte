@@ -40,13 +40,13 @@
 </script>
 
 {#if !instanceId}
-    <p class="text-sm text-muted-foreground text-center py-4">No instance for today</p>
+    <p class="text-sm text-on-container/70 text-center py-4">No instance for today</p>
 {:else if !loaded}
-    <p class="text-sm text-muted-foreground text-center py-4">Loading...</p>
+    <p class="text-sm text-on-container/70 text-center py-4">Loading...</p>
 {:else if steps.length === 0}
     <div class="flex flex-col items-center gap-2 py-4">
-        <p class="text-xs text-muted-foreground">No checklist items</p>
-        <p class="text-xs text-muted-foreground">Configure steps in the widget settings</p>
+        <p class="text-xs text-on-container/70">No checklist items</p>
+        <p class="text-xs text-on-container/70">Configure steps in the widget settings</p>
     </div>
 {:else}
     <div class="flex flex-col gap-1 py-1">
@@ -59,7 +59,7 @@
                     disabled={saving}
                     class="accent-primary w-4 h-4 rounded cursor-pointer"
                 />
-                <span class="text-sm font-body text-on-surface {step.checked ? 'line-through text-muted-foreground' : ''}">
+                <span class="text-sm font-body text-on-container {step.checked ? 'line-through text-on-container/70' : ''}">
                     {step.label}
                 </span>
             </label>

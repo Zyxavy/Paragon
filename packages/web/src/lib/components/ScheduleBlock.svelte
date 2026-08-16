@@ -38,12 +38,12 @@
             </span>
           {/each}
         </div>
-        <span class="text-sm font-body text-on-surface tabular-nums">
+        <span class="text-sm font-body text-on-container tabular-nums">
           {schedule.time_window_start} – {schedule.time_window_end}
         </span>
       </div>
     {/each}
   </div>
 {:else if loaded && !caught}
-  <p class="font-body text-sm text-muted-foreground">No schedule configured.</p>
+  <p class="font-body text-sm text-on-container/70">No schedule configured.</p>
 {/if}

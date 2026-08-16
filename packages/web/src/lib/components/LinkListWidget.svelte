@@ -73,9 +73,9 @@
 </script>
 
 {#if !workspaceId}
-    <p class="text-sm text-muted-foreground text-center py-4">Save workspace to add links</p>
+    <p class="text-sm text-on-container/70 text-center py-4">Save workspace to add links</p>
 {:else if !loaded}
-    <p class="text-sm text-muted-foreground text-center py-4">Loading...</p>
+    <p class="text-sm text-on-container/70 text-center py-4">Loading...</p>
 {:else}
     <div class="flex flex-col gap-2 py-1">
         {#each links as link, i}
@@ -85,18 +85,18 @@
                     placeholder="Label"
                     value={link.label}
                     oninput={(e) => updateLabel(i, e.currentTarget.value)}
-                    class="flex-1 text-sm px-2 py-1 rounded-lg border border-outline bg-surface-container-low text-on-surface placeholder:text-muted-foreground"
+                    class="flex-1 text-sm px-2 py-1 rounded-lg border border-outline bg-surface-container-low text-on-container placeholder:text-on-container/70"
                 />
                 <input
                     type="text"
                     placeholder="URL"
                     value={link.url}
                     oninput={(e) => updateUrl(i, e.currentTarget.value)}
-                    class="flex-[2] text-sm px-2 py-1 rounded-lg border border-outline bg-surface-container-low text-on-surface placeholder:text-muted-foreground"
+                    class="flex-[2] text-sm px-2 py-1 rounded-lg border border-outline bg-surface-container-low text-on-container placeholder:text-on-container/70"
                 />
                 <button
                     onclick={() => removeRow(i)}
-                    class="text-muted-foreground hover:text-destructive transition-colors p-1 rounded cursor-pointer"
+                    class="text-on-container/70 hover:text-destructive transition-colors p-1 rounded cursor-pointer"
                     aria-label="Remove link"
                 >
                     <Trash2 class="w-4 h-4" />
@@ -105,13 +105,13 @@
         {/each}
         <button
             onclick={addRow}
-            class="flex items-center gap-1 text-sm text-primary hover:text-primary-fade transition-colors mt-1 cursor-pointer"
+            class="flex items-center gap-1 text-sm text-on-container hover:text-primary-fade transition-colors mt-1 cursor-pointer"
         >
             <Plus class="w-3.5 h-3.5" />
             Add link
         </button>
         {#if saving}
-            <p class="text-xs text-muted-foreground text-right">Saving...</p>
+            <p class="text-xs text-on-container/70 text-right">Saving...</p>
         {/if}
     </div>
 

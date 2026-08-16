@@ -70,12 +70,12 @@
           {guide.number}
         </span>
         <div class="flex-1">
-          <h2 class="font-body text-lg font-semibold text-on-surface mb-2">{guide.title}</h2>
-          <p class="font-body text-sm text-muted-foreground mb-3">{guide.description}</p>
+          <h2 class="font-body text-lg font-semibold text-on-container mb-2">{guide.title}</h2>
+          <p class="font-body text-sm text-on-container/70 mb-3">{guide.description}</p>
           <ul class="flex flex-col gap-1">
             {#each guide.detail as point}
-              <li class="font-body text-xs text-muted-foreground flex items-start gap-2">
-                <span class="text-blush mt-0.5">&bull;</span>
+              <li class="font-body text-xs text-on-container/70 flex items-start gap-2">
+                <span class="text-on-container/80 mt-0.5">&bull;</span>
                 {point}
               </li>
             {/each}
@@ -106,20 +106,20 @@
             {source.number}
           </span>
           <span class="flex-1 min-w-0">
-            <span class="block font-body text-sm font-semibold text-on-surface truncate">{source.title}</span>
+            <span class="block font-body text-sm font-semibold text-on-container truncate">{source.title}</span>
             {#if source.creator}
-              <span class="block font-body text-xs text-muted-foreground">{source.creator}</span>
+              <span class="block font-body text-xs text-on-container/70">{source.creator}</span>
             {/if}
           </span>
-          <ExternalLink class="w-4 h-4 text-muted-foreground shrink-0" />
+          <ExternalLink class="w-4 h-4 text-on-container/70 shrink-0" />
         </a>
       {/each}
     </div>
   </div>
 
   <div class="mt-12 bg-surface-container-low rounded-xl p-8 text-center">
-    <h2 class="font-display text-xl font-semibold text-on-surface mb-3">Ready to start?</h2>
-    <p class="font-body text-sm text-muted-foreground mb-6 max-w-md mx-auto text-balance">
+    <h2 class="font-display text-xl font-semibold text-on-container mb-3">Ready to start?</h2>
+    <p class="font-body text-sm text-on-container/70 mb-6 max-w-md mx-auto text-balance">
       Skip the guides and build your first system right now.
     </p>
     <a

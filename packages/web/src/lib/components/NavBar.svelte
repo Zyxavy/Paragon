@@ -44,7 +44,7 @@
          bg-surface/70 backdrop-blur-xl rounded-full
          shadow-ambient-lg transition-shadow duration-200"
 >
-  {#each navItems as item}
+  {#each navItems as item (item.href)}
     <a
       href={item.href}
       data-sveltekit-preload-code="hover"
@@ -73,11 +73,11 @@
     <div class="flex items-center justify-between mb-6" class:justify-center={collapsed}>
       <a href="/dashboard" class="flex items-center gap-2 no-underline" aria-label="Paragon dashboard" class:hidden={collapsed}>
         <img src="/apple-touch-icon.png" alt="Paragon" class="w-8 h-8 rounded-xl shrink-0" />
-        <span class="font-display font-semibold text-primary text-lg" class:hidden={collapsed}>Paragon</span>
+        <span class="font-display font-semibold text-on-container text-lg" class:hidden={collapsed}>Paragon</span>
       </a>
       <button
         onclick={ontoggle}
-        class="text-muted-foreground hover:text-on-surface transition-colors cursor-pointer bg-transparent border-none p-1 rounded"
+        class="text-muted-foreground hover:text-on-container transition-colors cursor-pointer bg-transparent border-none p-1 rounded"
         aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
       >
         {#if collapsed}
@@ -87,15 +87,15 @@
         {/if}
       </button>
     </div>
-    {#each navItems.filter(n => n.href !== '/account') as item}
+    {#each navItems.filter(n => n.href !== '/account') as item (item.href)}
       <a
         href={item.href}
         data-sveltekit-preload-code="hover"
         class="flex items-center gap-2 px-3 py-2 rounded-lg font-body text-sm
                transition-colors duration-150
                {active.startsWith(item.href)
-                 ? 'bg-primary/10 text-primary font-semibold'
-                 : 'text-muted-foreground hover:text-on-surface hover:bg-muted'}"
+                 ? 'bg-primary/10 text-on-container font-semibold'
+                 : 'text-on-container/70 hover:text-on-container hover:bg-on-container/10'}"
         class:justify-center={collapsed}
         aria-current={active.startsWith(item.href) ? 'page' : undefined}
       >
@@ -106,15 +106,15 @@
   </div>
 
   <div class="flex flex-col gap-1 pt-4 p-6" class:min-w-48={!collapsed} class:min-w-0={collapsed}>
-    <span class="font-body text-xs text-muted-foreground truncate pb-1" class:hidden={collapsed} class:px-3={!collapsed}>{session?.user?.email}</span>
+    <span class="font-body text-xs text-on-container/70 truncate pb-1" class:hidden={collapsed} class:px-3={!collapsed}>{session?.user?.email}</span>
     <a
       href="/account"
       data-sveltekit-preload-code="hover"
       class="flex items-center gap-2 px-3 py-2 rounded-lg font-body text-sm
              transition-colors duration-150
              {active.startsWith('/account')
-               ? 'bg-primary/10 text-primary font-semibold'
-               : 'text-muted-foreground hover:text-on-surface hover:bg-muted'}"
+               ? 'bg-primary/10 text-on-container font-semibold'
+               : 'text-on-container/70 hover:text-on-container hover:bg-on-container/10'}"
       class:justify-center={collapsed}
     >
       <UserCircle class="w-4 h-4 shrink-0" />
@@ -122,8 +122,8 @@
     </a>
     <button
       onclick={async () => { await authClient.signOut(); invalidateCachedSession(); goto('/'); }}
-      class="text-left text-sm text-muted-foreground hover:text-on-surface px-3 py-2 rounded-lg font-body
-             transition-colors duration-150 hover:bg-muted cursor-pointer w-full"
+      class="text-left text-sm text-on-container/70 hover:text-on-container px-3 py-2 rounded-lg font-body
+             transition-colors duration-150 hover:bg-on-container/10 cursor-pointer w-full"
       class:hidden={collapsed}
     >
       Sign out

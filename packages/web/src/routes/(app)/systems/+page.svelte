@@ -93,13 +93,13 @@
         <div class="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4">
           <span class="text-2xl">+</span>
         </div>
-        <h2 class="font-body text-lg font-semibold text-on-surface mb-2">
+        <h2 class="font-body text-lg font-semibold text-on-container mb-2">
           {currentStatus === 'active' ? 'No active systems' :
            currentStatus === 'paused' ? 'No paused systems' :
            currentStatus === 'archived' ? 'No archived systems' :
            'No systems yet'}
         </h2>
-        <p class="font-body text-sm text-muted-foreground mx-auto mb-6">
+        <p class="font-body text-sm text-on-container/70 mx-auto mb-6">
           Create your first system to get started.
         </p>
         <a href="/systems/new"
@@ -118,7 +118,7 @@
                     transition-all duration-200 hover:shadow-ambient-md
                     cursor-pointer block">
             <div class="flex items-start justify-between mb-4">
-              <h2 class="font-body text-lg font-semibold text-on-surface">{system.name}</h2>
+              <h2 class="font-body text-lg font-semibold text-on-container">{system.name}</h2>
               {#if system.domain}
                 <span class="text-xs font-medium text-secondary bg-secondary/10 px-2.5 py-1 rounded-lg shrink-0 ml-2">
                   {system.domain}
@@ -127,16 +127,16 @@
             </div>
 
             {#if system.floor_action}
-              <p class="font-body text-sm text-muted-foreground line-clamp-2 mb-4">
+              <p class="font-body text-sm text-on-container/70 line-clamp-2 mb-4">
                 {system.floor_action}
               </p>
             {/if}
 
-            <div class="flex items-center justify-between text-xs text-muted-foreground border-t border-border/50 pt-4">
+            <div class="flex items-center justify-between text-xs text-on-container/70 border-t border-border/50 pt-4">
               {#if todayMap[system.id]}
                 <span class="flex items-center gap-1.5 capitalize">
                   <span class="w-2 h-2 rounded-full
-                    {todayMap[system.id].state === 'full' ? 'bg-blush' :
+                    {todayMap[system.id].state === 'full' ? 'bg-on-container/25' :
                      todayMap[system.id].state === 'floor' ? 'bg-secondary' :
                      todayMap[system.id].state === 'missed' ? 'bg-muted' : 'bg-surface-container-low'}">
                   </span>
@@ -149,7 +149,7 @@
                 </span>
               {/if}
               {#if todayMap[system.id]?.state === 'full'}
-                <span class="flex items-center gap-1.5 text-blush">
+                <span class="flex items-center gap-1.5 text-on-container/80">
                   <Sparkles class="w-3.5 h-3.5" />
                   Done
                 </span>

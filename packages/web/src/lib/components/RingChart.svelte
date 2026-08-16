@@ -35,5 +35,5 @@
 </svg>
 
 <div class="text-center">
-    <span class="text-xl font-bold text-on-surface">{Math.round(value)}%</span>
+    <span class="text-xl font-bold text-on-container">{Math.round(value)}%</span>
 </div>

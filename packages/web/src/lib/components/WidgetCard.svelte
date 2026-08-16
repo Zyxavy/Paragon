@@ -27,10 +27,10 @@
             flex flex-col relative"
      style="min-width: {minSize.w}px; min-height: {minSize.h}px;">
     <div class="drag-handle flex items-center justify-between mb-3 cursor-grab active:cursor-grabbing select-none" data-drag-handle={widget.id}>
-        <h4 class="font-body text-sm font-semibold text-on-surface">{widget.label}</h4>
+        <h4 class="font-body text-sm font-semibold text-on-container">{widget.label}</h4>
         <button
             onclick={() => onRemove(widget.id)}
-            class="text-muted-foreground hover:text-destructive transition-colors cursor-pointer p-0.5 rounded"
+            class="text-on-container/70 hover:text-destructive transition-colors cursor-pointer p-0.5 rounded"
             aria-label="Remove {widget.label}"
         >
             <X class="w-4 h-4" />
@@ -55,7 +55,7 @@
         <ProgressChartWidget {widget} />
     {:else}
         <div class="flex-1 flex items-center justify-center">
-            <p class="text-xs text-muted-foreground">Coming in a future update</p>
+            <p class="text-xs text-on-container/70">Coming in a future update</p>
         </div>
     {/if}
 

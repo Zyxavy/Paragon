@@ -8,9 +8,9 @@
 
 <div class="bg-surface-container-lowest rounded-xl p-4 shadow-ambient-sm flex flex-col gap-3">
     <div>
-        <h3 class="font-body font-semibold text-on-surface">{entry.system.name}</h3>
+        <h3 class="font-body font-semibold text-on-container">{entry.system.name}</h3>
         {#if entry.system.floor_action}
-            <p class="font-body text-xs text-on-surface-muted mt-0.5">{entry.system.floor_action}</p>
+            <p class="font-body text-xs text-on-container/70 mt-0.5">{entry.system.floor_action}</p>
         {/if}
     </div>
 

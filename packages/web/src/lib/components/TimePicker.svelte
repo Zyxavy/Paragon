@@ -50,7 +50,7 @@
                         type="button"
                         onclick={() => (draftHour = hour)}
                         class="rounded-md px-2 py-1 text-sm font-body tabular-nums cursor-pointer
-                               {draftHour === hour ? 'bg-primary text-on-primary' : 'bg-surface-container-low text-on-surface hover:bg-surface-container-lowest'}"
+                               {draftHour === hour ? 'bg-primary text-on-primary' : 'bg-surface-container-low text-on-container hover:bg-surface-container-lowest'}"
                     >
                         {String(hour).padStart(2, '0')}
                     </button>
@@ -65,7 +65,7 @@
                         type="button"
                         onclick={() => (draftMinute = minute)}
                         class="rounded-md px-2 py-1 text-sm font-body tabular-nums cursor-pointer
-                               {draftMinute === minute ? 'bg-primary text-on-primary' : 'bg-surface-container-low text-on-surface hover:bg-surface-container-lowest'}"
+                               {draftMinute === minute ? 'bg-primary text-on-primary' : 'bg-surface-container-low text-on-container hover:bg-surface-container-lowest'}"
                     >
                         {String(minute).padStart(2, '0')}
                     </button>

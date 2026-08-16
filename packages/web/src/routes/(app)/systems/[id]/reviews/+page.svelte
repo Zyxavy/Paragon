@@ -63,8 +63,8 @@
       <div class="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4">
         <span class="text-2xl">+</span>
       </div>
-      <h2 class="font-body text-lg font-semibold text-on-surface mb-2">No reviews yet</h2>
-      <p class="font-body text-sm text-muted-foreground max-w-sm mx-auto">
+      <h2 class="font-body text-lg font-semibold text-on-container mb-2">No reviews yet</h2>
+      <p class="font-body text-sm text-on-container/70 max-w-sm mx-auto">
         Complete your first review period to see your history here.
       </p>
     </div>
@@ -74,21 +74,21 @@
         <div class="bg-surface-container-lowest rounded-xl p-5 shadow-ambient-sm
                     transition-shadow duration-200 hover:shadow-ambient-md">
           <div class="flex items-center justify-between mb-3">
-            <span class="font-body text-sm font-semibold text-on-surface">
+            <span class="font-body text-sm font-semibold text-on-container">
               {review.period_start}, {review.period_end}
             </span>
-            <span class="font-body text-xs text-muted-foreground">
+            <span class="font-body text-xs text-on-container/70">
               {new Date(review.created_at).toLocaleDateString()}
             </span>
           </div>
           {#if review.what_worked}
-            <p class="font-body text-sm text-muted-foreground">
-              <span class="font-medium text-on-surface">Worked:</span> {review.what_worked}
+            <p class="font-body text-sm text-on-container/70">
+              <span class="font-medium text-on-container">Worked:</span> {review.what_worked}
             </p>
           {/if}
           {#if review.what_broke}
-            <p class="font-body text-sm text-muted-foreground mt-1">
-              <span class="font-medium text-on-surface">Broke:</span> {review.what_broke}
+            <p class="font-body text-sm text-on-container/70 mt-1">
+              <span class="font-medium text-on-container">Broke:</span> {review.what_broke}
             </p>
           {/if}
         </div>

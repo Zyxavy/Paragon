@@ -122,12 +122,12 @@
 
 <div class="flex flex-col gap-6">
   <section class="bg-surface-container-low rounded-xl p-6">
-    <h2 class="font-body text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-5">Blueprint</h2>
+    <h2 class="font-body text-xs font-semibold text-on-container/70 uppercase tracking-wide mb-5">Blueprint</h2>
     <dl class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-5">
       {#each fields as field}
         <div>
-          <dt class="font-body text-xs font-medium text-muted-foreground mb-1">{field.label}</dt>
-          <dd class="font-body text-sm text-on-surface leading-relaxed">
+          <dt class="font-body text-xs font-medium text-on-container/70 mb-1">{field.label}</dt>
+          <dd class="font-body text-sm text-on-container leading-relaxed">
             <MarkdownText content={field.value} />
           </dd>
         </div>
@@ -144,14 +144,14 @@
 
   {#if system.reference_table}
     <section class="bg-surface-container-low rounded-xl p-6">
-      <h2 class="font-body text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">Reference</h2>
+      <h2 class="font-body text-xs font-semibold text-on-container/70 uppercase tracking-wide mb-4">Reference</h2>
       <MarkdownText content={system.reference_table} />
     </section>
   {/if}
 
   {#if system.visual_aid}
     <section class="bg-surface-container-low rounded-xl p-6">
-      <h2 class="font-body text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">Visual Aid</h2>
+      <h2 class="font-body text-xs font-semibold text-on-container/70 uppercase tracking-wide mb-4">Visual Aid</h2>
       <img src={visualAidSrc(system.id, system.visual_aid)} crossorigin="use-credentials" alt="Visual aid"
            class="max-h-96 w-auto rounded-xl object-contain" />
     </section>
@@ -159,7 +159,7 @@
 
   {#if system.barrier_list.length > 0}
     <section class="bg-surface-container-low rounded-xl p-6">
-      <h2 class="font-body text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">Known Barriers</h2>
+      <h2 class="font-body text-xs font-semibold text-on-container/70 uppercase tracking-wide mb-4">Known Barriers</h2>
       <div class="flex flex-wrap gap-2">
         {#each system.barrier_list as barrier}
           <span class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-body font-medium text-primary">{barrier}</span>
@@ -169,7 +169,7 @@
   {/if}
 
   <section class="bg-surface-container-low rounded-xl p-6">
-    <h2 class="font-body text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-4">Schedule</h2>
+    <h2 class="font-body text-xs font-semibold text-on-container/70 uppercase tracking-wide mb-4">Schedule</h2>
     {#key system.id}
       <ScheduleBlock systemId={system.id} />
     {/key}
@@ -177,20 +177,20 @@
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <div class="bg-surface-container-lowest rounded-xl p-5 shadow-ambient-sm">
-      <h3 class="font-body text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Status</h3>
-      <p class="font-body text-sm text-on-surface capitalize">{system.status}</p>
+      <h3 class="font-body text-xs font-semibold text-on-container/70 uppercase tracking-wide mb-2">Status</h3>
+      <p class="font-body text-sm text-on-container capitalize">{system.status}</p>
     </div>
     <div class="bg-surface-container-lowest rounded-xl p-5 shadow-ambient-sm">
-      <h3 class="font-body text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2">Created</h3>
-      <p class="font-body text-sm text-on-surface">{new Date(system.created_at).toLocaleDateString()}</p>
+      <h3 class="font-body text-xs font-semibold text-on-container/70 uppercase tracking-wide mb-2">Created</h3>
+      <p class="font-body text-sm text-on-container">{new Date(system.created_at).toLocaleDateString()}</p>
     </div>
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
   <div class="bg-surface-container-low rounded-xl p-5 flex items-center justify-between">
     <div>
-      <h3 class="font-body text-sm font-semibold text-on-surface">System actions</h3>
-      <p class="font-body text-xs text-muted-foreground mt-0.5">
+      <h3 class="font-body text-sm font-semibold text-on-container">System actions</h3>
+      <p class="font-body text-xs text-on-container/70 mt-0.5">
         {system.status === 'active' ? 'Pause to temporarily hide from dashboard' :
          system.status === 'paused' ? 'Paused, not currently active' :
          'Archived'}
@@ -230,8 +230,8 @@
 
   <div class="bg-surface-container-low rounded-xl p-5 flex items-center justify-between">
     <div>
-      <h3 class="font-body text-sm font-semibold text-on-surface">Save as template</h3>
-      <p class="font-body text-xs text-muted-foreground mt-0.5">Reuse this system's structure for a new one</p>
+      <h3 class="font-body text-sm font-semibold text-on-container">Save as template</h3>
+      <p class="font-body text-xs text-on-container/70 mt-0.5">Reuse this system's structure for a new one</p>
     </div>
     <button onclick={() => { templateName = system.name; showTemplateModal = true; }}
             class="rounded-2xl bg-primary text-on-primary
@@ -244,8 +244,8 @@
 
   <div class="bg-surface-container-low rounded-xl p-5 flex items-center justify-between">
     <div>
-      <h3 class="font-body text-sm font-semibold text-on-surface">Export system</h3>
-      <p class="font-body text-xs text-muted-foreground mt-0.5">Download this system's data as a JSON file</p>
+      <h3 class="font-body text-sm font-semibold text-on-container">Export system</h3>
+      <p class="font-body text-xs text-on-container/70 mt-0.5">Download this system's data as a JSON file</p>
     </div>
     <button onclick={handleExport} disabled={exporting}
             class="rounded-2xl bg-primary text-on-primary

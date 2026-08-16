@@ -7,8 +7,8 @@
 
 {#if due.length === 0}
     <div class="bg-surface-container-low rounded-xl p-10 text-center">
-        <h2 class="font-body text-lg font-semibold text-on-surface mb-2">All caught up!</h2>
-        <p class="font-body text-sm text-muted-foreground">Every system has been reviewed for this period.</p>
+        <h2 class="font-body text-lg font-semibold text-on-container mb-2">All caught up!</h2>
+        <p class="font-body text-sm text-on-container/70">Every system has been reviewed for this period.</p>
     </div>
 {:else}
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">

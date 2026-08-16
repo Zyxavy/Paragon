@@ -7,7 +7,7 @@
 </script>
 
 <div
-  class="prose prose-sm max-w-none text-on-surface prose-headings:font-display prose-p:font-body prose-li:font-body prose-strong:font-semibold prose-table:text-sm prose-th:text-left"
+  class="prose prose-sm max-w-none text-on-container prose-headings:font-display prose-p:font-body prose-li:font-body prose-strong:font-semibold prose-table:text-sm prose-th:text-left"
   data-markdown
 >
   {@html html}

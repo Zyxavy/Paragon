@@ -108,7 +108,7 @@
 <div class="flex flex-col items-center gap-2 py-2 relative">
     {#if showSettings}
         <div class="flex items-center gap-2 bg-surface-container-low px-3 py-2 rounded-xl w-full">
-            <span class="text-xs text-muted-foreground shrink-0">Duration:</span>
+            <span class="text-xs text-on-container/70 shrink-0">Duration:</span>
             <input
                 type="number"
                 min="0"
@@ -119,25 +119,25 @@
                 aria-label="Duration in seconds"
                 class="w-20 text-sm text-center bg-surface-container-lowest rounded-lg px-2 py-1 outline-none ring-1 ring-inset ring-outline focus:ring-2 focus:ring-primary disabled:opacity-40"
             />
-            <span class="text-xs text-muted-foreground">sec (0 = stopwatch)</span>
+            <span class="text-xs text-on-container/70">sec (0 = stopwatch)</span>
             <button
                 onclick={() => showSettings = false}
-                class="ml-auto text-xs text-primary hover:underline cursor-pointer bg-transparent border-none"
+                class="ml-auto text-xs text-on-container hover:underline cursor-pointer bg-transparent border-none"
             >Done</button>
         </div>
     {/if}
 
     {#if !instanceId}
-        <p class="text-sm text-muted-foreground text-center py-2">No instance for today</p>
+        <p class="text-sm text-on-container/70 text-center py-2">No instance for today</p>
     {:else}
         <div class="flex items-center gap-2">
-            <span class="text-3xl font-display font-bold font-mono text-on-surface">
+            <span class="text-3xl font-display font-bold font-mono text-on-container">
                 {formatDuration(display)}
             </span>
             <button
                 onclick={() => showSettings = !showSettings}
                 disabled={timerState !== 'idle'}
-                class="text-muted-foreground hover:text-on-surface transition-colors cursor-pointer disabled:opacity-30 p-1 rounded bg-transparent border-none"
+                class="text-on-container/70 hover:text-on-container transition-colors cursor-pointer disabled:opacity-30 p-1 rounded bg-transparent border-none"
                 aria-label="Timer settings"
             >
                 <Settings class="w-4 h-4" />
@@ -168,7 +168,7 @@
                 Saving...
             </button>
         {/if}
-        <p class="text-xs text-muted-foreground">
+        <p class="text-xs text-on-container/70">
             Today: {formatDuration(todayTotal)}
         </p>
     {/if}

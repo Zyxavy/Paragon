@@ -62,8 +62,8 @@
       <div class="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4">
         <span class="text-2xl">+</span>
       </div>
-      <h2 class="font-body text-lg font-semibold text-on-surface mb-2">No systems yet</h2>
-      <p class="font-body text-sm text-muted-foreground max-w-sm mx-auto mb-6">
+      <h2 class="font-body text-lg font-semibold text-on-container mb-2">No systems yet</h2>
+      <p class="font-body text-sm text-on-container/70 max-w-sm mx-auto mb-6">
         Set up your first system to get started.
       </p>
       <a href="/systems/new"

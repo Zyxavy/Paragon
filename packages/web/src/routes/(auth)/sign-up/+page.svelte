@@ -49,39 +49,39 @@
     </a>
 
     <div class="w-full bg-surface-container-lowest rounded-xl p-8 shadow-ambient-md">
-      <h1 class="font-display text-xl font-semibold text-on-surface mb-6 text-center">Create your account</h1>
+      <h1 class="font-display text-xl font-semibold text-on-container mb-6 text-center">Create your account</h1>
 
       <form class="flex flex-col gap-5" onsubmit={handleSignUp}>
         <div class="flex flex-col gap-1.5">
-          <label for="name" class="font-body text-sm font-medium text-on-surface">Name</label>
+          <label for="name" class="font-body text-sm font-medium text-on-container">Name</label>
           <input id="name" type="text" bind:value={name}
-                 class="w-full px-4 py-3 bg-surface-container-low text-on-surface
-                        border border-border rounded-xl
+                 class="w-full px-4 py-3 bg-surface-container-low text-on-container
+                        border border-outline-variant/25 rounded-xl
                         transition-all duration-200
                         focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
-                        placeholder:text-muted-foreground disabled:opacity-50"
+                        placeholder:text-on-container/70 disabled:opacity-50"
                  placeholder="Your name" disabled={loading} />
         </div>
 
         <div class="flex flex-col gap-1.5">
-          <label for="email" class="font-body text-sm font-medium text-on-surface">Email</label>
+          <label for="email" class="font-body text-sm font-medium text-on-container">Email</label>
           <input id="email" type="email" bind:value={email}
-                 class="w-full px-4 py-3 bg-surface-container-low text-on-surface
-                        border border-border rounded-xl
+                 class="w-full px-4 py-3 bg-surface-container-low text-on-container
+                        border border-outline-variant/25 rounded-xl
                         transition-all duration-200
                         focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
-                        placeholder:text-muted-foreground disabled:opacity-50"
+                        placeholder:text-on-container/70 disabled:opacity-50"
                  placeholder="you@example.com" disabled={loading} />
         </div>
 
         <div class="flex flex-col gap-1.5">
-          <label for="password" class="font-body text-sm font-medium text-on-surface">Password</label>
+          <label for="password" class="font-body text-sm font-medium text-on-container">Password</label>
           <input id="password" type="password" bind:value={password}
-                 class="w-full px-4 py-3 bg-surface-container-low text-on-surface
-                        border border-border rounded-xl
+                 class="w-full px-4 py-3 bg-surface-container-low text-on-container
+                        border border-outline-variant/25 rounded-xl
                         transition-all duration-200
                         focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20
-                        placeholder:text-muted-foreground disabled:opacity-50"
+                        placeholder:text-on-container/70 disabled:opacity-50"
                  placeholder="At least 8 characters" disabled={loading} />
         </div>
 
@@ -117,19 +117,19 @@
       Each code can be used once to sign in if you lose access to your account.
     </p>
 
-    <div class="bg-surface-container-low rounded-xl p-4 mb-6 font-mono text-sm text-on-surface space-y-2">
+    <div class="bg-surface-container-low rounded-xl p-4 mb-6 font-mono text-sm text-on-container space-y-2">
       {#each codes as code}
         <div class="flex items-center justify-between">
           <span>{code}</span>
-          <span class="text-blush text-xs font-medium">unused</span>
+          <span class="text-on-container/80 text-xs font-medium">unused</span>
         </div>
       {/each}
     </div>
 
     <div class="flex flex-col gap-3">
       <button onclick={copyCodes}
-              class="w-full bg-surface-container-low text-on-surface py-3 rounded-2xl font-semibold
-                     transition-all duration-200 hover:bg-muted cursor-pointer">
+              class="w-full bg-surface-container-low text-on-container py-3 rounded-2xl font-semibold
+                     transition-all duration-200 hover:bg-on-container/10 cursor-pointer">
         Copy codes
       </button>
       <button onclick={handleDone}

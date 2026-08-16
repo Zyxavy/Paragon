@@ -52,19 +52,19 @@
 </script>
 
 {#if !workspaceId}
-    <p class="text-sm text-muted-foreground text-center py-4">Save workspace to add notes</p>
+    <p class="text-sm text-on-container/70 text-center py-4">Save workspace to add notes</p>
 {:else if !loaded}
-    <p class="text-sm text-muted-foreground text-center py-4">Loading...</p>
+    <p class="text-sm text-on-container/70 text-center py-4">Loading...</p>
 {:else}
     <div class="flex flex-col gap-1 flex-1">
         <textarea
             value={text}
             oninput={handleInput}
             placeholder="Write your notes here..."
-            class="flex-1 min-h-[100px] text-sm px-3 py-2 rounded-lg border border-outline bg-surface-container-low text-on-surface placeholder:text-muted-foreground resize-none"
+            class="flex-1 min-h-[100px] text-sm px-3 py-2 rounded-lg border border-outline bg-surface-container-low text-on-container placeholder:text-on-container/70 resize-none"
         ></textarea>
         {#if saving}
-            <p class="text-xs text-muted-foreground text-right">Saving...</p>
+            <p class="text-xs text-on-container/70 text-right">Saving...</p>
         {/if}
     </div>
 {/if}
