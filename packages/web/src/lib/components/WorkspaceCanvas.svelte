@@ -125,8 +125,8 @@
             onpointermove={handlePointerMove}
             onpointerup={handlePointerUp}
             onpointercancel={handlePointerUp}
-            class="relative w-full min-h-[80vh] bg-surface rounded-xl p-6 overflow-auto touch-action-none"
-            style={snapToGrid ? 'background-image: radial-gradient(circle, var(--color-outline) 0.5px, transparent 0.5px); background-size: 20px 20px;' : ''}
+            class="relative w-full min-h-[60vh] bg-surface-container-low border-2 border-dashed border-on-container/30 rounded-xl p-6 overflow-auto touch-action-none"
+            style={`resize: both; width: 100%; height: 80vh; min-width: 360px; min-height: 60vh; max-width: calc(100vw - 264px); max-height: calc(100vh - 11rem);${snapToGrid ? ' background-image: radial-gradient(circle, var(--color-outline) 0.5px, transparent 0.5px); background-size: 20px 20px;' : ''}`}
         >
             {#each widgets as widget (widget.id)}
                 <div
