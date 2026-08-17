@@ -55,7 +55,7 @@
   {:else}
     <div class="mt-1 rounded-xl border border-border bg-surface px-4 py-3 min-h-[80px]">
       {#if value.trim()}
-        <MarkdownText content={value} />
+        <MarkdownText content={value} tone="on-surface" />
       {:else}
         <p class="font-body text-sm text-muted-foreground">Nothing to preview yet.</p>
       {/if}
