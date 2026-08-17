@@ -24,6 +24,12 @@
     const file = input.files?.[0];
     if (!file) return;
 
+    if (file.size > 25 * 1024 * 1024) {
+      error = 'File exceeds the 25 MB size limit.';
+      input.value = '';
+      return;
+    }
+
     uploading = true;
     error = null;
 
@@ -70,6 +76,7 @@
       <input
         type="file"
         class="file-input"
+        accept="application/pdf,image/jpeg,image/png,image/webp,text/plain,text/csv,application/rtf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation"
         onchange={handleUpload}
         disabled={uploading}
       />
