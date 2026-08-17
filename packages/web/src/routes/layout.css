@@ -34,7 +34,7 @@
 
   --nav-height-mobile: 64px;
   --nav-height-desktop: 0px;
-  --nav-bottom-offset: calc(56px + 1.5rem);
+  --nav-bottom-offset: calc(56px + 1.5rem + env(safe-area-inset-bottom));
 }
 
 @keyframes skeleton-pulse {

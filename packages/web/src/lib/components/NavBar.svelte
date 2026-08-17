@@ -40,7 +40,7 @@
 
 <nav
   class="fixed bottom-[calc(env(safe-area-inset-bottom)_+_1rem)] left-1/2 -translate-x-1/2 z-50 xl:hidden
-         h-14 px-6 flex items-center gap-6 sm:gap-8
+         h-14 px-6 flex items-center gap-3 sm:gap-6
          bg-surface/70 backdrop-blur-xl rounded-full
          shadow-ambient-lg transition-shadow duration-200"
 >

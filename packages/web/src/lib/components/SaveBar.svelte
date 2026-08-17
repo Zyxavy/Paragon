@@ -7,7 +7,7 @@
     } = $props();
 </script>
 
-<div class="sticky bottom-[var(--nav-bottom-offset)] lg:bottom-0 mt-6 bg-surface-container-lowest rounded-xl px-6 py-4 shadow-ambient-md
+<div class="sticky bottom-[var(--nav-bottom-offset)] xl:bottom-0 mt-6 bg-surface-container-lowest rounded-xl px-6 py-4 shadow-ambient-md
             flex items-center justify-between">
     <span class="text-xs text-on-container/70 flex items-center gap-2">
         {#if dirty}
