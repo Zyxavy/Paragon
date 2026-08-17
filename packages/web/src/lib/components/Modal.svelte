@@ -6,7 +6,7 @@
         children?: import('svelte').Snippet;
     } = $props();
 
-    let titleId = $state(`modal-title-${crypto.randomUUID()}`);
+    const titleId = `modal-title-${crypto.randomUUID()}`;
 
     // Moves focus into the dialog on open and restores it to the previously
     // focused element when the dialog unmounts.

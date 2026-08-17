@@ -1,6 +1,6 @@
 <script lang="ts">
-    let { value, size = 64, id }: { value: number; size?: number; id?: string } = $props();
-    const prefix = $derived(id ?? crypto.randomUUID());
+    let { value, size = 64 }: { value: number; size?: number } = $props();
+    const prefix = crypto.randomUUID();
 
     const stroke = 12;
     const radius = $derived((size - stroke) / 2);

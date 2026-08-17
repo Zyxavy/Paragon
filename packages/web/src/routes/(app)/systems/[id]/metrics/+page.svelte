@@ -20,7 +20,7 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="bg-surface-container-lowest rounded-xl p-6 shadow-ambient-sm text-center">
                 <h3 class="font-body text-xs font-semibold text-on-container/70 uppercase tracking-wide mb-4">Floor Hold Rate</h3>
-                <RingChart value={metrics.floor_hold_rate.percentage} size={80} id="floor-hold" />
+                <RingChart value={metrics.floor_hold_rate.percentage} size={80} />
                 <p class="font-body text-xs text-on-container/70 mt-3">
                     {metrics.floor_hold_rate.full} full, {metrics.floor_hold_rate.floor} floor, {metrics.floor_hold_rate.missed} missed
                 </p>
@@ -43,7 +43,7 @@
 
             <div class="bg-surface-container-lowest rounded-xl p-6 shadow-ambient-sm text-center">
                 <h3 class="font-body text-xs font-semibold text-on-container/70 uppercase tracking-wide mb-4">Current Streak</h3>
-                <RingChart value={metrics.current_streak.longest > 0 ? (metrics.current_streak.current / metrics.current_streak.longest) * 100 : 0} size={80} id="streak" />
+                <RingChart value={metrics.current_streak.longest > 0 ? (metrics.current_streak.current / metrics.current_streak.longest) * 100 : 0} size={80} />
                 <p class="font-display text-xl font-semibold text-on-container mt-2">{metrics.current_streak.current} days</p>
                 <p class="font-body text-xs text-on-container/70">Best: {metrics.current_streak.longest} days</p>
             </div>
