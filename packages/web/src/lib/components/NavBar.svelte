@@ -39,7 +39,7 @@
 </script>
 
 <nav
-  class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 xl:hidden
+  class="fixed bottom-[calc(env(safe-area-inset-bottom)_+_1rem)] left-1/2 -translate-x-1/2 z-50 xl:hidden
          h-14 px-6 flex items-center gap-6 sm:gap-8
          bg-surface/70 backdrop-blur-xl rounded-full
          shadow-ambient-lg transition-shadow duration-200"
@@ -48,7 +48,8 @@
     <a
       href={item.href}
       data-sveltekit-preload-code="hover"
-      class="flex items-center gap-1.5 font-body text-sm
+      aria-label={item.label}
+      class="h-11 min-w-11 px-2 flex items-center justify-center gap-1.5 font-body text-sm
              transition-colors duration-150
              {active.startsWith(item.href)
                ? 'text-primary font-semibold'
