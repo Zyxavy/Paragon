@@ -26,8 +26,8 @@
 <NavBar session={data.session} collapsed={sidebarCollapsed} ontoggle={toggleSidebar} />
 <ToastContainer />
 <main
-  class="max-w-7xl mx-auto px-6 py-8 lg:pb-8"
-  style="min-height: 100dvh; padding-bottom: var(--nav-bottom-offset, calc(56px + 1.5rem));
+  class="max-w-7xl mx-auto px-6 pt-8 pb-[var(--nav-bottom-offset)] lg:pb-8"
+  style="min-height: 100dvh;
          margin-left: {isXl ? (sidebarCollapsed ? '4rem' : '12rem') : '0'};"
 >
   {@render children()}
