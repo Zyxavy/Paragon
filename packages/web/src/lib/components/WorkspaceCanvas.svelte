@@ -121,6 +121,8 @@
 
         <div
             bind:this={canvasEl}
+            role="application"
+            aria-label="Workspace canvas"
             onpointerdown={handlePointerDown}
             onpointermove={handlePointerMove}
             onpointerup={handlePointerUp}
