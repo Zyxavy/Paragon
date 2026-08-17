@@ -4,7 +4,12 @@
   import { Star, Clock, Moon, CalendarOff } from '@lucide/svelte';
 
   let { data } = $props();
-  let ready = $state(false);
+
+  // Load data is present synchronously at init in this CSR app; the store is
+  // a module singleton that keeps optimistic mark-state updates, so seed it
+  // once here rather than copying data in an effect.
+  // svelte-ignore state_referenced_locally
+  if (data.instances) dashboardStore.load(data.instances);
 
   let statusHeader = $derived.by(() => {
     const instances = dashboardStore.instances;
@@ -23,25 +28,9 @@
     }
     return { bg: 'bg-secondary/10', text: 'text-secondary', message: `${pending} system${pending !== 1 ? 's' : ''} left today`, icon: 'clock' };
   });
-
-  $effect(() => {
-    if (data.instances || data.error) {
-      if (data.instances) dashboardStore.load(data.instances);
-      ready = true;
-    }
-  });
 </script>
 
-{#if !ready}
-  <div class="flex flex-col gap-4 max-w-5xl mx-auto">
-    <div class="skeleton h-14 rounded-xl animate-pulse"></div>
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-      {#each Array(4) as _}
-        <div class="skeleton h-[180px] rounded-xl animate-pulse"></div>
-      {/each}
-    </div>
-  </div>
-{:else if data.error}
+{#if data.error}
   <div class="flex flex-col items-center justify-center py-20 gap-4">
     <div class="w-12 h-12 rounded-2xl bg-destructive/10 text-destructive flex items-center justify-center">
       <span class="text-xl font-bold">!</span>

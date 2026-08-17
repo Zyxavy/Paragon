@@ -8,18 +8,22 @@
   let { data } = $props();
 
   let store = new WorkspaceEditorStore();
-  let loaded = $state(false);
 
+  // Load data is present synchronously at init in this CSR app, so seed the
+  // store before the first render instead of copying data in an effect.
+  // svelte-ignore state_referenced_locally
+  store.load(data.systemId, data.layout);
+
+  // The component instance is reused when navigating between
+  // /systems/[id]/workspace pages, so re-ingest only when the system changes.
   $effect(() => {
-    store.load(data.systemId, data.layout);
-    loaded = true;
+    if (store.systemId !== data.systemId) {
+      store.load(data.systemId, data.layout);
+    }
   });
 </script>
 
-{#if !loaded}
-  <div class="skeleton h-[60vh] rounded-xl animate-pulse"></div>
-{:else}
-  {#if !data.instanceId && store.layout.widgets.length > 0}
+{#if !data.instanceId && store.layout.widgets.length > 0}
     <div class="flex items-start gap-2.5 rounded-xl bg-secondary/10 text-secondary px-4 py-3 mb-4">
       <CalendarX class="w-4 h-4 mt-0.5 shrink-0" />
       <p class="font-body text-xs leading-relaxed">
@@ -44,4 +48,3 @@
     </div>
   </div>
   <SaveBar dirty={store.dirty} onSave={() => store.save()} />
-{/if}

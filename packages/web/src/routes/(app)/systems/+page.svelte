@@ -1,30 +1,12 @@
 <script lang="ts">
   import { Clock, Sparkles } from '@lucide/svelte';
   import { goto } from '$app/navigation';
-  import type { System } from '$lib/api/systems';
 
   let { data } = $props();
 
-  let ready = $state(false);
-  let loadError = $state(false);
-  let systems: System[] = $state([]);
-  let next_cursor: string | null = $state(null);
-  let todayMap: Record<string, { state: string }> = $state({});
-  let currentStatus = $state('active');
-
-  $effect(() => {
-    if (data) {
-      ready = true;
-      if (data.systems) {
-        systems = data.systems;
-        next_cursor = data.next_cursor;
-        todayMap = data.todayMap ?? {};
-        currentStatus = data.currentStatus ?? 'active';
-      } else {
-        loadError = true;
-      }
-    }
-  });
+  const systems = $derived(data.systems);
+  const todayMap = $derived(data.todayMap ?? {});
+  const currentStatus = $derived(data.currentStatus ?? 'active');
 
   const statusTabs = [
     { label: 'All', value: 'all' },
@@ -38,33 +20,7 @@
   }
 </script>
 
-{#if !ready}
-  <div class="flex flex-col gap-4">
-    <div class="flex items-center justify-between mb-2">
-      <div class="skeleton h-8 w-40 rounded-xl animate-pulse"></div>
-      <div class="skeleton h-10 w-32 rounded-xl animate-pulse"></div>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {#each Array(4) as _}
-        <div class="skeleton h-[160px] rounded-xl animate-pulse"></div>
-      {/each}
-    </div>
-  </div>
-{:else if loadError}
-  <div class="flex flex-col items-center justify-center py-20 gap-4">
-    <div class="w-12 h-12 rounded-2xl bg-destructive/10 text-destructive flex items-center justify-center">
-      <span class="text-xl font-bold">!</span>
-    </div>
-    <h2 class="font-body text-lg font-semibold text-on-surface">Couldn't load systems</h2>
-    <p class="font-body text-sm text-muted-foreground text-center max-w-sm">Something went wrong. Try again.</p>
-    <button onclick={() => location.reload()}
-            class="bg-primary text-on-primary
-                   px-5 py-2.5 rounded-2xl font-semibold text-sm mt-2 cursor-pointer">
-      Try again
-    </button>
-  </div>
-{:else}
-  <div class="max-w-6xl">
+<div class="max-w-6xl">
     <div class="flex items-center justify-between mb-4">
       <h1 class="font-display text-2xl font-semibold text-on-surface">Your systems</h1>
       <a href="/systems/new"
@@ -159,9 +115,8 @@
         {/each}
       </div>
 
-      {#if next_cursor}
+      {#if data.next_cursor}
         <p class="mt-6 text-sm text-muted-foreground font-body text-center">(Pagination coming in a future slice)</p>
       {/if}
     {/if}
   </div>
-{/if}
