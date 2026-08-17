@@ -55,5 +55,7 @@
   <TemplatePicker ontemplateSelect={onTemplateSelect} />
   <AIDraftPanel ondraft={onAIDraft} />
   <ImportPanel onimport={onImport} />
-  <SystemForm defaults={formDefaults} />
+  {#key formDefaults}
+    <SystemForm defaults={formDefaults} />
+  {/key}
 </div>

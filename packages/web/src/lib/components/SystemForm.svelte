@@ -26,9 +26,14 @@
     };
     edit?: boolean;
   } = $props();
-  const snap = (() => ({ ...initial }))();
+  const snap = (() => ({
+    ...initial,
+    ...defaultsProp,
+    protocol: Array.isArray(defaultsProp?.protocol)
+      ? defaultsProp.protocol.join('\n')
+      : (defaultsProp?.protocol ?? initial?.protocol),
+  }))();
 
-  let lastDefaultsKey = $state<string | null>(null);
   let systemId = $state<string | null>(snap?.id ?? null);
   let name = $state(snap?.name ?? '');
   let domain = $state(snap?.domain ?? '');
@@ -43,27 +48,6 @@
   let reference_table = $state(snap?.reference_table ?? '');
   let success_metric = $state(snap?.success_metric ?? '');
   let visual_aid = $state<string | null>(snap?.visual_aid ?? null);
-
-  $effect(() => {
-    if (defaultsProp) {
-      const key = JSON.stringify(defaultsProp);
-      if (key !== lastDefaultsKey) {
-        lastDefaultsKey = key;
-        systemId = null;
-        domain = defaultsProp.domain ?? '';
-        name = defaultsProp.name ?? '';
-        purpose = defaultsProp.purpose ?? '';
-        philosophy = defaultsProp.philosophy ?? '';
-        protocol = Array.isArray(defaultsProp.protocol) ? defaultsProp.protocol.join('\n') : (defaultsProp.protocol ?? '');
-        floor_action = defaultsProp.floor_action ?? '';
-        trigger = defaultsProp.trigger ?? '';
-        barrier_list = defaultsProp.barrier_list ?? [];
-        environment_cue = defaultsProp.environment_cue ?? '';
-        reference_table = defaultsProp.reference_table ?? '';
-        success_metric = defaultsProp.success_metric ?? '';
-      }
-    }
-  });
 
   let confirmError = $state<string | null>(null);
   let saving = $state(false);
