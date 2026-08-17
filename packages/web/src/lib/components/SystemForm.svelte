@@ -374,7 +374,7 @@
   </section>
 
   <!-- Footer -->
-  <div class="flex items-center justify-between pt-4 border-t border-border/50">
+  <div class="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 pt-4 border-t border-border/50">
     <span class="text-xs text-muted-foreground flex items-center gap-1">
       {#if saved}
         Saved <Check class="w-3 h-3" />

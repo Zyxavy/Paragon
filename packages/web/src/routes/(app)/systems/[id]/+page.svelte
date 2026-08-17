@@ -187,7 +187,7 @@
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-  <div class="bg-surface-container-low rounded-xl p-5 flex items-center justify-between">
+  <div class="bg-surface-container-low rounded-xl p-5 flex flex-wrap items-center justify-between gap-3">
     <div>
       <h3 class="font-body text-sm font-semibold text-on-container">System actions</h3>
       <p class="font-body text-xs text-on-container/70 mt-0.5">

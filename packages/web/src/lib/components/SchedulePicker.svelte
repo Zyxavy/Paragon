@@ -128,7 +128,7 @@
         <p class="mt-1 text-sm font-body text-on-container/70">Save the system first to configure schedules.</p>
     {:else}
         {#each schedules as schedule (schedule.id)}
-            <div class="flex items-center gap-2 mt-2 p-2 rounded-md border border-border bg-surface/50">
+            <div class="flex flex-wrap items-center gap-2 mt-2 p-2 rounded-md border border-border bg-surface/50">
                 <div class="flex gap-1">
                     {#each DAY_LABELS as label, i}
                         <span

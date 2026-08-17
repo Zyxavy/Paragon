@@ -27,7 +27,7 @@
 {#if schedules.length > 0}
   <div class="flex flex-col gap-2">
     {#each schedules as schedule (schedule.id)}
-      <div class="flex items-center gap-3 rounded-lg border border-border bg-surface/50 px-3 py-2">
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-lg border border-border bg-surface/50 px-3 py-2">
         <div class="flex gap-1">
           {#each DAY_LABELS as label, i}
             <span
