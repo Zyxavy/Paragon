@@ -9,8 +9,9 @@
 
   let { data } = $props();
 
+  // svelte-ignore state_referenced_locally
   let codes = $state<RecoveryCode[]>(data.codes);
-  let loadError = $state<string | null>(data.error);
+  let loadError = $derived(data.error);
   let showRegenConfirm = $state(false);
   let regenError = $state<string | null>(null);
   let regenerating = $state(false);

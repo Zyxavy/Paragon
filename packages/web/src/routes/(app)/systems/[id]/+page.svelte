@@ -13,6 +13,7 @@
     let { data } = $props();
     // Shallow copy so reassignment of data.system by the layout doesn't alias
     // the local copy, while local mutations (pause/resume) keep working.
+    // svelte-ignore state_referenced_locally
     let system = $state({ ...data.system });
 
     // Re-sync from the server snapshot only when it is actually newer than the
