@@ -128,7 +128,7 @@
     {/if}
 
     {#if !instanceId}
-        <p class="text-sm text-on-container/70 text-center py-2">No instance for today</p>
+        <p class="text-sm text-on-container/70 text-center py-2">No instance today — add a schedule</p>
     {:else}
         <div class="flex items-center gap-2">
             <span class="text-3xl font-display font-bold font-mono text-on-container">

@@ -40,7 +40,7 @@
 </script>
 
 {#if !instanceId}
-    <p class="text-sm text-on-container/70 text-center py-4">No instance for today</p>
+    <p class="text-sm text-on-container/70 text-center py-4">No instance today — add a schedule</p>
 {:else if !loaded}
     <p class="text-sm text-on-container/70 text-center py-4">Loading...</p>
 {:else if steps.length === 0}

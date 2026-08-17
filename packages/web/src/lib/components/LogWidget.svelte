@@ -98,7 +98,7 @@
 
 {#if !instanceId}
     <div class="flex-1 flex items-center justify-center">
-        <p class="text-xs text-on-container/70">No instance for today</p>
+        <p class="text-xs text-on-container/70">No instance today — add a schedule</p>
     </div>
 {:else if !loaded}
     <div class="flex-1 flex items-center justify-center">

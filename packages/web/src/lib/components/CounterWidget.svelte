@@ -36,7 +36,7 @@
 </script>
 
 {#if !instanceId}
-    <p class="text-sm text-on-container/70 text-center py-4">No instance for today</p>
+    <p class="text-sm text-on-container/70 text-center py-4">No instance today — add a schedule</p>
 {:else}
     <div class="flex flex-col items-center gap-3 py-2">
         <span class="text-3xl font-display font-bold text-on-container">{total}</span>

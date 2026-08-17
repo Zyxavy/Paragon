@@ -1,7 +1,7 @@
 <script lang="ts">
   import { dashboardStore } from '$lib/stores/dashboard.svelte';
   import InstanceList from '$lib/components/InstanceList.svelte';
-  import { Star, Clock, Moon } from '@lucide/svelte';
+  import { Star, Clock, Moon, CalendarOff } from '@lucide/svelte';
 
   let { data } = $props();
   let ready = $state(false);
@@ -60,18 +60,35 @@
   <div class="max-w-md mx-auto">
     <div class="bg-surface-container-low rounded-xl p-10 text-center">
       <div class="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-4">
-        <span class="text-2xl">+</span>
+        {#if data.hasSystems}
+          <CalendarOff class="w-5 h-5" />
+        {:else}
+          <span class="text-2xl">+</span>
+        {/if}
       </div>
-      <h2 class="font-body text-lg font-semibold text-on-container mb-2">No systems yet</h2>
-      <p class="font-body text-sm text-on-container/70 max-w-sm mx-auto mb-6">
-        Set up your first system to get started.
-      </p>
-      <a href="/systems/new"
-         class="bg-primary text-on-primary
-                px-5 py-2.5 rounded-2xl font-semibold text-sm inline-block
-                transition-all duration-200 hover:opacity-90 active:scale-[0.98] cursor-pointer">
-        Create a system
-      </a>
+      {#if data.hasSystems}
+        <h2 class="font-body text-lg font-semibold text-on-container mb-2">No instances today</h2>
+        <p class="font-body text-sm text-on-container/70 max-w-sm mx-auto mb-6">
+          Systems generate daily instances on their scheduled days. Check a system's schedule to enable today.
+        </p>
+        <a href="/systems"
+           class="bg-primary text-on-primary
+                  px-5 py-2.5 rounded-2xl font-semibold text-sm inline-block
+                  transition-all duration-200 hover:opacity-90 active:scale-[0.98] cursor-pointer">
+          View systems
+        </a>
+      {:else}
+        <h2 class="font-body text-lg font-semibold text-on-container mb-2">No systems yet</h2>
+        <p class="font-body text-sm text-on-container/70 max-w-sm mx-auto mb-6">
+          Set up your first system to get started.
+        </p>
+        <a href="/systems/new"
+           class="bg-primary text-on-primary
+                  px-5 py-2.5 rounded-2xl font-semibold text-sm inline-block
+                  transition-all duration-200 hover:opacity-90 active:scale-[0.98] cursor-pointer">
+          Create a system
+        </a>
+      {/if}
     </div>
   </div>
 {:else}
