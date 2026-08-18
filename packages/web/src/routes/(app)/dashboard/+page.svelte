@@ -9,7 +9,7 @@
   // a module singleton that keeps optimistic mark-state updates, so seed it
   // once here rather than copying data in an effect.
   // svelte-ignore state_referenced_locally
-  if (data.instances) dashboardStore.load(data.instances);
+  dashboardStore.load(data.instances);
 
   let statusHeader = $derived.by(() => {
     const instances = dashboardStore.instances;
