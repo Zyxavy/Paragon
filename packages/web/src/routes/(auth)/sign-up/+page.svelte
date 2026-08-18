@@ -1,6 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { authClient } from '$lib/auth-client';
+  import { invalidateCachedSession } from '$lib/auth/session.svelte';
   import { regenerateRecoveryCodes } from '$lib/api/recovery-codes';
   import Modal from '$lib/components/Modal.svelte';
   import { LoaderCircle } from '@lucide/svelte';
@@ -23,6 +24,7 @@
       error = err.message || 'Could not create account.';
       return;
     }
+    invalidateCachedSession();
     try {
       // Raw codes are returned exactly once here — show them for safekeeping.
       const { codes: generated } = await regenerateRecoveryCodes();

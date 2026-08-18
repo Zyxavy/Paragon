@@ -1,6 +1,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { authClient } from '$lib/auth-client';
+  import { invalidateCachedSession } from '$lib/auth/session.svelte';
   import { LoaderCircle } from '@lucide/svelte';
 
   let email = $state('');
@@ -19,6 +20,7 @@
       error = err.message || 'Invalid email or password.';
       return;
     }
+    invalidateCachedSession();
     goto('/dashboard');
   }
 </script>
