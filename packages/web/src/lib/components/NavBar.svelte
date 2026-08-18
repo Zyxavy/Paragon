@@ -3,6 +3,7 @@
   import { goto } from '$app/navigation';
   import { authClient } from '$lib/auth-client';
   import { invalidateCachedSession } from '$lib/auth/session.svelte';
+  import { dashboardStore } from '$lib/stores/dashboard.svelte';
   import LayoutDashboard from '@lucide/svelte/icons/layout-dashboard';
   import Cog from '@lucide/svelte/icons/cog';
   import ClipboardCheck from '@lucide/svelte/icons/clipboard-check';
@@ -122,7 +123,7 @@
       <span class:hidden={collapsed}>Account</span>
     </a>
     <button
-      onclick={async () => { await authClient.signOut(); invalidateCachedSession(); goto('/'); }}
+      onclick={async () => { await authClient.signOut(); invalidateCachedSession(); dashboardStore.reset(); goto('/'); }}
       class="text-left text-sm text-on-container/70 hover:text-on-container px-3 py-2 rounded-lg font-body
              transition-colors duration-150 hover:bg-on-container/10 cursor-pointer w-full"
       class:hidden={collapsed}

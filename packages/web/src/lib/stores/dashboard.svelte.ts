@@ -9,6 +9,10 @@ class DashboardStore {
         this.instances = instances;
     }
 
+    reset() {
+        this.instances = [];
+    }
+
     async markState(instanceId: string, state: 'full' | 'floor' | 'missed') {
         const idx = this.instances.findIndex(i => i.id === instanceId);
         if (idx === -1) return;
