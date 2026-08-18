@@ -48,7 +48,7 @@
 
   <div class="mt-3">
     {#if aiUnavailable}
-      <p class="text-sm text-on-surface-muted font-body">
+      <p class="text-sm text-muted-foreground font-body">
         AI assist is unavailable today. You can still create your system manually, all fields are editable.
       </p>
     {:else}

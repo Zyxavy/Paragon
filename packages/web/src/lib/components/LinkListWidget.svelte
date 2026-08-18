@@ -111,7 +111,7 @@
         {/each}
         <button
             onclick={addRow}
-            class="flex items-center gap-1 text-sm text-on-container hover:text-primary-fade transition-colors mt-1 cursor-pointer"
+            class="flex items-center gap-1 text-sm text-on-container hover:text-primary/70 transition-colors mt-1 cursor-pointer"
         >
             <Plus class="w-3.5 h-3.5" />
             Add link

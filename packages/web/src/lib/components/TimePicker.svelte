@@ -92,7 +92,7 @@
     </div>
 
     {#if step === 'hour'}
-        <p class="text-xs font-body text-on-surface-muted mb-1 text-center">Hour</p>
+        <p class="text-xs font-body text-muted-foreground mb-1 text-center">Hour</p>
         <div class="grid grid-cols-4 gap-2" role="group" aria-label="Hour">
             {#each HOURS12 as hour (hour)}
                 <button
@@ -110,11 +110,11 @@
             {/each}
         </div>
     {:else}
-        <p class="text-xs font-body text-on-surface-muted mb-1 text-center">Minute</p>
+        <p class="text-xs font-body text-muted-foreground mb-1 text-center">Minute</p>
         <button
             type="button"
             onclick={() => (step = 'hour')}
-            class="block mx-auto mb-2 text-xs font-body text-on-surface-muted hover:text-on-surface cursor-pointer"
+            class="block mx-auto mb-2 text-xs font-body text-muted-foreground hover:text-on-surface cursor-pointer"
         >
             ← Hour
         </button>

@@ -38,7 +38,7 @@
           {#each DAY_LABELS as label, i (label)}
             <span
               class="w-6 h-6 flex items-center justify-center rounded-full text-[11px] font-body
-                     {schedule.days_of_week & (1 << i) ? 'bg-primary/15 text-primary font-semibold' : 'bg-surface text-on-surface-muted'}"
+                     {schedule.days_of_week & (1 << i) ? 'bg-primary/15 text-primary font-semibold' : 'bg-surface text-muted-foreground'}"
             >
               {label}
             </span>

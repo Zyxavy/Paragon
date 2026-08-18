@@ -109,7 +109,7 @@
                 onclick={() => snapToGrid = !snapToGrid}
                 class="flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg transition-colors cursor-pointer bg-transparent border-none"
                 class:bg-primary-container={snapToGrid}
-                class:text-on-primary-container={snapToGrid}
+                class:text-primary={snapToGrid}
                 class:text-muted-foreground={!snapToGrid}
                 class:hover:bg-surface-container-low={!snapToGrid}
                 aria-label="Toggle snap to grid"

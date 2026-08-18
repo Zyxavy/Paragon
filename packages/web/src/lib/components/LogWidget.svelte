@@ -138,7 +138,7 @@
 
         <!-- Error message -->
         {#if loadError}
-            <p class="text-xs text-error">{loadError}</p>
+            <p class="text-xs text-destructive">{loadError}</p>
         {/if}
 
         <!-- Entry list -->
