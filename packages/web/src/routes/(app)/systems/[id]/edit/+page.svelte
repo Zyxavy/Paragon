@@ -18,5 +18,7 @@
     </p>
   </div>
 
-  <SystemForm system={data.system} edit />
+  {#key data.system.id}
+    <SystemForm system={data.system} edit />
+  {/key}
 </div>
