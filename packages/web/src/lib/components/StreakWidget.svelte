@@ -7,8 +7,6 @@
 
     let { widget, systemId }: { widget: Widget; systemId: string | null } = $props();
 
-    const widgetId = (() => widget.id)();
-
     let current = $state(0);
     let longest = $state(0);
     let loaded = $state(false);

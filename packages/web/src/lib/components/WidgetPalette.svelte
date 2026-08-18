@@ -15,7 +15,9 @@
 
     function toggleCollapsed() {
         collapsed = !collapsed;
-        localStorage.setItem('palette-collapsed', String(collapsed));
+        try {
+            localStorage.setItem('palette-collapsed', String(collapsed));
+        } catch { /* storage unavailable */ }
     }
 
     const widgetTypes = [
