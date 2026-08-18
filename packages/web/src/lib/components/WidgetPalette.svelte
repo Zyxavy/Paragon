@@ -3,12 +3,15 @@
 
     let { onAdd }: { onAdd: (type: string) => void } = $props();
 
-    let collapsed = $state(false);
+    function readCollapsed(): boolean {
+        try {
+            return localStorage.getItem('palette-collapsed') === 'true';
+        } catch {
+            return false;
+        }
+    }
 
-    $effect(() => {
-        const stored = typeof localStorage !== 'undefined' ? localStorage.getItem('palette-collapsed') : null;
-        if (stored === 'true') collapsed = true;
-    });
+    let collapsed = $state(readCollapsed());
 
     function toggleCollapsed() {
         collapsed = !collapsed;
@@ -51,7 +54,7 @@
       {/if}
     </button>
   </div>
-  {#each widgetTypes as w}
+  {#each widgetTypes as w (w.type)}
     <button
       onclick={() => { if (!w.comingSoon) onAdd(w.type); }}
       disabled={w.comingSoon}
