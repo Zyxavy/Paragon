@@ -5,10 +5,13 @@
 
     let { widget, workspaceId }: { widget: Widget; workspaceId: string | null } = $props();
 
+    const widgetId = (() => widget.id)();
+
     let text = $state('');
     let loaded = $state(false);
     let saving = $state(false);
     let saveTimeout: ReturnType<typeof setTimeout> | null = null;
+    let fetchSeq = 0;
 
     $effect(() => {
         if (workspaceId) loadNotes();
@@ -21,13 +24,15 @@
     });
 
     async function loadNotes() {
+        const seq = ++fetchSeq;
         try {
-            const res = await getNotes(workspaceId!, widget.id);
+            const res = await getNotes(workspaceId!, widgetId);
+            if (seq !== fetchSeq) return;
             text = res.text;
         } catch {
             // 404 or network error, show empty state
         } finally {
-            loaded = true;
+            if (seq === fetchSeq) loaded = true;
         }
     }
 
@@ -41,7 +46,7 @@
         if (!workspaceId || saving) return;
         saving = true;
         try {
-            await putNotes(workspaceId!, widget.id, text);
+            await putNotes(workspaceId!, widgetId, text);
         } catch {
             // silent failure
         } finally {

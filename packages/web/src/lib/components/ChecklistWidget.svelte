@@ -5,22 +5,27 @@
 
     let { widget, instanceId }: { widget: Widget; instanceId: string | null } = $props();
 
+    const widgetId = (() => widget.id)();
+
     let steps = $state<ChecklistStep[]>([]);
     let loaded = $state(false);
     let saving = $state(false);
+    let fetchSeq = 0;
 
     $effect(() => {
         if (instanceId) loadChecklist();
     });
 
     async function loadChecklist() {
+        const seq = ++fetchSeq;
         try {
-            const res = await getChecklist(instanceId!, widget.id);
+            const res = await getChecklist(instanceId!, widgetId);
+            if (seq !== fetchSeq) return;
             steps = res.steps;
         } catch {
             // network error — show empty state
         } finally {
-            loaded = true;
+            if (seq === fetchSeq) loaded = true;
         }
     }
 
@@ -30,7 +35,7 @@
         steps = newSteps;
         saving = true;
         try {
-            await putChecklist(instanceId, widget.id, newSteps);
+            await putChecklist(instanceId, widgetId, newSteps);
         } catch {
             steps = steps.map((s, i) => i === index ? { ...s, checked: !s.checked } : s);
         } finally {
@@ -50,7 +55,7 @@
     </div>
 {:else}
     <div class="flex flex-col gap-1 py-1">
-        {#each steps as step, i}
+        {#each steps as step, i (i)}
             <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-surface-container-low cursor-pointer">
                 <input
                     type="checkbox"

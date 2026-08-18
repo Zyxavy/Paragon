@@ -7,6 +7,8 @@
 
     let {widget, instanceId, workspaceId}: {widget: Widget; instanceId: string | null; workspaceId: string | null } = $props();
 
+    const widgetId = (() => widget.id)();
+
     let entries = $state<JournalEntryResult[]>([]);
     let text = $state('');
     let loaded = $state(false);
@@ -14,11 +16,13 @@
     let nextCursor = $state<string | null>(null);
     let loadError = $state<string | null>(null);
     let loadingMore = $state(false);
+    let fetchSeq = 0;
     
     $effect(() => {
         if (instanceId) {
             loadEntries();
         } else {
+            fetchSeq++;
             entries = [];
             loaded = false;
             nextCursor = null;
@@ -26,28 +30,33 @@
     });
 
     async function loadEntries() {
+        const seq = ++fetchSeq;
         loaded = false;
         loadError = null;
         try {
-            const res = await getJournalEntries(instanceId!, widget.id);
+            const res = await getJournalEntries(instanceId!, widgetId);
+            if (seq !== fetchSeq) return;
             entries = res.entries;
             nextCursor = res.next_cursor;
         } catch (e) {
+            if (seq !== fetchSeq) return;
             if (e instanceof ApiError && e.status === 404) {
                 entries = [];
             } else {
                 loadError = 'Failed to load journal entries.';
             }
         } finally {
-            loaded = true;
+            if (seq === fetchSeq) loaded = true;
         }
     }
 
     async function loadMore() {
         if (!nextCursor || loadingMore) return;
         loadingMore = true;
+        const seq = fetchSeq;
         try {
-            const res = await getJournalEntries(instanceId!, widget.id, nextCursor);
+            const res = await getJournalEntries(instanceId!, widgetId, nextCursor);
+            if (seq !== fetchSeq) return;
             entries = [...entries, ...res.entries];
             nextCursor = res.next_cursor;
         } catch {
@@ -71,7 +80,7 @@
         text = '';
 
         try {
-            const result = await postJournalEntry(instanceId, widget.id, content);
+            const result = await postJournalEntry(instanceId, widgetId, content);
             entries = entries.map(e =>
                 e.entry_id === 'pending'
                     ? { entry_id: result.entry_id, text: content, created_at: result.created_at ?? e.created_at }
@@ -159,7 +168,7 @@
         </div>
 
         {#if workspaceId}
-            <AttachmentUpload {workspaceId} widgetId={widget.id} />
+            <AttachmentUpload {workspaceId} widgetId={widgetId} />
         {/if}
     </div>
 {/if}

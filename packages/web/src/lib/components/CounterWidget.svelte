@@ -5,17 +5,22 @@
 
     let { widget, instanceId }: { widget: Widget; instanceId: string | null } = $props();
 
+    const widgetId = (() => widget.id)();
+
     let total = $state(0);
     let saving = $state(false);
+    let fetchSeq = 0;
 
     $effect(() => {
         if (instanceId) loadToday();
     });
 
     async function loadToday() {
+        const seq = ++fetchSeq;
         const today = new Date().toLocaleDateString('en-CA');
         try {
-            const res = await getCounterLogs(widget.id, { from: today, to: today });
+            const res = await getCounterLogs(widgetId, { from: today, to: today });
+            if (seq !== fetchSeq) return;
             total = res.counter_logs.reduce((sum, log) => sum + log.value, 0);
         } catch { /* silent */ }
     }
@@ -25,7 +30,7 @@
         saving = true;
         total++;
         try {
-            await createCounterLog(instanceId, { widget_id: widget.id, value: 1 });
+            await createCounterLog(instanceId, { widget_id: widgetId, value: 1 });
         } catch (e) {
             total--;
             if (e instanceof ApiError) { /* silent */ }

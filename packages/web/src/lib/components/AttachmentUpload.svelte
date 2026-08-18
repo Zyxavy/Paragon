@@ -8,13 +8,17 @@
   let uploading = $state(false);
   let deletingId = $state<string | null>(null);
   let error = $state<string | null>(null);
+  let fetchSeq = 0;
 
   async function loadAttachments() {
+    const seq = ++fetchSeq;
     try {
       const res = await getAttachments(workspaceId, widgetId);
+      if (seq !== fetchSeq) return;
       attachments = res.attachments;
     } catch {
       // silently fail
+      if (seq !== fetchSeq) return;
       attachments = [];
     }
   }
@@ -89,7 +93,7 @@
 
   {#if attachments.length > 0}
     <ul class="attachment-list">
-      {#each attachments as attachment}
+      {#each attachments as attachment (attachment.id)}
         <li>
           <a href={getAttachmentUrl(attachment.id)} target="_blank" rel="noopener noreferrer">
             {attachment.filename}

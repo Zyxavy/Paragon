@@ -4,21 +4,26 @@
 
     let { widget }: { widget: Widget } = $props();
 
+    const widgetId = (() => widget.id)();
+
     let bars = $state<{ date: string; total: number }[]>([]);
     let loaded = $state(false);
     let error = $state(false);
+    let fetchSeq = 0;
 
     $effect(() => {
         loadChart();
     });
 
     async function loadChart() {
+        const seq = ++fetchSeq;
         const now = new Date();
         const to = now.toISOString().slice(0, 10);
         const from = new Date(now.getTime() - 6 * 86400000).toISOString().slice(0, 10);
 
         try {
-            const res = await getCounterLogs(widget.id, { from, to });
+            const res = await getCounterLogs(widgetId, { from, to });
+            if (seq !== fetchSeq) return;
 
             // Group by date and sum values
             const map = new Map<string, number>();
@@ -35,9 +40,10 @@
             }
             bars = result;
         } catch {
+            if (seq !== fetchSeq) return;
             error = true;
         } finally {
-            loaded = true;
+            if (seq === fetchSeq) loaded = true;
         }
     }
 
@@ -58,7 +64,7 @@
     <p class="text-sm text-on-container/70 text-center py-4">No data yet: start logging</p>
 {:else}
     <div class="flex items-end gap-1 justify-center h-[100px]">
-        {#each bars as bar}
+        {#each bars as bar (bar.date)}
             <div class="flex flex-col items-center gap-0.5 flex-1">
                 <svg width="100%" height={barHeight} class="overflow-visible">
                     <rect

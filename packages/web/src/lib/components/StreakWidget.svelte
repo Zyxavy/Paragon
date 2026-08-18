@@ -7,25 +7,31 @@
 
     let { widget, systemId }: { widget: Widget; systemId: string | null } = $props();
 
+    const widgetId = (() => widget.id)();
+
     let current = $state(0);
     let longest = $state(0);
     let loaded = $state(false);
     let error = $state(false);
+    let fetchSeq = 0;
 
     $effect(() => {
         if (systemId) loadStreak();
     });
 
     async function loadStreak() {
+        const seq = ++fetchSeq;
         try {
             const res = await getSystemInstances(systemId!, { limit: 100 });
+            if (seq !== fetchSeq) return;
             const result = calculateStreak(res.instances);
             current = result.current;
             longest = result.longest;
         } catch {
+            if (seq !== fetchSeq) return;
             error = true;
         } finally {
-            loaded = true;
+            if (seq === fetchSeq) loaded = true;
         }
     }
 </script>

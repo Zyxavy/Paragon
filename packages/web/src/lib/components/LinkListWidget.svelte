@@ -1,17 +1,21 @@
 <script lang="ts">
     import { Plus, Trash2 } from '@lucide/svelte';
     import { putLinkList, getLinkList } from '$lib/api/link-list';
-    import type { LinkEntry } from '$lib/api/link-list';
     import type { Widget } from '$lib/api/workspaces';
     import { AUTOSAVE_DEBOUNCE_MS } from '$lib/components/system-form.config';
     import AttachmentUpload from './AttachmentUpload.svelte';
 
     let { widget, workspaceId }: { widget: Widget; workspaceId: string | null } = $props();
 
-    let links = $state<LinkEntry[]>([]);
+    const widgetId = (() => widget.id)();
+
+    type LinkRow = { id: number; label: string; url: string };
+    let links = $state<LinkRow[]>([]);
     let loaded = $state(false);
     let saving = $state(false);
     let saveTimeout: ReturnType<typeof setTimeout> | null = null;
+    let nextRowId = 0;
+    let fetchSeq = 0;
 
     $effect(() => {
         if (workspaceId) loadLinks();
@@ -24,13 +28,15 @@
     });
 
     async function loadLinks() {
+        const seq = ++fetchSeq;
         try {
-            const res = await getLinkList(workspaceId!, widget.id);
-            links = res.links;
+            const res = await getLinkList(workspaceId!, widgetId);
+            if (seq !== fetchSeq) return;
+            links = res.links.map((l) => ({ id: ++nextRowId, label: l.label, url: l.url }));
         } catch {
             // 404 or network error, show empty state
         } finally {
-            loaded = true;
+            if (seq === fetchSeq) loaded = true;
         }
     }
 
@@ -43,7 +49,7 @@
     async function doSave() {
         saving = true;
         try {
-            await putLinkList(workspaceId!, widget.id, links);
+            await putLinkList(workspaceId!, widgetId, links.map(({ label, url }) => ({ label, url })));
         } catch {
             // silent failure — user can retry
         } finally {
@@ -53,7 +59,7 @@
     }
 
     function addRow() {
-        links = [...links, { label: '', url: '' }];
+        links = [...links, { id: ++nextRowId, label: '', url: '' }];
     }
 
     function removeRow(index: number) {
@@ -78,7 +84,7 @@
     <p class="text-sm text-on-container/70 text-center py-4">Loading...</p>
 {:else}
     <div class="flex flex-col gap-2 py-1">
-        {#each links as link, i}
+        {#each links as link, i (link.id)}
             <div class="flex items-center gap-2">
                 <input
                     type="text"
@@ -115,5 +121,5 @@
         {/if}
     </div>
 
-    <AttachmentUpload {workspaceId} widgetId={widget.id} />
+    <AttachmentUpload {workspaceId} widgetId={widgetId} />
 {/if}
