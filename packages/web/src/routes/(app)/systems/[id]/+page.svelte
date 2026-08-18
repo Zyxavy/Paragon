@@ -16,10 +16,12 @@
     // svelte-ignore state_referenced_locally
     let system = $state({ ...data.system });
 
-    // Re-sync from the server snapshot only when it is actually newer than the
-    // local copy, so in-page edits are never clobbered by a stale layout reload.
+    // Re-sync from the server snapshot only when the route system actually
+    // changed (component instance is reused across /systems/[id] navigations)
+    // or the snapshot is newer than the local copy, so in-page edits are
+    // never clobbered by a stale layout reload.
     $effect(() => {
-        if (data.system && data.system.updated_at > system.updated_at) {
+        if (data.system && (data.system.id !== system.id || data.system.updated_at > system.updated_at)) {
             system = data.system;
         }
     });
