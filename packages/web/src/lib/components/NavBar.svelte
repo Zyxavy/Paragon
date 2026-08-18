@@ -37,6 +37,8 @@
     { label: 'Account', href: '/account', icon: UserCircle },
   ];
 
+  const sidebarItems = navItems.filter(n => n.href !== '/account');
+
 </script>
 
 <nav
@@ -89,7 +91,7 @@
         {/if}
       </button>
     </div>
-    {#each navItems.filter(n => n.href !== '/account') as item (item.href)}
+    {#each sidebarItems as item (item.href)}
       <a
         href={item.href}
         data-sveltekit-preload-code="hover"
