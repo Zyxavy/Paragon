@@ -79,7 +79,7 @@ app.get('/workspaces/:workspace_id/link-list/:widget_id', async (c) => {
     `).bind(workspaceId, widgetId, ENTRY_TYPE).first<any>();
 
     if (!row) {
-        return c.json({ error: 'not_found', message: 'Link list not yet saved.' }, 404);
+        return c.json({ links: [] });
     }
 
     const data = typeof row.data === 'string' ? JSON.parse(row.data) : row.data;

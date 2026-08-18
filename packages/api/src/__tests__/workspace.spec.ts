@@ -456,9 +456,11 @@ describe('link-list routes', () => {
         app = getAuthedApp(userId);
     });
 
-    it('GET returns 404 when link list not yet saved', async () => {
+    it('GET returns 200 with empty links when link list not yet saved', async () => {
         const res = await app.fetch(new Request(`http://localhost/api/workspaces/${workspaceId}/link-list/link-widget`), env);
-        expect(res.status).toBe(404);
+        expect(res.status).toBe(200);
+        const body = await res.json() as any;
+        expect(body.links).toEqual([]);
     });
 
     it('PUT creates link list, GET returns it', async () => {
@@ -549,9 +551,11 @@ describe('notes routes', () => {
         app = getAuthedApp(userId);
     });
 
-    it('GET returns 404 when notes not yet saved', async () => {
+    it('GET returns 200 with empty text when notes not yet saved', async () => {
         const res = await app.fetch(new Request(`http://localhost/api/workspaces/${workspaceId}/notes/note-widget`), env);
-        expect(res.status).toBe(404);
+        expect(res.status).toBe(200);
+        const body = await res.json() as any;
+        expect(body.text).toBe('');
     });
 
     it('PUT creates notes, GET returns it', async () => {

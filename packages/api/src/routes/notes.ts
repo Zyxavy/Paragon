@@ -72,7 +72,7 @@ app.get('/workspaces/:workspace_id/notes/:widget_id', async (c) => {
     `).bind(workspaceId, widgetId, ENTRY_TYPE).first<any>();
 
     if (!row) {
-        return c.json({ error: 'not_found', message: 'Notes not yet saved.' }, 404);
+        return c.json({ text: '' });
     }
 
     const data = typeof row.data === 'string' ? JSON.parse(row.data) : row.data;

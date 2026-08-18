@@ -569,7 +569,7 @@ Request body: { "links": [ { "label": "Study guide PDF", "url": "https://..." } 
 Response 200: { "id": "...", "workspace_id": "...", "widget_id": "...", "entry_type": "link_list", "data": { "links": [...] }, "created_at": "..." }
 
 GET /api/workspaces/:workspace_id/link-list/:widget_id
-Response 200: same shape, or 404 if untouched (frontend renders empty list)
+Response 200: same shape, or `{ "links": [] }` if untouched (frontend renders empty list)
 ```
 
 `PUT`-only, same reasoning as Checklist (S6.3) — the client always sends the
@@ -584,7 +584,7 @@ Request body: { "text": "Free-form notes content" }
 Response 200: { "id": "...", "workspace_id": "...", "widget_id": "...", "entry_type": "notes", "data": { "text": "..." }, "created_at": "..." }
 
 GET /api/workspaces/:workspace_id/notes/:widget_id
-Response 200: same shape, or 404 if untouched (frontend renders empty editor)
+Response 200: same shape, or `{ "text": "" }` if untouched (frontend renders empty editor)
 ```
 
 Same `PUT`-only pattern. No `instance_id` in the path for either route —
