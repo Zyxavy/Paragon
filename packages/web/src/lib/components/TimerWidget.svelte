@@ -5,6 +5,8 @@
 
     let { widget, instanceId }: { widget: Widget; instanceId: string | null } = $props();
 
+    const widgetId = (() => widget.id)();
+
     type TimerState = 'idle' | 'running' | 'saving';
     let timerState = $state<TimerState>('idle');
     let elapsed = $state(0);
@@ -15,6 +17,7 @@
     let durationSecs = $state((() => widget.config?.duration_secs ?? 0)());
     let isCountdown = $derived(durationSecs > 0);
     let display = $derived(isCountdown ? Math.max(0, durationSecs - elapsed) : elapsed);
+    let fetchSeq = 0;
 
     function playBeep() {
         try {
@@ -35,13 +38,20 @@
 
     $effect(() => {
         if (instanceId) loadToday();
-        return () => { if (intervalId) clearInterval(intervalId); };
+    });
+
+    $effect(() => {
+        return () => {
+            if (intervalId) clearInterval(intervalId);
+        };
     });
 
     async function loadToday() {
+        const seq = ++fetchSeq;
         const today = new Date().toISOString().slice(0, 10);
         try {
-            const res = await getTimerSessions(widget.id, { from: today, to: today });
+            const res = await getTimerSessions(widgetId, { from: today, to: today });
+            if (seq !== fetchSeq) return;
             todayTotal = res.timer_sessions.reduce((sum, s) => sum + s.duration_secs, 0);
         } catch { /* silent */ }
     }
@@ -78,7 +88,7 @@
         const endedAt = new Date().toISOString();
         try {
             await createTimerSession(instanceId, {
-                widget_id: widget.id,
+                widget_id: widgetId,
                 duration_secs: isCountdown ? Math.min(elapsed, durationSecs) : elapsed,
                 started_at: startedAt!,
                 ended_at: endedAt,
