@@ -42,6 +42,8 @@
   let protocol = $state(snap?.protocol ?? '');
   let floor_action = $state(snap?.floor_action ?? '');
   let trigger = $state(snap?.trigger ?? '');
+  let barrierSeq = 0;
+  let barrier_keys = $state<number[]>(snap?.barrier_list?.map(() => ++barrierSeq) ?? []);
   let barrier_list = $state<string[]>(snap?.barrier_list ?? []);
   let barrierInput = $state('');
   let environment_cue = $state(snap?.environment_cue ?? '');
@@ -121,6 +123,7 @@
     const trimmed = barrierInput.trim();
     if (trimmed && !barrier_list.includes(trimmed)) {
       barrier_list = [...barrier_list, trimmed];
+      barrier_keys = [...barrier_keys, ++barrierSeq];
       barrierInput = '';
       scheduleAutosave();
     }
@@ -128,6 +131,7 @@
 
   function removeBarrier(index: number) {
     barrier_list = barrier_list.filter((_, i) => i !== index);
+    barrier_keys = barrier_keys.filter((_, i) => i !== index);
     scheduleAutosave();
   }
 
@@ -268,7 +272,7 @@
       <div class="field-group">
         <p class="font-body text-sm font-medium text-on-container">What usually gets in the way?</p>
         <div class="flex flex-wrap gap-2 mt-1 mb-2">
-          {#each barrier_list as barrier, i (i)}
+          {#each barrier_list as barrier, i (barrier_keys[i])}
             <span class="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-body text-primary">
               {barrier}
               <button type="button" onclick={() => removeBarrier(i)} class="hover:text-destructive">&times;</button>
